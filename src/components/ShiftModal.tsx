@@ -31,7 +31,7 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
     } else {
       setStartTime("09:00");
       setEndTime("18:00");
-      setBreakMins("60");
+      setBreakMins("0");
       setDeduction("0");
     }
     setError("");
