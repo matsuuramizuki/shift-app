@@ -1,0 +1,213 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+  min-height: 100vh;
+  padding-bottom: 80px; 
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.iconBtn {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cards */
+.summaryGrid {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardLabel {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.cardValue {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--primary);
+  margin-top: 8px;
+}
+
+/* Calendar */
+.calendarContainer {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.dayLabel {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.dayCell {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  position: relative;
+  background: rgba(255,255,255,0.05);
+}
+
+.dayCell.empty {
+  background: transparent;
+  pointer-events: none;
+}
+
+.dayCell.today {
+  border: 1px solid var(--primary);
+}
+
+.dayCell.hasShift {
+  background: var(--primary-variant);
+  color: white;
+}
+
+.shiftIndicator {
+  font-size: 10px;
+  color: var(--secondary);
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+/* Modals */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.modalContent {
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 24px;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.inputGroup label {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.inputGroup input {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  color: white;
+  width: 100%;
+}
+
+.errorText {
+  color: var(--error);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: #000;
+  font-weight: bold;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+}
+
+.btnDanger {
+  background: transparent;
+  border: 1px solid var(--error);
+  color: var(--error);
+  font-weight: bold;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+}
+
+/* Chart */
+.chartContainer {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  min-height: 250px;
+  margin-bottom: 24px;
+}
+
+.chartTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
