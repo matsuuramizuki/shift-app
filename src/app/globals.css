@@ -24,8 +24,16 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-svg, .recharts-wrapper, .recharts-surface {
+.recharts-wrapper, 
+.recharts-wrapper *, 
+.recharts-surface, 
+.recharts-surface * {
   outline: none !important;
+}
+
+text {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 body {
