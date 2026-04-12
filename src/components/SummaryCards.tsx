@@ -2,7 +2,7 @@ import React from 'react';
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
 import { calculateSalary } from "@/lib/calc";
-import { startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
+import { startOfMonth, endOfMonth, isWithinInterval, parseISO, format } from 'date-fns';
 
 interface SummaryProps {
   currentDate: Date;
@@ -27,14 +27,16 @@ export function SummaryCards({ currentDate, shifts }: SummaryProps) {
     totalSalary += salary;
   });
 
+  const monthLabel = format(currentDate, "M月");
+
   return (
     <div className={styles.summaryGrid}>
       <div className={styles.card}>
-        <div className={styles.cardLabel}>当月 総労働時間</div>
+        <div className={styles.cardLabel}>{monthLabel} 総労働時間</div>
         <div className={styles.cardValue}>{totalHours.toFixed(1)} h</div>
       </div>
       <div className={styles.card}>
-        <div className={styles.cardLabel}>当月 予定給与</div>
+        <div className={styles.cardLabel}>{monthLabel} 予定給与</div>
         <div className={styles.cardValue}>¥{totalSalary.toLocaleString()}</div>
       </div>
     </div>

@@ -8,7 +8,6 @@ import { useStore } from "@/lib/store";
 
 import { Calendar } from "@/components/Calendar";
 import { SummaryCards } from "@/components/SummaryCards";
-import { CumulativeChart } from "@/components/Chart";
 import { ShiftModal } from "@/components/ShiftModal";
 import { SettingsModal } from "@/components/SettingsModal";
 
@@ -45,8 +44,6 @@ export default function Home() {
         shifts={shifts}
         onDateClick={(date) => setSelectedDate(date)} 
       />
-
-      <CumulativeChart currentDate={currentDate} shifts={shifts} />
 
       {/* Modals */}
       {selectedDate && (
