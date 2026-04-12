@@ -56,10 +56,14 @@ export function Calendar({ currentDate, setCurrentDate, shifts, onDateClick }: C
             <button
               key={day.toISOString()}
               onClick={() => onDateClick(day)}
-              className={`${styles.dayCell} ${!isCurrentMonth ? styles.empty : ""} ${isToday ? styles.today : ""} ${shift ? styles.hasShift : ""}`}
+              className={`${styles.dayCell} ${!isCurrentMonth ? styles.empty : ""} ${(isToday && isCurrentMonth) ? styles.today : ""} ${(shift && isCurrentMonth) ? styles.hasShift : ""}`}
             >
-              {isCurrentMonth ? format(day, "d") : ""}
-              {shift && <div className={styles.shiftIndicator}>{shiftText}</div>}
+              {isCurrentMonth && (
+                <>
+                  {format(day, "d")}
+                  {shift && <div className={styles.shiftIndicator}>{shiftText}</div>}
+                </>
+              )}
             </button>
           );
         })}
