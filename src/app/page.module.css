@@ -211,3 +211,45 @@
   font-weight: bold;
   margin-bottom: 16px;
 }
+
+/* Sections (Upcoming & Chart) */
+.sectionContainer {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: var(--text-muted);
+}
+
+.upcomingList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upcomingItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary);
+}
+
+.upcomingDate {
+  font-weight: bold;
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+.upcomingTime {
+  color: var(--text-muted);
+  font-size: 14px;
+}

@@ -8,6 +8,8 @@ import { useStore } from "@/lib/store";
 
 import { Calendar } from "@/components/Calendar";
 import { SummaryCards } from "@/components/SummaryCards";
+import { UpcomingShifts } from "@/components/UpcomingShifts";
+import { MonthlyChart } from "@/components/MonthlyChart";
 import { ShiftModal } from "@/components/ShiftModal";
 import { SettingsModal } from "@/components/SettingsModal";
 
@@ -44,6 +46,10 @@ export default function Home() {
         shifts={shifts}
         onDateClick={(date) => setSelectedDate(date)} 
       />
+
+      <UpcomingShifts shifts={shifts} />
+
+      <MonthlyChart shifts={shifts} />
 
       {/* Modals */}
       {selectedDate && (
