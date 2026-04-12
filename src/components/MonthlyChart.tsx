@@ -41,7 +41,7 @@ export function MonthlyChart({ shifts }: Props) {
             <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={60} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
             <Tooltip 
-              cursor={{ fill: "rgba(255,255,255,0.05)" }}
+              cursor={false}
               contentStyle={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 8, color: "#fff" }}
               formatter={(value: any, name: any) => [`¥${Number(value).toLocaleString()}`, "給与"]}
             />
