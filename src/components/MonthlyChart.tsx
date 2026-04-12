@@ -43,7 +43,7 @@ export function MonthlyChart({ shifts }: Props) {
             <Tooltip 
               cursor={{ fill: "rgba(255,255,255,0.05)" }}
               contentStyle={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 8, color: "#fff" }}
-              formatter={(value: number) => [`¥${value.toLocaleString()}`, "給与"]}
+              formatter={(value: any, name: any) => [`¥${Number(value).toLocaleString()}`, "給与"]}
             />
             <Bar dataKey="salary" fill="#bb86fc" radius={[4, 4, 0, 0]} />
           </BarChart>
