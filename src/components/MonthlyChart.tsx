@@ -45,7 +45,7 @@ export function MonthlyChart({ shifts }: Props) {
               contentStyle={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 8, color: "#fff" }}
               formatter={(value: any, name: any) => [`¥${Number(value).toLocaleString()}`, "給与"]}
             />
-            <Bar dataKey="salary" fill="#bb86fc" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="salary" fill="#bb86fc" radius={[4, 4, 0, 0]} activeBar={{ stroke: '#ffffff', strokeWidth: 2, fill: '#bb86fc' }} />
           </BarChart>
         </ResponsiveContainer>
       </div>
