@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { format } from "date-fns";
-import { Settings as SettingsIcon, LogOut } from "lucide-react";
+import { Settings as SettingsIcon } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
 
@@ -47,14 +47,9 @@ export default function Home() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.title}>Shifts</div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button className={styles.iconBtn} onClick={() => setIsSettingsOpen(true)}>
-            <SettingsIcon size={24} />
-          </button>
-          <button className={styles.iconBtn} onClick={signOut}>
-            <LogOut size={24} />
-          </button>
-        </div>
+        <button className={styles.iconBtn} onClick={() => setIsSettingsOpen(true)}>
+          <SettingsIcon size={24} />
+        </button>
       </header>
 
       <SummaryCards currentDate={currentDate} shifts={shifts} />
@@ -87,6 +82,7 @@ export default function Home() {
           settings={settings}
           onClose={() => setIsSettingsOpen(false)}
           onSave={saveSettings}
+          onSignOut={signOut}
         />
       )}
     </div>

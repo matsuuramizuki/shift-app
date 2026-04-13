@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, LogOut } from "lucide-react";
 import styles from "@/app/page.module.css";
 import type { Settings } from "@/lib/store";
 
@@ -7,9 +7,10 @@ interface SettingsModalProps {
   settings: Settings;
   onClose: () => void;
   onSave: (settings: Settings) => void;
+  onSignOut: () => void;
 }
 
-export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps) {
+export function SettingsModal({ settings, onClose, onSave, onSignOut }: SettingsModalProps) {
   const [wage, setWage] = useState(settings.defaultHourlyWage.toString());
 
   const handleSave = () => {
@@ -43,6 +44,17 @@ export function SettingsModal({ settings, onClose, onSave }: SettingsModalProps)
 
         <button className={styles.btnPrimary} onClick={handleSave}>
           保存する
+        </button>
+
+        <hr style={{ borderColor: 'var(--border)', margin: '24px 0', borderStyle: 'solid', borderWidth: '1px 0 0 0' }} />
+
+        <button 
+          className={styles.btnDanger} 
+          onClick={onSignOut} 
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+        >
+          <LogOut size={20} />
+          ログアウト
         </button>
       </div>
     </div>
