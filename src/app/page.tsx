@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { format } from "date-fns";
-import { Settings as SettingsIcon } from "lucide-react";
+import { Settings as SettingsIcon, LogOut } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
 
@@ -14,7 +14,7 @@ import { ShiftModal } from "@/components/ShiftModal";
 import { SettingsModal } from "@/components/SettingsModal";
 
 export default function Home() {
-  const { settings, shifts, isLoaded, saveSettings, saveShift, deleteShift } = useStore();
+  const { user, settings, shifts, isLoaded, saveSettings, saveShift, deleteShift, signInWithGoogle, signOut } = useStore();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   
   // Modals state
@@ -25,6 +25,20 @@ export default function Home() {
     return <div className={styles.container}>Loading...</div>;
   }
 
+  if (!user) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loginCard}>
+          <h1>Shift App</h1>
+          <p>シフト情報をクラウドで安全に管理</p>
+          <button className={styles.btnPrimary} onClick={signInWithGoogle}>
+            Googleでログイン
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const selectedShift = selectedDate 
     ? shifts.find(s => s.date === format(selectedDate, "yyyy-MM-dd")) 
     : undefined;
@@ -33,9 +47,14 @@ export default function Home() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.title}>Shifts</div>
-        <button className={styles.iconBtn} onClick={() => setIsSettingsOpen(true)}>
-          <SettingsIcon size={24} />
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className={styles.iconBtn} onClick={() => setIsSettingsOpen(true)}>
+            <SettingsIcon size={24} />
+          </button>
+          <button className={styles.iconBtn} onClick={signOut}>
+            <LogOut size={24} />
+          </button>
+        </div>
       </header>
 
       <SummaryCards currentDate={currentDate} shifts={shifts} />
