@@ -41,12 +41,6 @@ export function Calendar({ currentDate, setCurrentDate, shifts, onDateClick }: C
         {days.map(day => {
           const formattedDate = format(day, "yyyy-MM-dd");
           const shift = shifts.find(s => s.date === formattedDate);
-          let shiftText = "";
-          
-          if (shift) {
-            shiftText = `${shift.startTime}-${shift.endTime}`;
-          }
-
           const isCurrentMonth = isSameMonth(day, monthStart);
           const isToday = isSameDay(day, new Date());
 
@@ -59,7 +53,12 @@ export function Calendar({ currentDate, setCurrentDate, shifts, onDateClick }: C
               {isCurrentMonth && (
                 <>
                   {format(day, "d")}
-                  {shift && <div className={styles.shiftIndicator}>{shiftText}</div>}
+                  {shift && (
+                    <div className={styles.shiftIndicator}>
+                      <span>{shift.startTime}</span>
+                      <span>{shift.endTime}</span>
+                    </div>
+                  )}
                 </>
               )}
             </button>
