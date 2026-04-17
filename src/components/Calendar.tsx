@@ -4,7 +4,6 @@ import { ja } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
-import { calculateSalary } from "@/lib/calc";
 
 interface CalendarProps {
   currentDate: Date;
@@ -45,8 +44,7 @@ export function Calendar({ currentDate, setCurrentDate, shifts, onDateClick }: C
           let shiftText = "";
           
           if (shift) {
-            const { salary } = calculateSalary(shift.startTime, shift.endTime, shift.breakMinutes, shift.deduction, shift.hourlyWage);
-            shiftText = `¥${salary.toLocaleString()}`;
+            shiftText = `${shift.startTime}-${shift.endTime}`;
           }
 
           const isCurrentMonth = isSameMonth(day, monthStart);
