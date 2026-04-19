@@ -79,6 +79,7 @@ export default function Home() {
 
       {isSettingsOpen && (
         <SettingsModal
+          userId={user.id}
           settings={settings}
           onClose={() => setIsSettingsOpen(false)}
           onSave={saveSettings}
