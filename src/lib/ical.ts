@@ -25,7 +25,16 @@ export function generateICal(shifts: Shift[]): string {
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'X-WR-CALNAME:シフト',
-    'X-WR-TIMEZONE:Asia/Tokyo'
+    'X-WR-TIMEZONE:Asia/Tokyo',
+    'BEGIN:VTIMEZONE',
+    'TZID:Asia/Tokyo',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:+0900',
+    'TZOFFSETTO:+0900',
+    'TZNAME:JST',
+    'DTSTART:19700101T000000',
+    'END:STANDARD',
+    'END:VTIMEZONE'
   ];
 
   const dtstamp = getDtstamp();
