@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { generateICal } from '@/lib/ical';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0; // completely disable caching
 
 export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
   const { userId } = await params;
@@ -31,6 +32,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
       return new NextResponse(generateICal([]), {
         headers: {
            'Content-Type': 'text/calendar; charset=utf-8',
+           'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         }
       });
     }
@@ -51,6 +53,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
       headers: {
         'Content-Type': 'text/calendar; charset=utf-8',
         'Content-Disposition': `attachment; filename="shifts-${userId.substring(0, 8)}.ics"`,
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
       }
     });
 

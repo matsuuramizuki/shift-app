@@ -1,15 +1,21 @@
 import { Shift } from './store';
 
-function formatToICalDate(dateStr: string, timeStr: string, isNextDay: boolean = false): string {
+// Convert JST (Asia/Tokyo) date and time to UTC and format as iCal UTC string (ending with Z)
+function formatToICalUTC(dateStr: string, timeStr: string, isNextDay: boolean = false): string {
   const [y, m, d] = dateStr.split('-').map(Number);
   const [H, M] = timeStr.split(':').map(Number);
   
-  const dateObj = new Date(Date.UTC(y, m - 1, d + (isNextDay ? 1 : 0)));
+  // Date.UTC expects 0-indexed month. 
+  // JST is UTC+9. So we subtract 9 hours to get UTC.
+  const dateObj = new Date(Date.UTC(y, m - 1, d + (isNextDay ? 1 : 0), H - 9, M));
+  
   const ny = dateObj.getUTCFullYear();
   const nm = dateObj.getUTCMonth() + 1;
   const nd = dateObj.getUTCDate();
+  const nH = dateObj.getUTCHours();
+  const nM = dateObj.getUTCMinutes();
   
-  return `${ny.toString().padStart(4, '0')}${nm.toString().padStart(2, '0')}${nd.toString().padStart(2, '0')}T${H.toString().padStart(2, '0')}${M.toString().padStart(2, '0')}00`;
+  return `${ny.toString().padStart(4, '0')}${nm.toString().padStart(2, '0')}${nd.toString().padStart(2, '0')}T${nH.toString().padStart(2, '0')}${nM.toString().padStart(2, '0')}00Z`;
 }
 
 function getDtstamp(): string {
@@ -17,24 +23,33 @@ function getDtstamp(): string {
   return `${now.getUTCFullYear().toString().padStart(4, '0')}${(now.getUTCMonth()+1).toString().padStart(2, '0')}${now.getUTCDate().toString().padStart(2, '0')}T${now.getUTCHours().toString().padStart(2, '0')}${now.getUTCMinutes().toString().padStart(2, '0')}${now.getUTCSeconds().toString().padStart(2, '0')}Z`;
 }
 
+// iCal lines must be folded if they exceed 75 characters.
+function foldLine(line: string): string {
+  if (line.length <= 75) return line;
+  let folded = '';
+  let currentLine = '';
+  
+  for (let i = 0; i < line.length; i++) {
+    currentLine += line[i];
+    // Fold roughly at 60 characters to be safe with multi-byte characters
+    if (currentLine.length >= 60) {
+      folded += currentLine + '\r\n ';
+      currentLine = '';
+    }
+  }
+  folded += currentLine;
+  return folded;
+}
+
 export function generateICal(shifts: Shift[]): string {
-  const lines: string[] = [
+  const rawLines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Shift App//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'X-WR-CALNAME:シフト',
-    'X-WR-TIMEZONE:Asia/Tokyo',
-    'BEGIN:VTIMEZONE',
-    'TZID:Asia/Tokyo',
-    'BEGIN:STANDARD',
-    'TZOFFSETFROM:+0900',
-    'TZOFFSETTO:+0900',
-    'TZNAME:JST',
-    'DTSTART:19700101T000000',
-    'END:STANDARD',
-    'END:VTIMEZONE'
+    'X-WR-TIMEZONE:Asia/Tokyo'
   ];
 
   const dtstamp = getDtstamp();
@@ -44,8 +59,8 @@ export function generateICal(shifts: Shift[]): string {
 
     const isOvernight = shift.endTime < shift.startTime;
 
-    const dtstart = formatToICalDate(shift.date, shift.startTime, false);
-    const dtend = formatToICalDate(shift.date, shift.endTime, isOvernight);
+    const dtstart = formatToICalUTC(shift.date, shift.startTime, false);
+    const dtend = formatToICalUTC(shift.date, shift.endTime, isOvernight);
     const uid = `${shift.id || shift.date}@shiftapp`;
 
     let description = `休憩: ${shift.breakMinutes || 0}分`;
@@ -53,18 +68,23 @@ export function generateICal(shifts: Shift[]): string {
       description += `\\n控除: ${shift.deduction}円`;
     }
 
-    lines.push(
+    rawLines.push(
       'BEGIN:VEVENT',
       `UID:${uid}`,
       `DTSTAMP:${dtstamp}`,
-      `DTSTART;TZID=Asia/Tokyo:${dtstart}`,
-      `DTEND;TZID=Asia/Tokyo:${dtend}`,
+      `DTSTART:${dtstart}`,
+      `DTEND:${dtend}`,
       `SUMMARY:バイト`,
       `DESCRIPTION:${description}`,
+      `STATUS:CONFIRMED`,
+      `SEQUENCE:0`,
       'END:VEVENT'
     );
   });
 
-  lines.push('END:VCALENDAR');
+  rawLines.push('END:VCALENDAR');
+  
+  // Apply line folding and join with CRLF
+  const lines = rawLines.map(foldLine);
   return lines.join('\r\n');
 }
