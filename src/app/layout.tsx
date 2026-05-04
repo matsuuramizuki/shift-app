@@ -15,6 +15,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "シフト管理",
   description: "パン屋さんのための、シンプルで使いやすいシフト管理アプリ",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "シフト管理",
+  },
+};
+
+export const viewport = {
+  themeColor: "#000000",
 };
 
 export default function RootLayout({
