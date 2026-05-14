@@ -30,7 +30,15 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
   if (settings.payday) {
     const lastDay = endOfMonth(currentDate).getDate();
     const payDayNum = Math.min(settings.payday, lastDay);
-    actualPayday = new Date(currentDate.getFullYear(), currentDate.getMonth(), payDayNum);
+    let tempPayday = new Date(currentDate.getFullYear(), currentDate.getMonth(), payDayNum);
+
+    const dayOfWeek = tempPayday.getDay();
+    if (dayOfWeek === 6) {
+      tempPayday = new Date(currentDate.getFullYear(), currentDate.getMonth(), payDayNum - 1);
+    } else if (dayOfWeek === 0) {
+      tempPayday = new Date(currentDate.getFullYear(), currentDate.getMonth(), payDayNum - 2);
+    }
+    actualPayday = tempPayday;
 
     // Calculate previous month's salary
     const prevMonth = subMonths(currentDate, 1);
@@ -84,9 +92,9 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
                   )}
                   {actualPayday && isSameDay(day, actualPayday) && (
                     <div className={styles.paydayIndicator} style={{
-                      position: 'absolute', bottom: '-8px', fontSize: '11px', fontWeight: 'bold', background: 'var(--primary)', color: '#000', padding: '2px 6px', borderRadius: '6px', whiteSpace: 'nowrap', zIndex: 10, boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                      position: 'absolute', bottom: '2px', fontSize: '10px', fontWeight: 'bold', background: 'var(--surface-variant)', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '1px 6px', borderRadius: '4px', whiteSpace: 'nowrap', zIndex: 10
                     }}>
-                      💰 ¥{prevMonthSalary.toLocaleString()}
+                      ¥{prevMonthSalary.toLocaleString()}
                     </div>
                   )}
                 </>

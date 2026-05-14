@@ -86,7 +86,7 @@
 }
 
 .dayCell {
-  min-height: 56px;
+  min-height: 64px;
   border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;

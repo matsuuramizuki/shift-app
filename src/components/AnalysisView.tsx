@@ -97,20 +97,27 @@ export function AnalysisView({ shifts }: Props) {
     const monthStr = format(targetMonth, "yyyy-MM");
     const displayMonth = format(targetMonth, "M月");
     
-    let baseSalary = 0;
+    let netBase = 0;
+    let totalAllowance = 0;
     let totalDeduction = 0;
     
     shifts.forEach(s => {
       if (s.date.startsWith(monthStr)) {
-        const { salary } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
-        baseSalary += (salary + s.deduction); // Gross before deduction
-        totalDeduction += s.deduction;
+        const { hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
+        const rawBase = Math.floor(hours * s.hourlyWage);
+        const allow = s.allowance || 0;
+        const ded = s.deduction || 0;
+        
+        netBase += Math.max(0, rawBase - ded);
+        totalAllowance += allow;
+        totalDeduction += ded;
       }
     });
 
     monthlyTrendData.push({
       name: displayMonth,
-      salary: baseSalary - totalDeduction,
+      netBase,
+      allowance: totalAllowance,
       deduction: totalDeduction
     });
   }
@@ -174,7 +181,7 @@ export function AnalysisView({ shifts }: Props) {
       {/* Stats Summary */}
       <div className={styles.summaryGrid} style={{ marginBottom: 0 }}>
         <div className={styles.card}>
-          <div className={styles.cardLabel}>{subTab === 'monthly' ? '月間稼ぎ' : '累計稼ぎ'}</div>
+          <div className={styles.cardLabel}>{subTab === 'monthly' ? '月間給与' : '累計給与'}</div>
           <div className={styles.cardValue}>¥{displayEarnings.toLocaleString()}</div>
         </div>
         <div className={styles.card}>
@@ -209,16 +216,18 @@ export function AnalysisView({ shifts }: Props) {
                   data={timeOfDayData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
+                  innerRadius={50}
                   outerRadius={80}
-                  paddingAngle={5}
+                  paddingAngle={4}
+                  startAngle={90}
+                  endAngle={-270}
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                   labelLine={false}
-                  style={{ fontSize: '10px', fill: '#fff' }}
+                  style={{ fontSize: '10px', fill: '#fff', fontWeight: 'bold' }}
                 >
                   {timeOfDayData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="#1e1e1e" strokeWidth={2} />
                   ))}
                 </Pie>
                 <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
@@ -233,7 +242,7 @@ export function AnalysisView({ shifts }: Props) {
       {/* Monthly Trend (Stacked Bar) - Only in Monthly Tab */}
       {subTab === 'monthly' && (
         <div className={styles.chartContainer}>
-          <h3 className={styles.chartTitle}>過去6ヶ月推移 (手取り/天引き)</h3>
+          <h3 className={styles.chartTitle}>過去６ヶ月推移</h3>
           <div style={{ width: '100%', height: 250 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
@@ -241,7 +250,8 @@ export function AnalysisView({ shifts }: Props) {
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
                 <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="salary" name="手取り" stackId="a" fill="#bb86fc" radius={[0, 0, 4, 4]} />
+                <Bar dataKey="netBase" name="手取り" stackId="a" fill="#bb86fc" />
+                <Bar dataKey="allowance" name="手当" stackId="a" fill="#03dac6" />
                 <Bar dataKey="deduction" name="天引き" stackId="a" fill="#cf6679" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
