@@ -112,7 +112,7 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
           <textarea 
             value={memo} 
             onChange={e => setMemo(e.target.value)}
-            placeholder="他店応援などの特記事項"
+            placeholder="特記事項"
           />
         </div>
 
