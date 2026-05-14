@@ -222,9 +222,12 @@ export function AnalysisView({ shifts }: Props) {
                   startAngle={90}
                   endAngle={-270}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                  label={({ name, percent, x, y, textAnchor }) => (
+                    <text x={x} y={y} fill="#fff" fontSize={10} fontWeight="bold" textAnchor={textAnchor} dominantBaseline="central">
+                      {`${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                    </text>
+                  )}
                   labelLine={false}
-                  style={{ fontSize: '10px', fill: '#fff', fontWeight: 'bold' }}
                 >
                   {timeOfDayData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} stroke="#1e1e1e" strokeWidth={2} />
