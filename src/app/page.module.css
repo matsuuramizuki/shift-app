@@ -167,13 +167,19 @@
   margin-bottom: 8px;
 }
 
-.inputGroup input {
+.inputGroup input,
+.inputGroup textarea {
   background: rgba(255,255,255,0.1);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 12px 16px;
   color: white;
   width: 100%;
+}
+
+.inputGroup textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 .errorText {
@@ -258,6 +264,22 @@
 .upcomingTime {
   color: var(--text-muted);
   font-size: 14px;
+}
+
+.upcomingInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upcomingMemo {
+  font-size: 13px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  margin-top: 4px;
+  white-space: pre-wrap;
 }
 
 .loginCard {

@@ -67,6 +67,10 @@ export function generateICal(shifts: Shift[]): string {
     if (shift.deduction && shift.deduction > 0) {
       description += `\\n控除: ${shift.deduction}円`;
     }
+    if (shift.memo) {
+      const escapedMemo = shift.memo.replace(/\n/g, '\\n');
+      description += `\\nメモ: ${escapedMemo}`;
+    }
 
     rawLines.push(
       'BEGIN:VEVENT',

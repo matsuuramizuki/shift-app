@@ -20,6 +20,7 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
   const [endTime, setEndTime] = useState("18:00");
   const [breakMins, setBreakMins] = useState("0");
   const [deduction, setDeduction] = useState("0");
+  const [memo, setMemo] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -28,11 +29,13 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
       setEndTime(shift.endTime);
       setBreakMins(shift.breakMinutes.toString());
       setDeduction(shift.deduction.toString());
+      setMemo(shift.memo || "");
     } else {
       setStartTime("09:00");
       setEndTime("18:00");
       setBreakMins("0");
       setDeduction("0");
+      setMemo("");
     }
     setError("");
   }, [shift, date]);
@@ -62,7 +65,8 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
       endTime,
       breakMinutes: numericBreak,
       deduction: numericDeduct,
-      hourlyWage
+      hourlyWage,
+      memo
     });
     
     onClose(); // Automatically close as requested
@@ -101,6 +105,15 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
         <div className={styles.inputGroup}>
           <label>天引き金額 (円)</label>
           <input type="number" inputMode="numeric" value={deduction} onChange={e => setDeduction(e.target.value)} />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label>メモ</label>
+          <textarea 
+            value={memo} 
+            onChange={e => setMemo(e.target.value)}
+            placeholder="他店応援などの特記事項"
+          />
         </div>
 
         <button className={styles.btnPrimary} onClick={handleSave}>

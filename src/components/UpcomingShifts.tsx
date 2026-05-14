@@ -27,11 +27,18 @@ export function UpcomingShifts({ shifts }: Props) {
       <div className={styles.upcomingList}>
         {upcoming.map(s => (
           <div key={s.date} className={styles.upcomingItem}>
-            <div className={styles.upcomingDate}>
-              {format(s.dateObj, "M月d日(E)", { locale: ja })}
-            </div>
-            <div className={styles.upcomingTime}>
-              {s.startTime} - {s.endTime}
+            <div className={styles.upcomingInfo}>
+              <div className={styles.upcomingDate}>
+                {format(s.dateObj, "M月d日(E)", { locale: ja })}
+              </div>
+              <div className={styles.upcomingTime}>
+                {s.startTime} - {s.endTime}
+              </div>
+              {s.memo && (
+                <div className={styles.upcomingMemo}>
+                  {s.memo}
+                </div>
+              )}
             </div>
           </div>
         ))}

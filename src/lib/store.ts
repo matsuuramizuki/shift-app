@@ -14,6 +14,7 @@ export interface Shift {
   breakMinutes: number;
   deduction: number;
   hourlyWage: number;
+  memo?: string;
 }
 
 export function useStore() {
@@ -67,7 +68,8 @@ export function useStore() {
           endTime: item.end_time,
           breakMinutes: item.break_minutes,
           deduction: item.deduction,
-          hourlyWage: item.hourly_wage
+          hourlyWage: item.hourly_wage,
+          memo: item.memo
         })));
       }
     } catch (e) {
@@ -100,7 +102,8 @@ export function useStore() {
       end_time: shift.endTime,
       break_minutes: shift.breakMinutes,
       deduction: shift.deduction,
-      hourly_wage: shift.hourlyWage
+      hourly_wage: shift.hourlyWage,
+      memo: shift.memo
     }, { onConflict: 'user_id, date' });
   };
 
