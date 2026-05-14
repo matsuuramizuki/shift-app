@@ -20,6 +20,7 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
   const [endTime, setEndTime] = useState("18:00");
   const [breakMins, setBreakMins] = useState("0");
   const [deduction, setDeduction] = useState("0");
+  const [allowance, setAllowance] = useState("0");
   const [memo, setMemo] = useState("");
   const [error, setError] = useState("");
 
@@ -29,12 +30,14 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
       setEndTime(shift.endTime);
       setBreakMins(shift.breakMinutes.toString());
       setDeduction(shift.deduction.toString());
+      setAllowance((shift.allowance || 0).toString());
       setMemo(shift.memo || "");
     } else {
       setStartTime("09:00");
       setEndTime("18:00");
       setBreakMins("0");
       setDeduction("0");
+      setAllowance("0");
       setMemo("");
     }
     setError("");
@@ -47,12 +50,11 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
   const handleSave = () => {
     const numericBreak = parseInt(breakMins) || 0;
     const numericDeduct = parseInt(deduction) || 0;
+    const numericAllowance = parseInt(allowance) || 0;
     
-    // Save uses setting's wage if new, or retains existing wage if edited (per requirements: "過去のシフトは時給変更の影響を受けない")
-    // Wait, the prompt requirements: "各シフトにその時点の時給を保存する（ShiftにhourlyWageを含める）"
     const hourlyWage = shift ? shift.hourlyWage : settings.defaultHourlyWage;
 
-    const calc = calculateSalary(startTime, endTime, numericBreak, numericDeduct, hourlyWage);
+    const calc = calculateSalary(startTime, endTime, numericBreak, numericDeduct, hourlyWage, numericAllowance);
 
     if (calc.error) {
       setError(calc.error);
@@ -66,6 +68,7 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
       breakMinutes: numericBreak,
       deduction: numericDeduct,
       hourlyWage,
+      allowance: numericAllowance,
       memo
     });
     
@@ -105,6 +108,11 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
         <div className={styles.inputGroup}>
           <label>天引き金額 (円)</label>
           <input type="number" inputMode="numeric" value={deduction} onChange={e => setDeduction(e.target.value)} />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label>手当金額 (円)</label>
+          <input type="number" inputMode="numeric" value={allowance} onChange={e => setAllowance(e.target.value)} />
         </div>
 
         <div className={styles.inputGroup}>

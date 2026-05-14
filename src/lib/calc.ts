@@ -5,7 +5,8 @@ export function calculateSalary(
   endTime: string,
   breakMinutes: number,
   deduction: number,
-  hourlyWage: number
+  hourlyWage: number,
+  allowance: number = 0
 ): { hours: number; salary: number; error?: string } {
   const start = parse(startTime, "HH:mm", new Date());
   const end = parse(endTime, "HH:mm", new Date());
@@ -19,7 +20,7 @@ export function calculateSalary(
   
   const hours = actualWorkMins / 60;
   
-  const rawSalary = Math.floor(hours * hourlyWage) - deduction;
+  const rawSalary = Math.floor(hours * hourlyWage) + allowance - deduction;
   const salary = Math.max(0, rawSalary); // never negative
   
   return { hours, salary };

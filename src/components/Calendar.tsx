@@ -38,7 +38,7 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
     
     shifts.forEach(s => {
       if (s.date.startsWith(prevMonthStr)) {
-        const { salary } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage);
+        const { salary } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
         prevMonthSalary += salary;
       }
     });
@@ -84,7 +84,7 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
                   )}
                   {actualPayday && isSameDay(day, actualPayday) && (
                     <div className={styles.paydayIndicator} style={{
-                      position: 'absolute', bottom: '-4px', fontSize: '9px', background: 'var(--primary-variant)', color: '#fff', padding: '1px 4px', borderRadius: '4px', whiteSpace: 'nowrap', zIndex: 10, transform: 'scale(0.9)'
+                      position: 'absolute', bottom: '-8px', fontSize: '11px', fontWeight: 'bold', background: 'var(--primary)', color: '#000', padding: '2px 6px', borderRadius: '6px', whiteSpace: 'nowrap', zIndex: 10, boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
                     }}>
                       💰 ¥{prevMonthSalary.toLocaleString()}
                     </div>
