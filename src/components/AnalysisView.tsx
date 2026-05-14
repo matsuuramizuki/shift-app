@@ -37,15 +37,35 @@ export function AnalysisView({ shifts }: Props) {
     // Afternoon: 12:00 - 18:00 (720 - 1080)
     // Night: 18:00 - 29:00 (1080 - 1740)
     // Night prev day: 0:00 - 5:00 (0 - 300)
-    const m = getOverlap(300, 720);
-    const a = getOverlap(720, 1080);
-    const n = getOverlap(1080, 1740) + getOverlap(0, 300);
+    let m = getOverlap(300, 720);
+    let a = getOverlap(720, 1080);
+    let n = getOverlap(1080, 1740) + getOverlap(0, 300);
 
-    const effectiveRatio = Math.max(0, totalMins - bMins) / totalMins;
+    let remBreak = bMins;
+
+    // 1. Subtract from Afternoon
+    const aSub = Math.min(a, remBreak);
+    a -= aSub;
+    remBreak -= aSub;
+
+    // 2. If remaining break, subtract from Night
+    if (remBreak > 0) {
+      const nSub = Math.min(n, remBreak);
+      n -= nSub;
+      remBreak -= nSub;
+    }
+
+    // 3. If still remaining break, subtract from Morning
+    if (remBreak > 0) {
+      const mSub = Math.min(m, remBreak);
+      m -= mSub;
+      remBreak -= mSub;
+    }
+
     return {
-      morning: (m * effectiveRatio) / 60,
-      afternoon: (a * effectiveRatio) / 60,
-      night: (n * effectiveRatio) / 60
+      morning: m / 60,
+      afternoon: a / 60,
+      night: n / 60
     };
   };
 
