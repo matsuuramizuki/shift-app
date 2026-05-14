@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import { format } from "date-fns";
-import { Settings as SettingsIcon } from "lucide-react";
+import { Settings as SettingsIcon, Home as HomeIcon, BarChart2 } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
 
 import { Calendar } from "@/components/Calendar";
 import { SummaryCards } from "@/components/SummaryCards";
 import { UpcomingShifts } from "@/components/UpcomingShifts";
-import { MonthlyChart } from "@/components/MonthlyChart";
+import { AnalysisView } from "@/components/AnalysisView";
 import { ShiftModal } from "@/components/ShiftModal";
 import { SettingsModal } from "@/components/SettingsModal";
 
@@ -20,6 +20,8 @@ export default function Home() {
   // Modals state
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  const [activeTab, setActiveTab] = useState<'home' | 'analysis'>('home');
 
   if (!isLoaded) {
     return <div className={styles.container}>Loading...</div>;
@@ -52,18 +54,23 @@ export default function Home() {
         </button>
       </header>
 
-      <SummaryCards currentDate={currentDate} shifts={shifts} />
+      {activeTab === 'home' ? (
+        <>
+          <SummaryCards currentDate={currentDate} shifts={shifts} />
 
-      <Calendar 
-        currentDate={currentDate} 
-        setCurrentDate={setCurrentDate} 
-        shifts={shifts}
-        onDateClick={(date) => setSelectedDate(date)} 
-      />
+          <Calendar 
+            currentDate={currentDate} 
+            setCurrentDate={setCurrentDate} 
+            shifts={shifts}
+            settings={settings}
+            onDateClick={(date) => setSelectedDate(date)} 
+          />
 
-      <UpcomingShifts shifts={shifts} />
-
-      <MonthlyChart shifts={shifts} />
+          <UpcomingShifts shifts={shifts} />
+        </>
+      ) : (
+        <AnalysisView shifts={shifts} />
+      )}
 
       {/* Modals */}
       {selectedDate && (
@@ -86,6 +93,24 @@ export default function Home() {
           onSignOut={signOut}
         />
       )}
+
+      {/* Bottom Navigation */}
+      <nav className={styles.bottomNav}>
+        <button 
+          className={`${styles.navItem} ${activeTab === 'home' ? styles.active : ''}`}
+          onClick={() => setActiveTab('home')}
+        >
+          <HomeIcon size={24} />
+          <span>ホーム</span>
+        </button>
+        <button 
+          className={`${styles.navItem} ${activeTab === 'analysis' ? styles.active : ''}`}
+          onClick={() => setActiveTab('analysis')}
+        >
+          <BarChart2 size={24} />
+          <span>分析</span>
+        </button>
+      </nav>
     </div>
   );
 }

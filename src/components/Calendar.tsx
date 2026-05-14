@@ -3,16 +3,18 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import { ja } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "@/app/page.module.css";
-import type { Shift } from "@/lib/store";
+import type { Shift, Settings } from "@/lib/store";
+import { calculateSalary } from "@/lib/calc";
 
 interface CalendarProps {
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
   shifts: Shift[];
+  settings: Settings;
   onDateClick: (date: Date) => void;
 }
 
-export function Calendar({ currentDate, setCurrentDate, shifts, onDateClick }: CalendarProps) {
+export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDateClick }: CalendarProps) {
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart);
@@ -20,6 +22,27 @@ export function Calendar({ currentDate, setCurrentDate, shifts, onDateClick }: C
 
   const days = eachDayOfInterval({ start: startDate, end: endDate });
   const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
+
+  // Payday logic
+  let actualPayday: Date | null = null;
+  let prevMonthSalary = 0;
+
+  if (settings.payday) {
+    const lastDay = endOfMonth(currentDate).getDate();
+    const payDayNum = Math.min(settings.payday, lastDay);
+    actualPayday = new Date(currentDate.getFullYear(), currentDate.getMonth(), payDayNum);
+
+    // Calculate previous month's salary
+    const prevMonth = subMonths(currentDate, 1);
+    const prevMonthStr = format(prevMonth, "yyyy-MM");
+    
+    shifts.forEach(s => {
+      if (s.date.startsWith(prevMonthStr)) {
+        const { salary } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage);
+        prevMonthSalary += salary;
+      }
+    });
+  }
 
   return (
     <div className={styles.calendarContainer}>
@@ -57,6 +80,13 @@ export function Calendar({ currentDate, setCurrentDate, shifts, onDateClick }: C
                     <div className={styles.shiftIndicator}>
                       <span>{shift.startTime}</span>
                       <span>{shift.endTime}</span>
+                    </div>
+                  )}
+                  {actualPayday && isSameDay(day, actualPayday) && (
+                    <div className={styles.paydayIndicator} style={{
+                      position: 'absolute', bottom: '-4px', fontSize: '9px', background: 'var(--primary-variant)', color: '#fff', padding: '1px 4px', borderRadius: '4px', whiteSpace: 'nowrap', zIndex: 10, transform: 'scale(0.9)'
+                    }}>
+                      💰 ¥{prevMonthSalary.toLocaleString()}
                     </div>
                   )}
                 </>

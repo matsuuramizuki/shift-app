@@ -13,6 +13,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: SettingsModalProps) {
   const [wage, setWage] = useState(settings.defaultHourlyWage.toString());
+  const [paydayStr, setPaydayStr] = useState(settings.payday ? settings.payday.toString() : "");
   const [copied, setCopied] = useState(false);
 
   const calendarUrl = typeof window !== 'undefined' 
@@ -31,8 +32,13 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
 
   const handleSave = () => {
     const numValue = parseInt(wage, 10);
+    const numPayday = parseInt(paydayStr, 10);
+    
     if (!isNaN(numValue) && numValue >= 0) {
-      onSave({ defaultHourlyWage: numValue });
+      onSave({ 
+        defaultHourlyWage: numValue,
+        payday: !isNaN(numPayday) && numPayday >= 1 && numPayday <= 31 ? numPayday : undefined
+      });
       onClose(); // Automatically close
     }
   };
@@ -54,8 +60,23 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
             onChange={e => setWage(e.target.value)} 
           />
         </div>
+
+        <div className={styles.inputGroup}>
+          <label>給与日 (1〜31日 / 空白で未設定)</label>
+          <input 
+            type="number" 
+            inputMode="numeric" 
+            min="1"
+            max="31"
+            value={paydayStr} 
+            onChange={e => setPaydayStr(e.target.value)} 
+            placeholder="例: 25"
+          />
+        </div>
+
         <p style={{fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px'}}>
-          ※設定を変更しても、すでに保存されている過去のシフトの給付は変わりません。未来の新しいシフトに適用されます。
+          ※時給を変更しても、すでに保存されている過去のシフトの給与は変わりません。未来の新しいシフトに適用されます。<br/>
+          ※給与日を設定すると、カレンダーのその日に前月の給与合計が表示されます。
         </p>
 
         <button className={styles.btnPrimary} onClick={handleSave}>

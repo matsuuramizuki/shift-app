@@ -4,6 +4,7 @@ import { supabase } from "./supabase";
 
 export interface Settings {
   defaultHourlyWage: number;
+  payday?: number;
 }
 
 export interface Shift {
@@ -57,7 +58,10 @@ export function useStore() {
       ]);
 
       if (settingsRes.data) {
-        setSettings({ defaultHourlyWage: settingsRes.data.default_hourly_wage });
+        setSettings({ 
+          defaultHourlyWage: settingsRes.data.default_hourly_wage,
+          payday: settingsRes.data.payday
+        });
       }
       
       if (shiftsRes.data) {
@@ -84,7 +88,8 @@ export function useStore() {
     if (!user) return;
     await supabase.from('settings').upsert({
       user_id: user.id,
-      default_hourly_wage: newSettings.defaultHourlyWage
+      default_hourly_wage: newSettings.defaultHourlyWage,
+      payday: newSettings.payday
     });
   };
 
