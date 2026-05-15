@@ -18,7 +18,6 @@ export function AnalysisView({ shifts }: Props) {
   const todayStr = format(now, "yyyy-MM-dd");
   const isPast = (dateStr: string) => dateStr <= todayStr;
   
-  // Helper for Time Block Allocation (hours)
   const calcTimeBlocks = (sTime: string, eTime: string, bMins: number) => {
     const [sh, sm] = sTime.split(':').map(Number);
     const [eh, em] = eTime.split(':').map(Number);
@@ -40,7 +39,6 @@ export function AnalysisView({ shifts }: Props) {
     let n = getOverlap(1080, 1740) + getOverlap(0, 300);
 
     let remBreak = bMins;
-
     const aSub = Math.min(a, remBreak);
     a -= aSub;
     remBreak -= aSub;
@@ -64,12 +62,14 @@ export function AnalysisView({ shifts }: Props) {
     };
   };
 
-  // 1. Calculations based on active subTab
   let displayEarnings = 0;
   let futureEarnings = 0;
   let displayHours = 0;
   let futureHours = 0;
   
+  let prevMonthEarnings = 0;
+  let prevMonthHours = 0;
+
   const dayOfWeekEarnedCounts = [0, 0, 0, 0, 0, 0, 0];
   const dayOfWeekFutureCounts = [0, 0, 0, 0, 0, 0, 0];
   const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
@@ -84,15 +84,19 @@ export function AnalysisView({ shifts }: Props) {
   shifts.forEach(s => {
     const d = parseISO(s.date);
     const isTarget = subTab === 'cumulative' || isSameMonth(d, selectedMonth);
+    const isPrevMonth = subTab === 'monthly' && isSameMonth(d, subMonths(selectedMonth, 1));
+
+    if (isPrevMonth) {
+      const { salary, hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
+      prevMonthEarnings += salary;
+      prevMonthHours += hours;
+    }
 
     if (isTarget) {
       const past = isPast(s.date);
-      
-      // In cumulative tab, we completely ignore future shifts
       if (subTab === 'cumulative' && !past) return;
 
       const { salary, hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
-      
       const dayIndex = getDay(d);
       const blocks = calcTimeBlocks(s.startTime, s.endTime, s.breakMinutes);
 
@@ -114,11 +118,27 @@ export function AnalysisView({ shifts }: Props) {
     }
   });
 
-  const timeOfDayData = [
-    { name: '午前', value: parseFloat((mEarnedHours + mFutureHours).toFixed(1)), color: '#ffb74d' },
-    { name: '午後', value: parseFloat((aEarnedHours + aFutureHours).toFixed(1)), color: '#81c784' },
-    { name: '夜間', value: parseFloat((nEarnedHours + nFutureHours).toFixed(1)), color: '#ba68c8' },
-  ].filter(d => d.value > 0);
+  const totalChartHours = mEarnedHours + mFutureHours + aEarnedHours + aFutureHours + nEarnedHours + nFutureHours;
+  const spacerValue = totalChartHours * 0.02; // 2% gap
+  const timeOfDayData: any[] = [];
+
+  const addGroup = (earned: number, future: number, name: string, color: string) => {
+    let added = false;
+    if (earned > 0) {
+      timeOfDayData.push({ name, value: earned, color, showLabel: true });
+      added = true;
+    }
+    if (future > 0) {
+      timeOfDayData.push({ name: `${name}(予)`, value: future, color, opacity: 0.4, showLabel: !added });
+    }
+    if (earned > 0 || future > 0) {
+      timeOfDayData.push({ name: `${name}_spacer`, value: spacerValue, color: 'transparent', isSpacer: true });
+    }
+  };
+
+  addGroup(mEarnedHours, mFutureHours, '午前', '#ffb74d');
+  addGroup(aEarnedHours, aFutureHours, '午後', '#81c784');
+  addGroup(nEarnedHours, nFutureHours, '夜間', '#ba68c8');
 
   const dayOfWeekData = dayNames.map((name, i) => ({
     name,
@@ -126,7 +146,6 @@ export function AnalysisView({ shifts }: Props) {
     future: dayOfWeekFutureCounts[i],
   }));
 
-  // 2. 6-Month Trend Data (only shown in monthly tab)
   const monthlyTrendData = [];
   for (let i = 5; i >= 0; i--) {
     const targetMonth = subMonths(now, i);
@@ -173,6 +192,27 @@ export function AnalysisView({ shifts }: Props) {
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      // If pie chart tooltip
+      if (payload[0].payload && payload[0].payload.isSpacer) return null;
+
+      // Group pie chart hover output to show only 1 line
+      if (payload[0].name.includes('午前') || payload[0].name.includes('午後') || payload[0].name.includes('夜間')) {
+        let displayName = payload[0].name.replace('(予)', '');
+        let formattedValue = '';
+        if (displayName === '午前') formattedValue = `${(mEarnedHours + mFutureHours).toFixed(1)}時間`;
+        if (displayName === '午後') formattedValue = `${(aEarnedHours + aFutureHours).toFixed(1)}時間`;
+        if (displayName === '夜間') formattedValue = `${(nEarnedHours + nFutureHours).toFixed(1)}時間`;
+        
+        return (
+          <div style={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 8, padding: '8px', color: "#fff", fontSize: '12px', zIndex: 100 }}>
+             <p style={{ margin: 0, color: payload[0].payload.color }}>
+               {displayName}: {formattedValue}
+             </p>
+          </div>
+        );
+      }
+
+      // Bar charts tooltip
       return (
         <div style={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 8, padding: '8px', color: "#fff", fontSize: '12px', zIndex: 100 }}>
           <p style={{ margin: 0, fontWeight: 'bold', marginBottom: '4px' }}>{label}</p>
@@ -182,11 +222,8 @@ export function AnalysisView({ shifts }: Props) {
             const opacity = isFuture ? 0.6 : 1;
             const formattedValue = entry.name === 'earned' || entry.name === 'future' || entry.name === '確定' || entry.name === '予定' 
               ? `${entry.value}回` 
-              : entry.name.includes('前') || entry.name.includes('後') || entry.name.includes('夜') 
-                ? `${entry.value}時間` 
-                : `¥${Number(entry.value).toLocaleString()}`;
+              : `¥${Number(entry.value).toLocaleString()}`;
             
-            // Map keys to readable names
             let displayName = entry.name;
             if (displayName === 'earned') displayName = '確定';
             if (displayName === 'future') displayName = '予定';
@@ -197,7 +234,6 @@ export function AnalysisView({ shifts }: Props) {
             if (displayName === 'deductionEarned') displayName = '天引き(確定)';
             if (displayName === 'deductionFuture') displayName = '天引き(予定)';
 
-            // Hide 0 values in tooltip for cleaner display
             if (entry.value === 0) return null;
 
             return (
@@ -212,10 +248,14 @@ export function AnalysisView({ shifts }: Props) {
     return null;
   };
 
+  const totalEarnings = displayEarnings + futureEarnings;
+  const totalHours = displayHours + futureHours;
+  const diffEarnings = totalEarnings - prevMonthEarnings;
+  const diffHours = totalHours - prevMonthHours;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
-      {/* Sub-Tabs */}
       <div style={{ display: 'flex', background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '4px' }}>
         <button
           onClick={() => setSubTab('monthly')}
@@ -239,7 +279,6 @@ export function AnalysisView({ shifts }: Props) {
         </button>
       </div>
 
-      {/* Monthly Selector (Only in monthly tab) */}
       {subTab === 'monthly' && (
         <div className={styles.calendarHeader} style={{ background: 'var(--surface)', padding: '12px 16px', borderRadius: 'var(--radius-md)', marginBottom: 0 }}>
           <button onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))} className={styles.iconBtn}>
@@ -252,33 +291,31 @@ export function AnalysisView({ shifts }: Props) {
         </div>
       )}
 
-      {/* Stats Summary */}
       <div className={styles.summaryGrid} style={{ marginBottom: 0 }}>
         <div className={styles.card}>
-          <div className={styles.cardLabel}>{subTab === 'monthly' ? '月間給与' : '累計給与'}</div>
+          <div className={styles.cardLabel}>{subTab === 'monthly' ? '当月の総額' : '累計給与'}</div>
           <div className={styles.cardValue}>
-            ¥{displayEarnings.toLocaleString()}
-            {futureEarnings > 0 && subTab === 'monthly' && (
+            ¥{subTab === 'monthly' ? totalEarnings.toLocaleString() : displayEarnings.toLocaleString()}
+            {subTab === 'monthly' && (
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
-                +¥{futureEarnings.toLocaleString()}
+                {diffEarnings >= 0 ? '+' : ''}¥{diffEarnings.toLocaleString()}
               </div>
             )}
           </div>
         </div>
         <div className={styles.card}>
-          <div className={styles.cardLabel}>{subTab === 'monthly' ? '月間労働時間' : '累計労働時間'}</div>
+          <div className={styles.cardLabel}>{subTab === 'monthly' ? '当月の総労働時間' : '累計労働時間'}</div>
           <div className={styles.cardValue} style={{ color: 'var(--secondary)' }}>
-            {displayHours.toFixed(1)}<span style={{ fontSize: '14px' }}>h</span>
-            {futureHours > 0 && subTab === 'monthly' && (
+            {subTab === 'monthly' ? totalHours.toFixed(1) : displayHours.toFixed(1)}<span style={{ fontSize: '14px' }}>h</span>
+            {subTab === 'monthly' && (
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
-                +{futureHours.toFixed(1)}h
+                {diffHours >= 0 ? '+' : ''}{diffHours.toFixed(1)}h
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Day of Week */}
       <div className={styles.chartContainer} style={{ marginBottom: 0 }}>
         <h3 className={styles.chartTitle}>{subTab === 'monthly' ? '月間曜日別シフト回数' : '通算曜日別シフト回数'}</h3>
         <div style={{ width: '100%', height: 200 }}>
@@ -294,10 +331,9 @@ export function AnalysisView({ shifts }: Props) {
         </div>
       </div>
 
-      {/* Time of Day Pie Chart */}
       <div className={styles.chartContainer} style={{ marginBottom: 0 }}>
         <h3 className={styles.chartTitle}>{subTab === 'monthly' ? '月間時間帯別シフト割合 (時間)' : '通算時間帯別シフト割合 (時間)'}</h3>
-        {timeOfDayData.length > 0 ? (
+        {timeOfDayData.filter(d => !d.isSpacer).length > 0 ? (
           <div style={{ width: '100%', height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -307,19 +343,26 @@ export function AnalysisView({ shifts }: Props) {
                   cy="50%"
                   innerRadius={50}
                   outerRadius={80}
-                  paddingAngle={4}
+                  paddingAngle={0}
                   startAngle={90}
                   endAngle={-270}
                   dataKey="value"
-                  label={({ name, percent, x, y, textAnchor }) => (
-                    <text x={x} y={y} fill="#fff" fontSize={10} fontWeight="bold" textAnchor={textAnchor} dominantBaseline="central">
-                      {`${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                    </text>
-                  )}
+                  label={({ name, percent, x, y, textAnchor, payload }) => {
+                    if (!payload.showLabel) return null;
+                    const cleanName = String(name).replace('(予)', '');
+                    const catTotal = cleanName === '午前' ? mEarnedHours + mFutureHours : cleanName === '午後' ? aEarnedHours + aFutureHours : nEarnedHours + nFutureHours;
+                    const catPercent = catTotal / totalChartHours;
+                    return (
+                      <text x={x} y={y} fill="#fff" fontSize={10} fontWeight="bold" textAnchor={textAnchor} dominantBaseline="central">
+                        {`${cleanName} ${(catPercent * 100).toFixed(0)}%`}
+                      </text>
+                    );
+                  }}
                   labelLine={false}
+                  stroke="none"
                 >
                   {timeOfDayData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="#1e1e1e" strokeWidth={2} />
+                    <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="none" />
                   ))}
                 </Pie>
                 <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
@@ -331,7 +374,6 @@ export function AnalysisView({ shifts }: Props) {
         )}
       </div>
 
-      {/* Monthly Trend (Stacked Bar) - Only in Monthly Tab */}
       {subTab === 'monthly' && (
         <div className={styles.chartContainer}>
           <h3 className={styles.chartTitle}>過去６ヶ月推移</h3>
@@ -348,11 +390,9 @@ export function AnalysisView({ shifts }: Props) {
                     <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#cf6679' }}></span>天引き</li>
                   </ul>
                 )} />
-                {/* Earned */}
                 <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#bb86fc" />
                 <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#03dac6" />
                 <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#cf6679" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
-                {/* Future */}
                 <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#bb86fc" fillOpacity={0.4} />
                 <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.4} />
                 <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.4} radius={[4, 4, 0, 0]} />
