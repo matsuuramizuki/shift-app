@@ -115,12 +115,9 @@ export function AnalysisView({ shifts }: Props) {
   });
 
   const timeOfDayData = [
-    { name: '午前', value: parseFloat(mEarnedHours.toFixed(1)), color: '#ffb74d' },
-    { name: '午前(予)', value: parseFloat(mFutureHours.toFixed(1)), color: '#ffb74d', opacity: 0.4 },
-    { name: '午後', value: parseFloat(aEarnedHours.toFixed(1)), color: '#81c784' },
-    { name: '午後(予)', value: parseFloat(aFutureHours.toFixed(1)), color: '#81c784', opacity: 0.4 },
-    { name: '夜間', value: parseFloat(nEarnedHours.toFixed(1)), color: '#ba68c8' },
-    { name: '夜間(予)', value: parseFloat(nFutureHours.toFixed(1)), color: '#ba68c8', opacity: 0.4 },
+    { name: '午前', value: parseFloat((mEarnedHours + mFutureHours).toFixed(1)), color: '#ffb74d' },
+    { name: '午後', value: parseFloat((aEarnedHours + aFutureHours).toFixed(1)), color: '#81c784' },
+    { name: '夜間', value: parseFloat((nEarnedHours + nFutureHours).toFixed(1)), color: '#ba68c8' },
   ].filter(d => d.value > 0);
 
   const dayOfWeekData = dayNames.map((name, i) => ({
@@ -183,7 +180,7 @@ export function AnalysisView({ shifts }: Props) {
             const isFuture = entry.name.includes('予');
             const color = entry.payload?.color || entry.color;
             const opacity = isFuture ? 0.6 : 1;
-            const formattedValue = entry.name === 'earned' || entry.name === 'future' 
+            const formattedValue = entry.name === 'earned' || entry.name === 'future' || entry.name === '確定' || entry.name === '予定' 
               ? `${entry.value}回` 
               : entry.name.includes('前') || entry.name.includes('後') || entry.name.includes('夜') 
                 ? `${entry.value}時間` 
@@ -262,7 +259,9 @@ export function AnalysisView({ shifts }: Props) {
           <div className={styles.cardValue}>
             ¥{displayEarnings.toLocaleString()}
             {futureEarnings > 0 && subTab === 'monthly' && (
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px', fontWeight: 'normal' }}>(予定: +¥{futureEarnings.toLocaleString()})</span>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
+                +¥{futureEarnings.toLocaleString()}
+              </div>
             )}
           </div>
         </div>
@@ -271,7 +270,9 @@ export function AnalysisView({ shifts }: Props) {
           <div className={styles.cardValue} style={{ color: 'var(--secondary)' }}>
             {displayHours.toFixed(1)}<span style={{ fontSize: '14px' }}>h</span>
             {futureHours > 0 && subTab === 'monthly' && (
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px', fontWeight: 'normal' }}>(予定: +{futureHours.toFixed(1)}h)</span>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
+                +{futureHours.toFixed(1)}h
+              </div>
             )}
           </div>
         </div>
@@ -318,7 +319,7 @@ export function AnalysisView({ shifts }: Props) {
                   labelLine={false}
                 >
                   {timeOfDayData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="#1e1e1e" strokeWidth={2} />
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="#1e1e1e" strokeWidth={2} />
                   ))}
                 </Pie>
                 <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
