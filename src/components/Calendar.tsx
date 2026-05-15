@@ -92,7 +92,7 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
                   )}
                   {actualPayday && isSameDay(day, actualPayday) && (
                     <div className={styles.paydayIndicator} style={{
-                      position: 'absolute', bottom: '2px', fontSize: '10px', fontWeight: 'bold', background: 'var(--surface-variant)', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '1px 6px', borderRadius: '4px', whiteSpace: 'nowrap', zIndex: 10
+                      position: 'absolute', bottom: '2px', fontSize: '10px', fontWeight: 'bold', background: 'var(--surface-variant)', color: 'var(--primary)', padding: '1px 6px', borderRadius: '4px', whiteSpace: 'nowrap', zIndex: 10
                     }}>
                       ¥{prevMonthSalary.toLocaleString()}
                     </div>
