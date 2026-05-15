@@ -417,7 +417,7 @@ export function AnalysisView({ shifts }: Props) {
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} />
                 <Tooltip cursor={{ stroke: 'transparent', fill: 'transparent' }} content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="totalHours" name="労働時間" stroke="var(--primary)" strokeWidth={3} dot={{ fill: 'var(--primary)', strokeWidth: 2 }} activeDot={{ r: 6, stroke: 'transparent' }} />
+                <Line type="linear" dataKey="totalHours" name="労働時間" stroke="var(--primary)" strokeWidth={3} dot={{ fill: 'var(--primary)', strokeWidth: 2 }} activeDot={{ r: 6, stroke: 'transparent' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
