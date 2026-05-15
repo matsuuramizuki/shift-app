@@ -15,6 +15,8 @@ export function AnalysisView({ shifts }: Props) {
   const [subTab, setSubTab] = useState<'monthly' | 'cumulative'>('monthly');
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const now = new Date();
+  const todayStr = format(now, "yyyy-MM-dd");
+  const isPast = (dateStr: string) => dateStr <= todayStr;
   
   // Helper for Time Block Allocation (hours)
   const calcTimeBlocks = (sTime: string, eTime: string, bMins: number) => {
@@ -33,29 +35,22 @@ export function AnalysisView({ shifts }: Props) {
       return Math.max(0, oe - os);
     };
 
-    // Morning: 5:00 - 12:00 (300 - 720)
-    // Afternoon: 12:00 - 18:00 (720 - 1080)
-    // Night: 18:00 - 29:00 (1080 - 1740)
-    // Night prev day: 0:00 - 5:00 (0 - 300)
     let m = getOverlap(300, 720);
     let a = getOverlap(720, 1080);
     let n = getOverlap(1080, 1740) + getOverlap(0, 300);
 
     let remBreak = bMins;
 
-    // 1. Subtract from Afternoon
     const aSub = Math.min(a, remBreak);
     a -= aSub;
     remBreak -= aSub;
 
-    // 2. If remaining break, subtract from Night
     if (remBreak > 0) {
       const nSub = Math.min(n, remBreak);
       n -= nSub;
       remBreak -= nSub;
     }
 
-    // 3. If still remaining break, subtract from Morning
     if (remBreak > 0) {
       const mSub = Math.min(m, remBreak);
       m -= mSub;
@@ -71,43 +66,67 @@ export function AnalysisView({ shifts }: Props) {
 
   // 1. Calculations based on active subTab
   let displayEarnings = 0;
+  let futureEarnings = 0;
   let displayHours = 0;
-  const dayOfWeekCounts = [0, 0, 0, 0, 0, 0, 0];
+  let futureHours = 0;
+  
+  const dayOfWeekEarnedCounts = [0, 0, 0, 0, 0, 0, 0];
+  const dayOfWeekFutureCounts = [0, 0, 0, 0, 0, 0, 0];
   const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
-  let mHours = 0;
-  let aHours = 0;
-  let nHours = 0;
+  
+  let mEarnedHours = 0;
+  let aEarnedHours = 0;
+  let nEarnedHours = 0;
+  let mFutureHours = 0;
+  let aFutureHours = 0;
+  let nFutureHours = 0;
 
   shifts.forEach(s => {
     const d = parseISO(s.date);
     const isTarget = subTab === 'cumulative' || isSameMonth(d, selectedMonth);
 
     if (isTarget) {
+      const past = isPast(s.date);
+      
+      // In cumulative tab, we completely ignore future shifts
+      if (subTab === 'cumulative' && !past) return;
+
       const { salary, hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
-      displayEarnings += salary;
-      displayHours += hours;
-
-      // Day of week
+      
       const dayIndex = getDay(d);
-      dayOfWeekCounts[dayIndex]++;
-
-      // Time blocks
       const blocks = calcTimeBlocks(s.startTime, s.endTime, s.breakMinutes);
-      mHours += blocks.morning;
-      aHours += blocks.afternoon;
-      nHours += blocks.night;
+
+      if (past) {
+        displayEarnings += salary;
+        displayHours += hours;
+        dayOfWeekEarnedCounts[dayIndex]++;
+        mEarnedHours += blocks.morning;
+        aEarnedHours += blocks.afternoon;
+        nEarnedHours += blocks.night;
+      } else {
+        futureEarnings += salary;
+        futureHours += hours;
+        dayOfWeekFutureCounts[dayIndex]++;
+        mFutureHours += blocks.morning;
+        aFutureHours += blocks.afternoon;
+        nFutureHours += blocks.night;
+      }
     }
   });
 
   const timeOfDayData = [
-    { name: '午前 (5-12)', value: parseFloat(mHours.toFixed(1)), color: '#ffb74d' },
-    { name: '午後 (12-18)', value: parseFloat(aHours.toFixed(1)), color: '#81c784' },
-    { name: '夜間 (18-)', value: parseFloat(nHours.toFixed(1)), color: '#ba68c8' },
+    { name: '午前', value: parseFloat(mEarnedHours.toFixed(1)), color: '#ffb74d' },
+    { name: '午前(予)', value: parseFloat(mFutureHours.toFixed(1)), color: '#ffb74d', opacity: 0.4 },
+    { name: '午後', value: parseFloat(aEarnedHours.toFixed(1)), color: '#81c784' },
+    { name: '午後(予)', value: parseFloat(aFutureHours.toFixed(1)), color: '#81c784', opacity: 0.4 },
+    { name: '夜間', value: parseFloat(nEarnedHours.toFixed(1)), color: '#ba68c8' },
+    { name: '夜間(予)', value: parseFloat(nFutureHours.toFixed(1)), color: '#ba68c8', opacity: 0.4 },
   ].filter(d => d.value > 0);
 
   const dayOfWeekData = dayNames.map((name, i) => ({
     name,
-    count: dayOfWeekCounts[i]
+    earned: dayOfWeekEarnedCounts[i],
+    future: dayOfWeekFutureCounts[i],
   }));
 
   // 2. 6-Month Trend Data (only shown in monthly tab)
@@ -117,9 +136,12 @@ export function AnalysisView({ shifts }: Props) {
     const monthStr = format(targetMonth, "yyyy-MM");
     const displayMonth = format(targetMonth, "M月");
     
-    let netBase = 0;
-    let totalAllowance = 0;
-    let totalDeduction = 0;
+    let netBaseEarned = 0;
+    let allowanceEarned = 0;
+    let deductionEarned = 0;
+    let netBaseFuture = 0;
+    let allowanceFuture = 0;
+    let deductionFuture = 0;
     
     shifts.forEach(s => {
       if (s.date.startsWith(monthStr)) {
@@ -127,18 +149,28 @@ export function AnalysisView({ shifts }: Props) {
         const rawBase = Math.floor(hours * s.hourlyWage);
         const allow = s.allowance || 0;
         const ded = s.deduction || 0;
+        const netBase = Math.max(0, rawBase - ded);
         
-        netBase += Math.max(0, rawBase - ded);
-        totalAllowance += allow;
-        totalDeduction += ded;
+        if (isPast(s.date)) {
+          netBaseEarned += netBase;
+          allowanceEarned += allow;
+          deductionEarned += ded;
+        } else {
+          netBaseFuture += netBase;
+          allowanceFuture += allow;
+          deductionFuture += ded;
+        }
       }
     });
 
     monthlyTrendData.push({
       name: displayMonth,
-      netBase,
-      allowance: totalAllowance,
-      deduction: totalDeduction
+      netBaseEarned,
+      allowanceEarned,
+      deductionEarned,
+      netBaseFuture,
+      allowanceFuture,
+      deductionFuture,
     });
   }
 
@@ -147,11 +179,36 @@ export function AnalysisView({ shifts }: Props) {
       return (
         <div style={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 8, padding: '8px', color: "#fff", fontSize: '12px', zIndex: 100 }}>
           <p style={{ margin: 0, fontWeight: 'bold', marginBottom: '4px' }}>{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ margin: 0, color: entry.color }}>
-              {entry.name}: {entry.name === '回数' ? `${entry.value}回` : entry.name.includes('前') || entry.name.includes('後') || entry.name.includes('夜') ? `${entry.value}時間` : `¥${Number(entry.value).toLocaleString()}`}
-            </p>
-          ))}
+          {payload.map((entry: any, index: number) => {
+            const isFuture = entry.name.includes('予');
+            const color = entry.payload?.color || entry.color;
+            const opacity = isFuture ? 0.6 : 1;
+            const formattedValue = entry.name === 'earned' || entry.name === 'future' 
+              ? `${entry.value}回` 
+              : entry.name.includes('前') || entry.name.includes('後') || entry.name.includes('夜') 
+                ? `${entry.value}時間` 
+                : `¥${Number(entry.value).toLocaleString()}`;
+            
+            // Map keys to readable names
+            let displayName = entry.name;
+            if (displayName === 'earned') displayName = '確定';
+            if (displayName === 'future') displayName = '予定';
+            if (displayName === 'netBaseEarned') displayName = '手取り(確定)';
+            if (displayName === 'netBaseFuture') displayName = '手取り(予定)';
+            if (displayName === 'allowanceEarned') displayName = '手当(確定)';
+            if (displayName === 'allowanceFuture') displayName = '手当(予定)';
+            if (displayName === 'deductionEarned') displayName = '天引き(確定)';
+            if (displayName === 'deductionFuture') displayName = '天引き(予定)';
+
+            // Hide 0 values in tooltip for cleaner display
+            if (entry.value === 0) return null;
+
+            return (
+              <p key={index} style={{ margin: 0, color: color, opacity }}>
+                {displayName}: {formattedValue}
+              </p>
+            );
+          })}
         </div>
       );
     }
@@ -202,11 +259,21 @@ export function AnalysisView({ shifts }: Props) {
       <div className={styles.summaryGrid} style={{ marginBottom: 0 }}>
         <div className={styles.card}>
           <div className={styles.cardLabel}>{subTab === 'monthly' ? '月間給与' : '累計給与'}</div>
-          <div className={styles.cardValue}>¥{displayEarnings.toLocaleString()}</div>
+          <div className={styles.cardValue}>
+            ¥{displayEarnings.toLocaleString()}
+            {futureEarnings > 0 && subTab === 'monthly' && (
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px', fontWeight: 'normal' }}>(予定: +¥{futureEarnings.toLocaleString()})</span>
+            )}
+          </div>
         </div>
         <div className={styles.card}>
           <div className={styles.cardLabel}>{subTab === 'monthly' ? '月間労働時間' : '累計労働時間'}</div>
-          <div className={styles.cardValue} style={{ color: 'var(--secondary)' }}>{displayHours.toFixed(1)}<span style={{ fontSize: '14px' }}>h</span></div>
+          <div className={styles.cardValue} style={{ color: 'var(--secondary)' }}>
+            {displayHours.toFixed(1)}<span style={{ fontSize: '14px' }}>h</span>
+            {futureHours > 0 && subTab === 'monthly' && (
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '8px', fontWeight: 'normal' }}>(予定: +{futureHours.toFixed(1)}h)</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -219,7 +286,8 @@ export function AnalysisView({ shifts }: Props) {
               <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
               <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
-              <Bar dataKey="count" name="回数" fill="#03dac6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="earned" name="確定" stackId="a" fill="#03dac6" radius={subTab === 'monthly' && dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
+              <Bar dataKey="future" name="予定" stackId="a" fill="#03dac6" fillOpacity={0.4} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -250,7 +318,7 @@ export function AnalysisView({ shifts }: Props) {
                   labelLine={false}
                 >
                   {timeOfDayData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="#1e1e1e" strokeWidth={2} />
+                    <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="#1e1e1e" strokeWidth={2} />
                   ))}
                 </Pie>
                 <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
@@ -272,10 +340,21 @@ export function AnalysisView({ shifts }: Props) {
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
                 <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ fontSize: '12px' }} />
-                <Bar dataKey="netBase" name="手取り" stackId="a" fill="#bb86fc" />
-                <Bar dataKey="allowance" name="手当" stackId="a" fill="#03dac6" />
-                <Bar dataKey="deduction" name="天引き" stackId="a" fill="#cf6679" radius={[4, 4, 0, 0]} />
+                <Legend content={() => (
+                  <ul style={{ display: 'flex', justifyContent: 'center', listStyle: 'none', padding: 0, margin: 0, fontSize: '12px', gap: '16px' }}>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#bb86fc' }}></span>手取り</li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#03dac6' }}></span>手当</li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#cf6679' }}></span>天引き</li>
+                  </ul>
+                )} />
+                {/* Earned */}
+                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#bb86fc" />
+                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#03dac6" />
+                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#cf6679" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
+                {/* Future */}
+                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#bb86fc" fillOpacity={0.4} />
+                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.4} />
+                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.4} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
