@@ -129,7 +129,7 @@ export function AnalysisView({ shifts }: Props) {
       added = true;
     }
     if (future > 0) {
-      timeOfDayData.push({ name: `${name}(予)`, value: future, color, opacity: 0.4, showLabel: !added });
+      timeOfDayData.push({ name: `${name}(予)`, value: future, color, opacity: 0.65, showLabel: !added });
     }
     if (earned > 0 || future > 0) {
       timeOfDayData.push({ name: `${name}_spacer`, value: spacerValue, color: 'transparent', isSpacer: true });
@@ -325,7 +325,7 @@ export function AnalysisView({ shifts }: Props) {
               <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
               <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
               <Bar dataKey="earned" name="確定" stackId="a" fill="#03dac6" radius={subTab === 'monthly' && dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
-              <Bar dataKey="future" name="予定" stackId="a" fill="#03dac6" fillOpacity={0.4} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="future" name="予定" stackId="a" fill="#03dac6" fillOpacity={0.65} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -393,9 +393,9 @@ export function AnalysisView({ shifts }: Props) {
                 <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#bb86fc" />
                 <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#03dac6" />
                 <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#cf6679" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
-                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#bb86fc" fillOpacity={0.4} />
-                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.4} />
-                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.4} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#bb86fc" fillOpacity={0.65} />
+                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.65} />
+                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.65} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
