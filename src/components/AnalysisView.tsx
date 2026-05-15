@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from "recharts";
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
 import { calculateSalary } from "@/lib/calc";
@@ -158,10 +158,12 @@ export function AnalysisView({ shifts }: Props) {
     let netBaseFuture = 0;
     let allowanceFuture = 0;
     let deductionFuture = 0;
+    let totalHours = 0;
     
     shifts.forEach(s => {
       if (s.date.startsWith(monthStr)) {
         const { hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
+        totalHours += hours;
         const rawBase = Math.floor(hours * s.hourlyWage);
         const allow = s.allowance || 0;
         const ded = s.deduction || 0;
@@ -187,6 +189,7 @@ export function AnalysisView({ shifts }: Props) {
       netBaseFuture,
       allowanceFuture,
       deductionFuture,
+      totalHours,
     });
   }
 
@@ -222,9 +225,12 @@ export function AnalysisView({ shifts }: Props) {
             const opacity = isFuture ? 0.6 : 1;
             const formattedValue = entry.name === 'earned' || entry.name === 'future' || entry.name === '確定' || entry.name === '予定' 
               ? `${entry.value}回` 
-              : `¥${Number(entry.value).toLocaleString()}`;
+              : entry.name === 'totalHours' || entry.name === '労働時間'
+                ? `${Number(entry.value).toFixed(1)}時間`
+                : `¥${Number(entry.value).toLocaleString()}`;
             
             let displayName = entry.name;
+            if (displayName === 'totalHours') displayName = '労働時間';
             if (displayName === 'earned') displayName = '確定';
             if (displayName === 'future') displayName = '予定';
             if (displayName === 'netBaseEarned') displayName = '手取り(確定)';
@@ -397,6 +403,22 @@ export function AnalysisView({ shifts }: Props) {
                 <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.65} />
                 <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.65} radius={[4, 4, 0, 0]} />
               </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {subTab === 'cumulative' && (
+        <div className={styles.chartContainer}>
+          <h3 className={styles.chartTitle}>過去６ヶ月 労働時間推移</h3>
+          <div style={{ width: '100%', height: 250 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} />
+                <Tooltip cursor={{ stroke: 'transparent', fill: 'transparent' }} content={<CustomTooltip />} />
+                <Line type="monotone" dataKey="totalHours" name="労働時間" stroke="var(--primary)" strokeWidth={3} dot={{ fill: 'var(--primary)', strokeWidth: 2 }} activeDot={{ r: 6, stroke: 'transparent' }} />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
