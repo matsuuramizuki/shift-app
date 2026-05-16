@@ -23,22 +23,28 @@ function getDtstamp(): string {
   return `${now.getUTCFullYear().toString().padStart(4, '0')}${(now.getUTCMonth()+1).toString().padStart(2, '0')}${now.getUTCDate().toString().padStart(2, '0')}T${now.getUTCHours().toString().padStart(2, '0')}${now.getUTCMinutes().toString().padStart(2, '0')}${now.getUTCSeconds().toString().padStart(2, '0')}Z`;
 }
 
-// iCal lines must be folded if they exceed 75 characters.
+// iCal lines must be folded if they exceed 75 octets.
+// We use a safe character limit (20) to avoid splitting multi-byte UTF-8 characters.
 function foldLine(line: string): string {
-  if (line.length <= 75) return line;
-  let folded = '';
-  let currentLine = '';
+  const chars = Array.from(line);
+  const limit = 20; 
+  if (chars.length <= limit) return line;
   
-  for (let i = 0; i < line.length; i++) {
-    currentLine += line[i];
-    // Fold roughly at 60 characters to be safe with multi-byte characters
-    if (currentLine.length >= 60) {
-      folded += currentLine + '\r\n ';
-      currentLine = '';
-    }
+  let result = '';
+  for (let i = 0; i < chars.length; i += limit) {
+    if (i > 0) result += '\r\n ';
+    result += chars.slice(i, i + limit).join('');
   }
-  folded += currentLine;
-  return folded;
+  return result;
+}
+
+function escapeValue(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n');
 }
 
 export function generateICal(shifts: Shift[]): string {
@@ -63,17 +69,28 @@ export function generateICal(shifts: Shift[]): string {
     const dtend = formatToICalUTC(shift.date, shift.endTime, isOvernight);
     const uid = `${shift.id || shift.date}@shiftapp`;
 
-    let description = `休憩: ${shift.breakMinutes || 0}分`;
-    if (shift.deduction && shift.deduction > 0) {
-      description += `\\n控除: ${shift.deduction}円`;
-    }
-    if (shift.allowance && shift.allowance > 0) {
-      description += `\\n手当: ${shift.allowance}円`;
-    }
+    // Reorder description: Memo first, then details
+    let descriptionParts = [];
     if (shift.memo) {
-      const escapedMemo = shift.memo.replace(/\n/g, '\\n');
-      description += `\\nメモ: ${escapedMemo}`;
+      descriptionParts.push(shift.memo);
     }
+    
+    const details = [];
+    details.push(`休憩: ${shift.breakMinutes || 0}分`);
+    if (shift.allowance && shift.allowance > 0) {
+      details.push(`手当: ${shift.allowance}円`);
+    }
+    if (shift.deduction && shift.deduction > 0) {
+      details.push(`控除: ${shift.deduction}円`);
+    }
+    
+    if (descriptionParts.length > 0 && details.length > 0) {
+      descriptionParts.push('------------------');
+    }
+    descriptionParts = [...descriptionParts, ...details];
+
+    const description = escapeValue(descriptionParts.join('\n'));
+    const summary = escapeValue(shift.memo ? `バイト (${shift.memo.substring(0, 10)}${shift.memo.length > 10 ? '...' : ''})` : 'バイト');
 
     rawLines.push(
       'BEGIN:VEVENT',
@@ -81,7 +98,7 @@ export function generateICal(shifts: Shift[]): string {
       `DTSTAMP:${dtstamp}`,
       `DTSTART:${dtstart}`,
       `DTEND:${dtend}`,
-      `SUMMARY:バイト`,
+      `SUMMARY:${summary}`,
       `DESCRIPTION:${description}`,
       `STATUS:CONFIRMED`,
       `SEQUENCE:0`,
