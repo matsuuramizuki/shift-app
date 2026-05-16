@@ -44,7 +44,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
       endTime: item.end_time,
       breakMinutes: item.break_minutes,
       deduction: item.deduction,
-      hourlyWage: item.hourly_wage
+      hourlyWage: item.hourly_wage,
+      allowance: item.allowance || 0,
+      memo: item.memo
     }));
 
     const icalString = generateICal(mappedShifts);
