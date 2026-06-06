@@ -135,11 +135,13 @@ export function AnalysisView({ shifts }: Props) {
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [usesCompactCharts, setUsesCompactCharts] = useState(false);
   const [selectedWeekday, setSelectedWeekday] = useState<DayOfWeekData | null>(null);
+  const [isTimeOfDayOpen, setIsTimeOfDayOpen] = useState(false);
   const [selectedTrendMonth, setSelectedTrendMonth] = useState<MonthlyTrendData | null>(null);
   const [selectedHoursMonth, setSelectedHoursMonth] = useState<MonthlyTrendData | null>(null);
   const now = new Date();
   const todayStr = format(now, "yyyy-MM-dd");
   const isPast = (dateStr: string) => dateStr <= todayStr;
+  const isViewingPastMonth = subTab === 'monthly' && format(selectedMonth, "yyyy-MM") < format(now, "yyyy-MM");
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(hover: none), (pointer: coarse), (max-width: 700px)");
@@ -354,16 +356,29 @@ export function AnalysisView({ shifts }: Props) {
 
   const handleWeekdayClick = (data: unknown) => {
     const payload = readShapePayload<DayOfWeekData>(data);
-    if (payload) setSelectedWeekday(payload);
+    if (!payload) return;
+    setSelectedWeekday(current => current?.name === payload.name ? null : payload);
   };
 
   const handleTrendMonthClick = (data: unknown) => {
     const payload = readShapePayload<MonthlyTrendData>(data);
-    if (payload) setSelectedTrendMonth(payload);
+    if (!payload) return;
+    setSelectedTrendMonth(current => current?.name === payload.name ? null : payload);
+  };
+
+  const handleHoursMonthClick = (payload: MonthlyTrendData | null) => {
+    if (!payload) return;
+    setSelectedHoursMonth(current => current?.name === payload.name ? null : payload);
+  };
+
+  const handleHoursDotClick = (_: unknown, eventPayload: unknown) => {
+    const payload = readShapePayload<MonthlyTrendData>(eventPayload);
+    handleHoursMonthClick(payload);
   };
 
   const clearSelections = () => {
     setSelectedWeekday(null);
+    setIsTimeOfDayOpen(false);
     setSelectedTrendMonth(null);
     setSelectedHoursMonth(null);
   };
@@ -449,7 +464,7 @@ export function AnalysisView({ shifts }: Props) {
               <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
               {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
-              {subTab === 'monthly' ? (
+              {subTab === 'monthly' && !isViewingPastMonth ? (
                 <>
                   <Bar
                     dataKey="earned"
@@ -484,9 +499,9 @@ export function AnalysisView({ shifts }: Props) {
         {selectedWeekday && (
           <div className={styles.chartSummaryRow}>
             <span>{selectedWeekday.name}曜</span>
-            {subTab === 'monthly' && <span>確定 {selectedWeekday.earned}回</span>}
-            {subTab === 'monthly' && <span>予定 {selectedWeekday.future}回</span>}
-            <span>{subTab === 'monthly' ? '合計' : 'シフト'} {selectedWeekday.total}回</span>
+            {subTab === 'monthly' && !isViewingPastMonth && <span>確定 {selectedWeekday.earned}回</span>}
+            {subTab === 'monthly' && !isViewingPastMonth && <span>予定 {selectedWeekday.future}回</span>}
+            <span>{subTab === 'monthly' && !isViewingPastMonth ? '合計' : 'シフト'} {selectedWeekday.total}回</span>
           </div>
         )}
       </div>
@@ -494,7 +509,7 @@ export function AnalysisView({ shifts }: Props) {
       <div className={styles.chartContainer} style={{ marginBottom: 0 }}>
         <h3 className={styles.chartTitle}>{subTab === 'monthly' ? '月間時間帯別シフト割合 (時間)' : '通算時間帯別シフト割合 (時間)'}</h3>
         {timeOfDayData.filter(d => !d.isSpacer).length > 0 ? (
-          <div style={{ width: '100%', height: 220 }}>
+          <div style={{ width: '100%', height: 220 }} onClick={() => setIsTimeOfDayOpen(open => !open)}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -532,7 +547,7 @@ export function AnalysisView({ shifts }: Props) {
         ) : (
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', marginTop: '40px' }}>データがありません</p>
         )}
-        {timeOfDayData.filter(d => !d.isSpacer).length > 0 && (
+        {timeOfDayData.filter(d => !d.isSpacer).length > 0 && isTimeOfDayOpen && (
           <div className={styles.chartSummaryRow}>
             <span>午前 {tooltipTotals.morning.toFixed(1)}h</span>
             <span>午後 {tooltipTotals.afternoon.toFixed(1)}h</span>
@@ -587,13 +602,25 @@ export function AnalysisView({ shifts }: Props) {
                 margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
                 onClick={(state) => {
                   const payload = readMonthlyPayload(state);
-                  if (payload) setSelectedHoursMonth(payload);
+                  handleHoursMonthClick(payload);
                 }}
               >
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} />
                 {!usesCompactCharts && <Tooltip cursor={{ stroke: 'transparent', fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
-                <Line type="linear" dataKey="totalHours" name="労働時間" stroke="var(--primary)" strokeWidth={3} dot={{ fill: 'var(--primary)', strokeWidth: 2 }} activeDot={{ r: 6, stroke: 'transparent' }} />
+                <Line
+                  type="linear"
+                  dataKey="totalHours"
+                  name="労働時間"
+                  stroke="var(--primary)"
+                  strokeWidth={3}
+                  dot={{ fill: 'var(--primary)', strokeWidth: 2, r: 5, onClick: handleHoursDotClick }}
+                  activeDot={{
+                    r: 8,
+                    stroke: 'transparent',
+                    onClick: handleHoursDotClick
+                  }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
