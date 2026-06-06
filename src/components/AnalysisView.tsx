@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from "recharts";
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
@@ -130,6 +130,112 @@ function CustomTooltip({ active, payload, label, totals }: CustomTooltipProps) {
   );
 }
 
+function calcTimeBlocks(sTime: string, eTime: string, bMins: number) {
+  const [sh, sm] = sTime.split(':').map(Number);
+  const [eh, em] = eTime.split(':').map(Number);
+  const startMins = sh * 60 + sm;
+  let endMins = eh * 60 + em;
+  if (endMins < startMins) endMins += 24 * 60;
+  
+  const totalMins = endMins - startMins;
+  if (totalMins <= 0) return { morning: 0, afternoon: 0, night: 0 };
+
+  const getOverlap = (bStart: number, bEnd: number) => {
+    const os = Math.max(startMins, bStart);
+    const oe = Math.min(endMins, bEnd);
+    return Math.max(0, oe - os);
+  };
+
+  let m = getOverlap(300, 720);
+  let a = getOverlap(720, 1080);
+  let n = getOverlap(1080, 1740) + getOverlap(0, 300);
+
+  let remBreak = bMins;
+  const aSub = Math.min(a, remBreak);
+  a -= aSub;
+  remBreak -= aSub;
+
+  if (remBreak > 0) {
+    const nSub = Math.min(n, remBreak);
+    n -= nSub;
+    remBreak -= nSub;
+  }
+
+  if (remBreak > 0) {
+    const mSub = Math.min(m, remBreak);
+    m -= mSub;
+    remBreak -= mSub;
+  }
+
+  return {
+    morning: m / 60,
+    afternoon: a / 60,
+    night: n / 60
+  };
+}
+
+const TimeOfDayPieChart = React.memo(({
+  timeOfDayData,
+  usesCompactCharts,
+  tooltipTotals,
+  totalChartHours,
+  mEarnedHours,
+  mFutureHours,
+  aEarnedHours,
+  aFutureHours,
+  nEarnedHours,
+  nFutureHours
+}: {
+  timeOfDayData: TimeOfDayData[];
+  usesCompactCharts: boolean;
+  tooltipTotals: { morning: number; afternoon: number; night: number };
+  totalChartHours: number;
+  mEarnedHours: number;
+  mFutureHours: number;
+  aEarnedHours: number;
+  aFutureHours: number;
+  nEarnedHours: number;
+  nFutureHours: number;
+}) => {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie
+          data={timeOfDayData}
+          cx="50%"
+          cy="50%"
+          innerRadius={50}
+          outerRadius={80}
+          paddingAngle={0}
+          startAngle={90}
+          endAngle={-270}
+          dataKey="value"
+          label={({ name, x, y, textAnchor, payload }) => {
+            if (!payload.showLabel) return null;
+            const cleanName = String(name).replace('(予)', '');
+            const catTotal = cleanName === '午前' ? mEarnedHours + mFutureHours : cleanName === '午後' ? aEarnedHours + aFutureHours : nEarnedHours + nFutureHours;
+            const catPercent = catTotal / totalChartHours;
+            return (
+              <text x={x} y={y} fill="#fff" fontSize={10} fontWeight="bold" textAnchor={textAnchor} dominantBaseline="central" style={{ pointerEvents: 'none' }}>
+                {`${cleanName} ${(catPercent * 100).toFixed(0)}%`}
+              </text>
+            );
+          }}
+          labelLine={false}
+          stroke="none"
+          isAnimationActive={true}
+        >
+          {timeOfDayData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="none" />
+          ))}
+        </Pie>
+        {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
+      </PieChart>
+    </ResponsiveContainer>
+  );
+});
+TimeOfDayPieChart.displayName = "TimeOfDayPieChart";
+
 export function AnalysisView({ shifts }: Props) {
   const [subTab, setSubTab] = useState<'monthly' | 'cumulative'>('monthly');
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
@@ -156,191 +262,191 @@ export function AnalysisView({ shifts }: Props) {
     return () => mediaQuery.removeEventListener("change", updateChartMode);
   }, []);
 
-  const calcTimeBlocks = (sTime: string, eTime: string, bMins: number) => {
-    const [sh, sm] = sTime.split(':').map(Number);
-    const [eh, em] = eTime.split(':').map(Number);
-    const startMins = sh * 60 + sm;
-    let endMins = eh * 60 + em;
-    if (endMins < startMins) endMins += 24 * 60;
+  const {
+    displayEarnings,
+    displayHours,
+    totalEarnings,
+    totalHours,
+    diffEarnings,
+    diffHours,
+    dayOfWeekData,
+    timeOfDayData,
+    monthlyTrendData,
+    tooltipTotals,
+    totalChartHours,
+    mEarnedHours,
+    mFutureHours,
+    aEarnedHours,
+    aFutureHours,
+    nEarnedHours,
+    nFutureHours
+  } = useMemo(() => {
+    const now = new Date();
+    const todayStr = format(now, "yyyy-MM-dd");
+    const isPast = (dateStr: string) => dateStr <= todayStr;
+
+    let displayEarnings = 0;
+    let futureEarnings = 0;
+    let displayHours = 0;
+    let futureHours = 0;
     
-    const totalMins = endMins - startMins;
-    if (totalMins <= 0) return { morning: 0, afternoon: 0, night: 0 };
+    let prevMonthEarnings = 0;
+    let prevMonthHours = 0;
 
-    const getOverlap = (bStart: number, bEnd: number) => {
-      const os = Math.max(startMins, bStart);
-      const oe = Math.min(endMins, bEnd);
-      return Math.max(0, oe - os);
-    };
-
-    let m = getOverlap(300, 720);
-    let a = getOverlap(720, 1080);
-    let n = getOverlap(1080, 1740) + getOverlap(0, 300);
-
-    let remBreak = bMins;
-    const aSub = Math.min(a, remBreak);
-    a -= aSub;
-    remBreak -= aSub;
-
-    if (remBreak > 0) {
-      const nSub = Math.min(n, remBreak);
-      n -= nSub;
-      remBreak -= nSub;
-    }
-
-    if (remBreak > 0) {
-      const mSub = Math.min(m, remBreak);
-      m -= mSub;
-      remBreak -= mSub;
-    }
-
-    return {
-      morning: m / 60,
-      afternoon: a / 60,
-      night: n / 60
-    };
-  };
-
-  let displayEarnings = 0;
-  let futureEarnings = 0;
-  let displayHours = 0;
-  let futureHours = 0;
-  
-  let prevMonthEarnings = 0;
-  let prevMonthHours = 0;
-
-  const dayOfWeekEarnedCounts = [0, 0, 0, 0, 0, 0, 0];
-  const dayOfWeekFutureCounts = [0, 0, 0, 0, 0, 0, 0];
-  const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
-  
-  let mEarnedHours = 0;
-  let aEarnedHours = 0;
-  let nEarnedHours = 0;
-  let mFutureHours = 0;
-  let aFutureHours = 0;
-  let nFutureHours = 0;
-
-  shifts.forEach(s => {
-    const d = parseISO(s.date);
-    const isTarget = subTab === 'cumulative' || isSameMonth(d, selectedMonth);
-    const isPrevMonth = subTab === 'monthly' && isSameMonth(d, subMonths(selectedMonth, 1));
-
-    if (isPrevMonth) {
-      const { salary, hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
-      prevMonthEarnings += salary;
-      prevMonthHours += hours;
-    }
-
-    if (isTarget) {
-      const past = isPast(s.date);
-      if (subTab === 'cumulative' && !past) return;
-
-      const { salary, hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
-      const dayIndex = getDay(d);
-      const blocks = calcTimeBlocks(s.startTime, s.endTime, s.breakMinutes);
-
-      if (past) {
-        displayEarnings += salary;
-        displayHours += hours;
-        dayOfWeekEarnedCounts[dayIndex]++;
-        mEarnedHours += blocks.morning;
-        aEarnedHours += blocks.afternoon;
-        nEarnedHours += blocks.night;
-      } else {
-        futureEarnings += salary;
-        futureHours += hours;
-        dayOfWeekFutureCounts[dayIndex]++;
-        mFutureHours += blocks.morning;
-        aFutureHours += blocks.afternoon;
-        nFutureHours += blocks.night;
-      }
-    }
-  });
-
-  const totalChartHours = mEarnedHours + mFutureHours + aEarnedHours + aFutureHours + nEarnedHours + nFutureHours;
-  const spacerValue = totalChartHours * 0.02; // 2% gap
-  const timeOfDayData: TimeOfDayData[] = [];
-
-  const addGroup = (earned: number, future: number, name: string, color: string) => {
-    let added = false;
-    if (earned > 0) {
-      timeOfDayData.push({ name, value: earned, color, showLabel: true });
-      added = true;
-    }
-    if (future > 0) {
-      timeOfDayData.push({ name: `${name}(予)`, value: future, color, opacity: 0.65, showLabel: !added });
-    }
-    if (earned > 0 || future > 0) {
-      timeOfDayData.push({ name: `${name}_spacer`, value: spacerValue, color: 'transparent', isSpacer: true });
-    }
-  };
-
-  addGroup(mEarnedHours, mFutureHours, '午前', '#ffb74d');
-  addGroup(aEarnedHours, aFutureHours, '午後', '#81c784');
-  addGroup(nEarnedHours, nFutureHours, '夜間', '#ba68c8');
-
-  const dayOfWeekData: DayOfWeekData[] = dayNames.map((name, i) => ({
-    name,
-    earned: dayOfWeekEarnedCounts[i],
-    future: dayOfWeekFutureCounts[i],
-    total: dayOfWeekEarnedCounts[i] + dayOfWeekFutureCounts[i],
-  }));
-
-  const monthlyTrendData: MonthlyTrendData[] = [];
-  for (let i = 5; i >= 0; i--) {
-    const targetMonth = subMonths(now, i);
-    const monthStr = format(targetMonth, "yyyy-MM");
-    const displayMonth = format(targetMonth, "M月");
+    const dayOfWeekEarnedCounts = [0, 0, 0, 0, 0, 0, 0];
+    const dayOfWeekFutureCounts = [0, 0, 0, 0, 0, 0, 0];
+    const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
     
-    let netBaseEarned = 0;
-    let allowanceEarned = 0;
-    let deductionEarned = 0;
-    let netBaseFuture = 0;
-    let allowanceFuture = 0;
-    let deductionFuture = 0;
-    let totalHours = 0;
-    
+    let mEarnedHours = 0;
+    let aEarnedHours = 0;
+    let nEarnedHours = 0;
+    let mFutureHours = 0;
+    let aFutureHours = 0;
+    let nFutureHours = 0;
+
     shifts.forEach(s => {
-      if (s.date.startsWith(monthStr)) {
-        const { hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
-        totalHours += hours;
-        const rawBase = Math.floor(hours * s.hourlyWage);
-        const allow = s.allowance || 0;
-        const ded = s.deduction || 0;
-        const netBase = Math.max(0, rawBase - ded);
-        
-        if (isPast(s.date)) {
-          netBaseEarned += netBase;
-          allowanceEarned += allow;
-          deductionEarned += ded;
+      const d = parseISO(s.date);
+      const isTarget = subTab === 'cumulative' || isSameMonth(d, selectedMonth);
+      const isPrevMonth = subTab === 'monthly' && isSameMonth(d, subMonths(selectedMonth, 1));
+
+      if (isPrevMonth) {
+        const { salary, hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
+        prevMonthEarnings += salary;
+        prevMonthHours += hours;
+      }
+
+      if (isTarget) {
+        const past = isPast(s.date);
+        if (subTab === 'cumulative' && !past) return;
+
+        const { salary, hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
+        const dayIndex = getDay(d);
+        const blocks = calcTimeBlocks(s.startTime, s.endTime, s.breakMinutes);
+
+        if (past) {
+          displayEarnings += salary;
+          displayHours += hours;
+          dayOfWeekEarnedCounts[dayIndex]++;
+          mEarnedHours += blocks.morning;
+          aEarnedHours += blocks.afternoon;
+          nEarnedHours += blocks.night;
         } else {
-          netBaseFuture += netBase;
-          allowanceFuture += allow;
-          deductionFuture += ded;
+          futureEarnings += salary;
+          futureHours += hours;
+          dayOfWeekFutureCounts[dayIndex]++;
+          mFutureHours += blocks.morning;
+          aFutureHours += blocks.afternoon;
+          nFutureHours += blocks.night;
         }
       }
     });
 
-    monthlyTrendData.push({
-      name: displayMonth,
-      netBaseEarned,
-      allowanceEarned,
-      deductionEarned,
-      netBaseFuture,
-      allowanceFuture,
-      deductionFuture,
-      totalHours,
-    });
-  }
+    const totalChartHours = mEarnedHours + mFutureHours + aEarnedHours + aFutureHours + nEarnedHours + nFutureHours;
+    const spacerValue = totalChartHours * 0.02; // 2% gap
+    const timeOfDayData: TimeOfDayData[] = [];
 
-  const totalEarnings = displayEarnings + futureEarnings;
-  const totalHours = displayHours + futureHours;
-  const diffEarnings = totalEarnings - prevMonthEarnings;
-  const diffHours = totalHours - prevMonthHours;
-  const tooltipTotals = {
-    morning: mEarnedHours + mFutureHours,
-    afternoon: aEarnedHours + aFutureHours,
-    night: nEarnedHours + nFutureHours,
-  };
+    const addGroup = (earned: number, future: number, name: string, color: string) => {
+      let added = false;
+      if (earned > 0) {
+        timeOfDayData.push({ name, value: earned, color, showLabel: true });
+        added = true;
+      }
+      if (future > 0) {
+        timeOfDayData.push({ name: `${name}(予)`, value: future, color, opacity: 0.65, showLabel: !added });
+      }
+      if (earned > 0 || future > 0) {
+        timeOfDayData.push({ name: `${name}_spacer`, value: spacerValue, color: 'transparent', isSpacer: true });
+      }
+    };
+
+    addGroup(mEarnedHours, mFutureHours, '午前', '#ffb74d');
+    addGroup(aEarnedHours, aFutureHours, '午後', '#81c784');
+    addGroup(nEarnedHours, nFutureHours, '夜間', '#ba68c8');
+
+    const dayOfWeekData: DayOfWeekData[] = dayNames.map((name, i) => ({
+      name,
+      earned: dayOfWeekEarnedCounts[i],
+      future: dayOfWeekFutureCounts[i],
+      total: dayOfWeekEarnedCounts[i] + dayOfWeekFutureCounts[i],
+    }));
+
+    const monthlyTrendData: MonthlyTrendData[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const targetMonth = subMonths(now, i);
+      const monthStr = format(targetMonth, "yyyy-MM");
+      const displayMonth = format(targetMonth, "M月");
+      
+      let netBaseEarned = 0;
+      let allowanceEarned = 0;
+      let deductionEarned = 0;
+      let netBaseFuture = 0;
+      let allowanceFuture = 0;
+      let deductionFuture = 0;
+      let totalHours = 0;
+      
+      shifts.forEach(s => {
+        if (s.date.startsWith(monthStr)) {
+          const { hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
+          totalHours += hours;
+          const rawBase = Math.floor(hours * s.hourlyWage);
+          const allow = s.allowance || 0;
+          const ded = s.deduction || 0;
+          const netBase = Math.max(0, rawBase - ded);
+          
+          if (isPast(s.date)) {
+            netBaseEarned += netBase;
+            allowanceEarned += allow;
+            deductionEarned += ded;
+          } else {
+            netBaseFuture += netBase;
+            allowanceFuture += allow;
+            deductionFuture += ded;
+          }
+        }
+      });
+
+      monthlyTrendData.push({
+        name: displayMonth,
+        netBaseEarned,
+        allowanceEarned,
+        deductionEarned,
+        netBaseFuture,
+        allowanceFuture,
+        deductionFuture,
+        totalHours,
+      });
+    }
+
+    const totalEarnings = displayEarnings + futureEarnings;
+    const totalHours = displayHours + futureHours;
+    const diffEarnings = totalEarnings - prevMonthEarnings;
+    const diffHours = totalHours - prevMonthHours;
+    const tooltipTotals = {
+      morning: mEarnedHours + mFutureHours,
+      afternoon: aEarnedHours + aFutureHours,
+      night: nEarnedHours + nFutureHours,
+    };
+
+    return {
+      displayEarnings,
+      displayHours,
+      totalEarnings,
+      totalHours,
+      diffEarnings,
+      diffHours,
+      dayOfWeekData,
+      timeOfDayData,
+      monthlyTrendData,
+      tooltipTotals,
+      totalChartHours,
+      mEarnedHours,
+      mFutureHours,
+      aEarnedHours,
+      aFutureHours,
+      nEarnedHours,
+      nFutureHours
+    };
+  }, [shifts, subTab, selectedMonth]);
   const readWeekdayPayload = (state: unknown) => {
     const chartState = state as ChartClickState<DayOfWeekData> | undefined;
     const payload = chartState?.activePayload?.[0]?.payload;
@@ -633,40 +739,18 @@ export function AnalysisView({ shifts }: Props) {
               className={styles.chartTapLayer}
               onClick={() => setIsTimeOfDayOpen(open => !open)}
             />
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={timeOfDayData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={0}
-                  startAngle={90}
-                  endAngle={-270}
-                  dataKey="value"
-                  label={({ name, x, y, textAnchor, payload }) => {
-                    if (!payload.showLabel) return null;
-                    const cleanName = String(name).replace('(予)', '');
-                    const catTotal = cleanName === '午前' ? mEarnedHours + mFutureHours : cleanName === '午後' ? aEarnedHours + aFutureHours : nEarnedHours + nFutureHours;
-                    const catPercent = catTotal / totalChartHours;
-                    return (
-                      <text x={x} y={y} fill="#fff" fontSize={10} fontWeight="bold" textAnchor={textAnchor} dominantBaseline="central" style={{ pointerEvents: 'none' }}>
-                        {`${cleanName} ${(catPercent * 100).toFixed(0)}%`}
-                      </text>
-                    );
-                  }}
-                  labelLine={false}
-                  stroke="none"
-                  isAnimationActive={false}
-                >
-                  {timeOfDayData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="none" />
-                  ))}
-                </Pie>
-                {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
-              </PieChart>
-            </ResponsiveContainer>
+            <TimeOfDayPieChart
+              timeOfDayData={timeOfDayData}
+              usesCompactCharts={usesCompactCharts}
+              tooltipTotals={tooltipTotals}
+              totalChartHours={totalChartHours}
+              mEarnedHours={mEarnedHours}
+              mFutureHours={mFutureHours}
+              aEarnedHours={aEarnedHours}
+              aFutureHours={aFutureHours}
+              nEarnedHours={nEarnedHours}
+              nFutureHours={nFutureHours}
+            />
           </div>
         ) : (
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', marginTop: '40px' }}>データがありません</p>
