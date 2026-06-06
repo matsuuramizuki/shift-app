@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from "recharts";
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
@@ -141,26 +141,7 @@ export function AnalysisView({ shifts }: Props) {
   const [activeWeekday, setActiveWeekday] = useState<DayOfWeekData | null>(null);
   const [activeTrendMonth, setActiveTrendMonth] = useState<MonthlyTrendData | null>(null);
   const [activeHoursMonth, setActiveHoursMonth] = useState<MonthlyTrendData | null>(null);
-  const lastClickTimeRef = useRef(0);
   const now = new Date();
-
-  useEffect(() => {
-    if (selectedWeekday) {
-      setActiveWeekday(selectedWeekday);
-    }
-  }, [selectedWeekday]);
-
-  useEffect(() => {
-    if (selectedTrendMonth) {
-      setActiveTrendMonth(selectedTrendMonth);
-    }
-  }, [selectedTrendMonth]);
-
-  useEffect(() => {
-    if (selectedHoursMonth) {
-      setActiveHoursMonth(selectedHoursMonth);
-    }
-  }, [selectedHoursMonth]);
   const todayStr = format(now, "yyyy-MM-dd");
   const isPast = (dateStr: string) => dateStr <= todayStr;
   const isViewingPastMonth = subTab === 'monthly' && format(selectedMonth, "yyyy-MM") < format(now, "yyyy-MM");
@@ -388,31 +369,67 @@ export function AnalysisView({ shifts }: Props) {
     return (data as ShapeClickData<T> | undefined)?.payload ?? null;
   };
 
-  const handleWeekdayClick = (data: unknown) => {
-    const now = Date.now();
-    if (now - lastClickTimeRef.current < 400) return;
-    lastClickTimeRef.current = now;
+  const readIndexedPayload = <T,>(event: React.MouseEvent<HTMLButtonElement>, items: T[]) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = Math.min(Math.max(event.clientX - rect.left, 0), rect.width - 1);
+    const index = Math.min(items.length - 1, Math.max(0, Math.floor((x / rect.width) * items.length)));
 
+    return items[index] ?? null;
+  };
+
+  const toggleWeekday = (payload: DayOfWeekData) => {
+    if (selectedWeekday?.name === payload.name) {
+      setSelectedWeekday(null);
+      return;
+    }
+
+    setActiveWeekday(payload);
+    setSelectedWeekday(payload);
+  };
+
+  const handleWeekdayClick = (data: unknown) => {
     const payload = readWeekdayPayload(data) ?? readShapePayload<DayOfWeekData>(data);
     if (!payload) return;
-    setSelectedWeekday(current => current?.name === payload.name ? null : payload);
+    toggleWeekday(payload);
+  };
+
+  const handleWeekdayTap = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const payload = readIndexedPayload(event, dayOfWeekData);
+    if (payload) toggleWeekday(payload);
+  };
+
+  const toggleTrendMonth = (payload: MonthlyTrendData) => {
+    if (selectedTrendMonth?.name === payload.name) {
+      setSelectedTrendMonth(null);
+      return;
+    }
+
+    setActiveTrendMonth(payload);
+    setSelectedTrendMonth(payload);
   };
 
   const handleTrendMonthClick = (data: unknown) => {
-    const now = Date.now();
-    if (now - lastClickTimeRef.current < 400) return;
-    lastClickTimeRef.current = now;
-
     const payload = readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
     if (!payload) return;
-    setSelectedTrendMonth(current => current?.name === payload.name ? null : payload);
+    toggleTrendMonth(payload);
+  };
+
+  const handleTrendMonthTap = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const payload = readIndexedPayload(event, monthlyTrendData);
+    if (payload) toggleTrendMonth(payload);
+  };
+
+  const toggleHoursMonth = (payload: MonthlyTrendData) => {
+    if (selectedHoursMonth?.name === payload.name) {
+      setSelectedHoursMonth(null);
+      return;
+    }
+
+    setActiveHoursMonth(payload);
+    setSelectedHoursMonth(payload);
   };
 
   const handleHoursMonthClick = (data: unknown) => {
-    const now = Date.now();
-    if (now - lastClickTimeRef.current < 400) return;
-    lastClickTimeRef.current = now;
-
     let payload: MonthlyTrendData | null = null;
     if (data && typeof data === 'object' && 'totalHours' in data) {
       payload = data as MonthlyTrendData;
@@ -421,7 +438,12 @@ export function AnalysisView({ shifts }: Props) {
     }
 
     if (!payload) return;
-    setSelectedHoursMonth(current => current?.name === payload.name ? null : payload);
+    toggleHoursMonth(payload);
+  };
+
+  const handleHoursMonthTap = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const payload = readIndexedPayload(event, monthlyTrendData);
+    if (payload) toggleHoursMonth(payload);
   };
 
   const renderHoursDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: MonthlyTrendData }) => {
@@ -430,15 +452,14 @@ export function AnalysisView({ shifts }: Props) {
     const isSelected = selectedHoursMonth?.name === payload?.name;
 
     return (
-      <g style={{ cursor: "pointer", touchAction: "manipulation" }} onClick={(event) => { event.stopPropagation(); handleHoursMonthClick(payload); }}>
+      <g style={{ cursor: "pointer", touchAction: "manipulation" }} onClick={(event) => { event.stopPropagation(); if (payload) toggleHoursMonth(payload); }}>
         <circle cx={cx} cy={cy} r={24} fill="transparent" />
         <circle
           cx={cx}
           cy={cy}
           r={isSelected ? 9 : 5}
           fill="var(--primary)"
-          stroke={isSelected ? "transparent" : "var(--background)"}
-          strokeWidth={isSelected ? 0 : 2}
+          stroke="transparent"
         />
       </g>
     );
@@ -448,7 +469,7 @@ export function AnalysisView({ shifts }: Props) {
     if (cx === undefined || cy === undefined) return <></>;
 
     return (
-      <g style={{ cursor: "pointer", touchAction: "manipulation" }} onClick={(event) => { event.stopPropagation(); handleHoursMonthClick(payload); }}>
+      <g style={{ cursor: "pointer", touchAction: "manipulation" }} onClick={(event) => { event.stopPropagation(); if (payload) toggleHoursMonth(payload); }}>
         <circle cx={cx} cy={cy} r={24} fill="transparent" />
         <circle
           cx={cx}
@@ -543,7 +564,13 @@ export function AnalysisView({ shifts }: Props) {
 
       <div className={styles.chartContainer} style={{ marginBottom: 0 }}>
         <h3 className={styles.chartTitle}>{subTab === 'monthly' ? '月間曜日別シフト回数' : '通算曜日別シフト回数'}</h3>
-        <div style={{ width: '100%', height: 200, touchAction: 'manipulation' }}>
+        <div className={styles.chartTapTarget} style={{ height: 200 }}>
+          <button
+            type="button"
+            aria-label="曜日別シフト回数を表示"
+            className={styles.chartTapLayer}
+            onClick={handleWeekdayTap}
+          />
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={dayOfWeekData} 
@@ -658,7 +685,13 @@ export function AnalysisView({ shifts }: Props) {
       {subTab === 'monthly' && (
         <div className={styles.chartContainer}>
           <h3 className={styles.chartTitle}>過去６ヶ月推移</h3>
-          <div style={{ width: '100%', height: 250, touchAction: 'manipulation' }}>
+          <div className={styles.chartTapTarget} style={{ height: 250 }}>
+            <button
+              type="button"
+              aria-label="過去六ヶ月推移を表示"
+              className={styles.chartTapLayer}
+              onClick={handleTrendMonthTap}
+            />
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
                 data={monthlyTrendData} 
@@ -702,7 +735,13 @@ export function AnalysisView({ shifts }: Props) {
       {subTab === 'cumulative' && (
         <div className={styles.chartContainer}>
           <h3 className={styles.chartTitle}>過去６ヶ月 労働時間推移</h3>
-          <div style={{ width: '100%', height: 250, touchAction: 'manipulation' }}>
+          <div className={styles.chartTapTarget} style={{ height: 250 }}>
+            <button
+              type="button"
+              aria-label="過去六ヶ月の労働時間を表示"
+              className={styles.chartTapLayer}
+              onClick={handleHoursMonthTap}
+            />
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={monthlyTrendData}
