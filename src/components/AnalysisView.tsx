@@ -138,11 +138,29 @@ export function AnalysisView({ shifts }: Props) {
   const [isTimeOfDayOpen, setIsTimeOfDayOpen] = useState(false);
   const [selectedTrendMonth, setSelectedTrendMonth] = useState<MonthlyTrendData | null>(null);
   const [selectedHoursMonth, setSelectedHoursMonth] = useState<MonthlyTrendData | null>(null);
+  const [activeWeekday, setActiveWeekday] = useState<DayOfWeekData | null>(null);
+  const [activeTrendMonth, setActiveTrendMonth] = useState<MonthlyTrendData | null>(null);
+  const [activeHoursMonth, setActiveHoursMonth] = useState<MonthlyTrendData | null>(null);
   const lastClickTimeRef = useRef(0);
-  const lastHoveredWeekdayRef = useRef<DayOfWeekData | null>(null);
-  const lastHoveredTrendRef = useRef<MonthlyTrendData | null>(null);
-  const lastHoveredHoursRef = useRef<MonthlyTrendData | null>(null);
   const now = new Date();
+
+  useEffect(() => {
+    if (selectedWeekday) {
+      setActiveWeekday(selectedWeekday);
+    }
+  }, [selectedWeekday]);
+
+  useEffect(() => {
+    if (selectedTrendMonth) {
+      setActiveTrendMonth(selectedTrendMonth);
+    }
+  }, [selectedTrendMonth]);
+
+  useEffect(() => {
+    if (selectedHoursMonth) {
+      setActiveHoursMonth(selectedHoursMonth);
+    }
+  }, [selectedHoursMonth]);
   const todayStr = format(now, "yyyy-MM-dd");
   const isPast = (dateStr: string) => dateStr <= todayStr;
   const isViewingPastMonth = subTab === 'monthly' && format(selectedMonth, "yyyy-MM") < format(now, "yyyy-MM");
@@ -375,7 +393,7 @@ export function AnalysisView({ shifts }: Props) {
     if (now - lastClickTimeRef.current < 400) return;
     lastClickTimeRef.current = now;
 
-    const payload = lastHoveredWeekdayRef.current ?? readWeekdayPayload(data) ?? readShapePayload<DayOfWeekData>(data);
+    const payload = readWeekdayPayload(data) ?? readShapePayload<DayOfWeekData>(data);
     if (!payload) return;
     setSelectedWeekday(current => current?.name === payload.name ? null : payload);
   };
@@ -385,7 +403,7 @@ export function AnalysisView({ shifts }: Props) {
     if (now - lastClickTimeRef.current < 400) return;
     lastClickTimeRef.current = now;
 
-    const payload = lastHoveredTrendRef.current ?? readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
+    const payload = readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
     if (!payload) return;
     setSelectedTrendMonth(current => current?.name === payload.name ? null : payload);
   };
@@ -395,11 +413,11 @@ export function AnalysisView({ shifts }: Props) {
     if (now - lastClickTimeRef.current < 400) return;
     lastClickTimeRef.current = now;
 
-    let payload = null;
+    let payload: MonthlyTrendData | null = null;
     if (data && typeof data === 'object' && 'totalHours' in data) {
       payload = data as MonthlyTrendData;
     } else {
-      payload = lastHoveredHoursRef.current ?? readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
+      payload = readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
     }
 
     if (!payload) return;
@@ -417,10 +435,10 @@ export function AnalysisView({ shifts }: Props) {
         <circle
           cx={cx}
           cy={cy}
-          r={isSelected ? 8 : 5}
+          r={isSelected ? 9 : 5}
           fill="var(--primary)"
-          stroke={isSelected ? "#ffffff" : "var(--background)"}
-          strokeWidth={isSelected ? 3 : 2}
+          stroke={isSelected ? "transparent" : "var(--background)"}
+          strokeWidth={isSelected ? 0 : 2}
         />
       </g>
     );
@@ -435,7 +453,7 @@ export function AnalysisView({ shifts }: Props) {
         <circle
           cx={cx}
           cy={cy}
-          r={8}
+          r={9}
           fill="var(--primary)"
           stroke="transparent"
         />
@@ -531,10 +549,6 @@ export function AnalysisView({ shifts }: Props) {
               data={dayOfWeekData} 
               margin={{ top: 10, right: 20, left: -20, bottom: 0 }} 
               onClick={handleWeekdayClick}
-              onMouseMove={(state) => {
-                const payload = readWeekdayPayload(state);
-                if (payload) lastHoveredWeekdayRef.current = payload;
-              }}
             >
               <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -570,12 +584,14 @@ export function AnalysisView({ shifts }: Props) {
         </div>
         <div className={`${styles.chartSummaryWrapper} ${selectedWeekday ? styles.open : ''}`}>
           <div className={styles.chartSummaryInner}>
-            <div className={styles.chartSummaryRow}>
-              <span>{selectedWeekday?.name}曜</span>
-              {subTab === 'monthly' && !isViewingPastMonth && <span>確定 {selectedWeekday?.earned}回</span>}
-              {subTab === 'monthly' && !isViewingPastMonth && <span>予定 {selectedWeekday?.future}回</span>}
-              <span>{subTab === 'monthly' && !isViewingPastMonth ? '合計' : 'シフト'} {selectedWeekday?.total}回</span>
-            </div>
+            {activeWeekday && (
+              <div className={styles.chartSummaryRow}>
+                <span>{activeWeekday.name}曜</span>
+                {subTab === 'monthly' && !isViewingPastMonth && <span>確定 {activeWeekday.earned}回</span>}
+                {subTab === 'monthly' && !isViewingPastMonth && <span>予定 {activeWeekday.future}回</span>}
+                <span>{subTab === 'monthly' && !isViewingPastMonth ? '合計' : 'シフト'} {activeWeekday.total}回</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -648,10 +664,6 @@ export function AnalysisView({ shifts }: Props) {
                 data={monthlyTrendData} 
                 margin={{ top: 10, right: 20, left: -10, bottom: 0 }} 
                 onClick={handleTrendMonthClick}
-                onMouseMove={(state) => {
-                  const payload = readMonthlyPayload(state);
-                  if (payload) lastHoveredTrendRef.current = payload;
-                }}
               >
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
@@ -674,12 +686,14 @@ export function AnalysisView({ shifts }: Props) {
           </div>
           <div className={`${styles.chartSummaryWrapper} ${selectedTrendMonth ? styles.open : ''}`}>
             <div className={styles.chartSummaryInner}>
-              <div className={styles.chartSummaryRow}>
-                <span>{selectedTrendMonth?.name}</span>
-                <span>手取り ¥{((selectedTrendMonth?.netBaseEarned ?? 0) + (selectedTrendMonth?.netBaseFuture ?? 0)).toLocaleString()}</span>
-                <span>手当 ¥{((selectedTrendMonth?.allowanceEarned ?? 0) + (selectedTrendMonth?.allowanceFuture ?? 0)).toLocaleString()}</span>
-                <span>天引き ¥{((selectedTrendMonth?.deductionEarned ?? 0) + (selectedTrendMonth?.deductionFuture ?? 0)).toLocaleString()}</span>
-              </div>
+              {activeTrendMonth && (
+                <div className={styles.chartSummaryRow}>
+                  <span>{activeTrendMonth.name}</span>
+                  <span>手取り ¥{((activeTrendMonth.netBaseEarned ?? 0) + (activeTrendMonth.netBaseFuture ?? 0)).toLocaleString()}</span>
+                  <span>手当 ¥{((activeTrendMonth.allowanceEarned ?? 0) + (activeTrendMonth.allowanceFuture ?? 0)).toLocaleString()}</span>
+                  <span>天引き ¥{((activeTrendMonth.deductionEarned ?? 0) + (activeTrendMonth.deductionFuture ?? 0)).toLocaleString()}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -694,10 +708,6 @@ export function AnalysisView({ shifts }: Props) {
                 data={monthlyTrendData}
                 margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
                 onClick={handleHoursMonthClick}
-                onMouseMove={(state) => {
-                  const payload = readMonthlyPayload(state);
-                  if (payload) lastHoveredHoursRef.current = payload;
-                }}
               >
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} />
@@ -716,10 +726,12 @@ export function AnalysisView({ shifts }: Props) {
           </div>
           <div className={`${styles.chartSummaryWrapper} ${selectedHoursMonth ? styles.open : ''}`}>
             <div className={styles.chartSummaryInner}>
-              <div className={styles.chartSummaryRow}>
-                <span>{selectedHoursMonth?.name}</span>
-                <span>労働時間 {(selectedHoursMonth?.totalHours ?? 0).toFixed(1)}h</span>
-              </div>
+              {activeHoursMonth && (
+                <div className={styles.chartSummaryRow}>
+                  <span>{activeHoursMonth.name}</span>
+                  <span>労働時間 {(activeHoursMonth.totalHours ?? 0).toFixed(1)}h</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
