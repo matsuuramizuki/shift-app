@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from "recharts";
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
@@ -138,6 +138,7 @@ export function AnalysisView({ shifts }: Props) {
   const [isTimeOfDayOpen, setIsTimeOfDayOpen] = useState(false);
   const [selectedTrendMonth, setSelectedTrendMonth] = useState<MonthlyTrendData | null>(null);
   const [selectedHoursMonth, setSelectedHoursMonth] = useState<MonthlyTrendData | null>(null);
+  const lastClickTimeRef = useRef(0);
   const now = new Date();
   const todayStr = format(now, "yyyy-MM-dd");
   const isPast = (dateStr: string) => dateStr <= todayStr;
@@ -367,18 +368,30 @@ export function AnalysisView({ shifts }: Props) {
   };
 
   const handleWeekdayClick = (data: unknown) => {
+    const now = Date.now();
+    if (now - lastClickTimeRef.current < 200) return;
+    lastClickTimeRef.current = now;
+
     const payload = readWeekdayPayload(data) ?? readShapePayload<DayOfWeekData>(data);
     if (!payload) return;
     setSelectedWeekday(current => current?.name === payload.name ? null : payload);
   };
 
   const handleTrendMonthClick = (data: unknown) => {
+    const now = Date.now();
+    if (now - lastClickTimeRef.current < 200) return;
+    lastClickTimeRef.current = now;
+
     const payload = readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
     if (!payload) return;
     setSelectedTrendMonth(current => current?.name === payload.name ? null : payload);
   };
 
   const handleHoursMonthClick = (payload: MonthlyTrendData | null) => {
+    const now = Date.now();
+    if (now - lastClickTimeRef.current < 200) return;
+    lastClickTimeRef.current = now;
+
     if (!payload) return;
     setSelectedHoursMonth(current => current?.name === payload.name ? null : payload);
   };
@@ -386,23 +399,22 @@ export function AnalysisView({ shifts }: Props) {
   const renderHoursDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: MonthlyTrendData }) => {
     if (cx === undefined || cy === undefined) return <></>;
 
+    const isSelected = selectedHoursMonth?.name === payload?.name;
+
     return (
       <circle
         cx={cx}
         cy={cy}
-        r={5}
-        fill="var(--primary)"
-        stroke="var(--background)"
-        strokeWidth={2}
-        onClick={(event) => {
-          event.stopPropagation();
-          handleHoursMonthClick(payload ?? null);
-        }}
+        r={isSelected ? 8 : 5}
+        fill={isSelected ? "var(--secondary)" : "var(--primary)"}
+        stroke={isSelected ? "#ffffff" : "var(--background)"}
+        strokeWidth={isSelected ? 3 : 2}
+        style={{ cursor: "pointer" }}
       />
     );
   };
 
-  const renderActiveHoursDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: MonthlyTrendData }) => {
+  const renderActiveHoursDot = ({ cx, cy }: { cx?: number; cy?: number }) => {
     if (cx === undefined || cy === undefined) return <></>;
 
     return (
@@ -412,10 +424,7 @@ export function AnalysisView({ shifts }: Props) {
         r={8}
         fill="var(--primary)"
         stroke="transparent"
-        onClick={(event) => {
-          event.stopPropagation();
-          handleHoursMonthClick(payload ?? null);
-        }}
+        style={{ cursor: "pointer" }}
       />
     );
   };
@@ -537,14 +546,16 @@ export function AnalysisView({ shifts }: Props) {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        {selectedWeekday && (
-          <div className={styles.chartSummaryRow}>
-            <span>{selectedWeekday.name}曜</span>
-            {subTab === 'monthly' && !isViewingPastMonth && <span>確定 {selectedWeekday.earned}回</span>}
-            {subTab === 'monthly' && !isViewingPastMonth && <span>予定 {selectedWeekday.future}回</span>}
-            <span>{subTab === 'monthly' && !isViewingPastMonth ? '合計' : 'シフト'} {selectedWeekday.total}回</span>
+        <div className={`${styles.chartSummaryWrapper} ${selectedWeekday ? styles.open : ''}`}>
+          <div className={styles.chartSummaryInner}>
+            <div className={styles.chartSummaryRow}>
+              <span>{selectedWeekday?.name}曜</span>
+              {subTab === 'monthly' && !isViewingPastMonth && <span>確定 {selectedWeekday?.earned}回</span>}
+              {subTab === 'monthly' && !isViewingPastMonth && <span>予定 {selectedWeekday?.future}回</span>}
+              <span>{subTab === 'monthly' && !isViewingPastMonth ? '合計' : 'シフト'} {selectedWeekday?.total}回</span>
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
       <div className={styles.chartContainer} style={{ marginBottom: 0 }}>
@@ -575,13 +586,14 @@ export function AnalysisView({ shifts }: Props) {
                     const catTotal = cleanName === '午前' ? mEarnedHours + mFutureHours : cleanName === '午後' ? aEarnedHours + aFutureHours : nEarnedHours + nFutureHours;
                     const catPercent = catTotal / totalChartHours;
                     return (
-                      <text x={x} y={y} fill="#fff" fontSize={10} fontWeight="bold" textAnchor={textAnchor} dominantBaseline="central">
+                      <text x={x} y={y} fill="#fff" fontSize={10} fontWeight="bold" textAnchor={textAnchor} dominantBaseline="central" style={{ pointerEvents: 'none' }}>
                         {`${cleanName} ${(catPercent * 100).toFixed(0)}%`}
                       </text>
                     );
                   }}
                   labelLine={false}
                   stroke="none"
+                  isAnimationActive={false}
                 >
                   {timeOfDayData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="none" />
@@ -594,13 +606,15 @@ export function AnalysisView({ shifts }: Props) {
         ) : (
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', marginTop: '40px' }}>データがありません</p>
         )}
-        {timeOfDayData.filter(d => !d.isSpacer).length > 0 && isTimeOfDayOpen && (
-          <div className={styles.chartSummaryRow}>
-            <span>午前 {tooltipTotals.morning.toFixed(1)}h</span>
-            <span>午後 {tooltipTotals.afternoon.toFixed(1)}h</span>
-            <span>夜間 {tooltipTotals.night.toFixed(1)}h</span>
+        <div className={`${styles.chartSummaryWrapper} ${(timeOfDayData.filter(d => !d.isSpacer).length > 0 && isTimeOfDayOpen) ? styles.open : ''}`}>
+          <div className={styles.chartSummaryInner}>
+            <div className={styles.chartSummaryRow}>
+              <span>午前 {tooltipTotals.morning.toFixed(1)}h</span>
+              <span>午後 {tooltipTotals.afternoon.toFixed(1)}h</span>
+              <span>夜間 {tooltipTotals.night.toFixed(1)}h</span>
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
       {subTab === 'monthly' && (
@@ -628,14 +642,16 @@ export function AnalysisView({ shifts }: Props) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          {selectedTrendMonth && (
-            <div className={styles.chartSummaryRow}>
-              <span>{selectedTrendMonth.name}</span>
-              <span>手取り ¥{(selectedTrendMonth.netBaseEarned + selectedTrendMonth.netBaseFuture).toLocaleString()}</span>
-              <span>手当 ¥{(selectedTrendMonth.allowanceEarned + selectedTrendMonth.allowanceFuture).toLocaleString()}</span>
-              <span>天引き ¥{(selectedTrendMonth.deductionEarned + selectedTrendMonth.deductionFuture).toLocaleString()}</span>
+          <div className={`${styles.chartSummaryWrapper} ${selectedTrendMonth ? styles.open : ''}`}>
+            <div className={styles.chartSummaryInner}>
+              <div className={styles.chartSummaryRow}>
+                <span>{selectedTrendMonth?.name}</span>
+                <span>手取り ¥{((selectedTrendMonth?.netBaseEarned ?? 0) + (selectedTrendMonth?.netBaseFuture ?? 0)).toLocaleString()}</span>
+                <span>手当 ¥{((selectedTrendMonth?.allowanceEarned ?? 0) + (selectedTrendMonth?.allowanceFuture ?? 0)).toLocaleString()}</span>
+                <span>天引き ¥{((selectedTrendMonth?.deductionEarned ?? 0) + (selectedTrendMonth?.deductionFuture ?? 0)).toLocaleString()}</span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -667,12 +683,14 @@ export function AnalysisView({ shifts }: Props) {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          {selectedHoursMonth && (
-            <div className={styles.chartSummaryRow}>
-              <span>{selectedHoursMonth.name}</span>
-              <span>労働時間 {selectedHoursMonth.totalHours.toFixed(1)}h</span>
+          <div className={`${styles.chartSummaryWrapper} ${selectedHoursMonth ? styles.open : ''}`}>
+            <div className={styles.chartSummaryInner}>
+              <div className={styles.chartSummaryRow}>
+                <span>{selectedHoursMonth?.name}</span>
+                <span>労働時間 {(selectedHoursMonth?.totalHours ?? 0).toFixed(1)}h</span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
 
