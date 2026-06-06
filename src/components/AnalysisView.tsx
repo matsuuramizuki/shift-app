@@ -24,6 +24,7 @@ interface DayOfWeekData {
   name: string;
   earned: number;
   future: number;
+  total: number;
 }
 
 interface MonthlyTrendData {
@@ -38,6 +39,7 @@ interface MonthlyTrendData {
 }
 
 interface ChartClickState {
+  activeLabel?: string;
   activePayload?: Array<{
     payload?: MonthlyTrendData;
   }>;
@@ -99,7 +101,7 @@ function CustomTooltip({ active, payload, label, totals }: CustomTooltipProps) {
         const isFuture = entryName.includes("予");
         const color = entry.payload?.color || entry.color;
         const opacity = isFuture ? 0.6 : 1;
-        const formattedValue = entryName === "earned" || entryName === "future" || entryName === "確定" || entryName === "予定"
+        const formattedValue = entryName === "earned" || entryName === "future" || entryName === "確定" || entryName === "予定" || entryName === "シフト回数"
           ? `${value}回`
           : entryName === "totalHours" || entryName === "労働時間"
             ? `${value.toFixed(1)}時間`
@@ -133,7 +135,6 @@ export function AnalysisView({ shifts }: Props) {
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [usesCompactCharts, setUsesCompactCharts] = useState(false);
   const [selectedWeekday, setSelectedWeekday] = useState<DayOfWeekData | null>(null);
-  const [selectedTimeBlock, setSelectedTimeBlock] = useState<string | null>(null);
   const [selectedTrendMonth, setSelectedTrendMonth] = useState<MonthlyTrendData | null>(null);
   const [selectedHoursMonth, setSelectedHoursMonth] = useState<MonthlyTrendData | null>(null);
   const now = new Date();
@@ -149,7 +150,7 @@ export function AnalysisView({ shifts }: Props) {
 
     return () => mediaQuery.removeEventListener("change", updateChartMode);
   }, []);
-  
+
   const calcTimeBlocks = (sTime: string, eTime: string, bMins: number) => {
     const [sh, sm] = sTime.split(':').map(Number);
     const [eh, em] = eTime.split(':').map(Number);
@@ -276,6 +277,7 @@ export function AnalysisView({ shifts }: Props) {
     name,
     earned: dayOfWeekEarnedCounts[i],
     future: dayOfWeekFutureCounts[i],
+    total: dayOfWeekEarnedCounts[i] + dayOfWeekFutureCounts[i],
   }));
 
   const monthlyTrendData: MonthlyTrendData[] = [];
@@ -334,17 +336,16 @@ export function AnalysisView({ shifts }: Props) {
     afternoon: aEarnedHours + aFutureHours,
     night: nEarnedHours + nFutureHours,
   };
-  const selectedTimeTotals = selectedTimeBlock === "午前"
-    ? { label: "午前", hours: tooltipTotals.morning }
-    : selectedTimeBlock === "午後"
-      ? { label: "午後", hours: tooltipTotals.afternoon }
-      : selectedTimeBlock === "夜間"
-        ? { label: "夜間", hours: tooltipTotals.night }
-        : null;
-
   const readMonthlyPayload = (state: unknown) => {
     const chartState = state as ChartClickState | undefined;
-    return chartState?.activePayload?.[0]?.payload ?? null;
+    const payload = chartState?.activePayload?.[0]?.payload;
+    if (payload) return payload;
+
+    if (chartState?.activeLabel) {
+      return monthlyTrendData.find(month => month.name === chartState.activeLabel) ?? null;
+    }
+
+    return null;
   };
 
   const readShapePayload = <T,>(data: unknown) => {
@@ -361,10 +362,20 @@ export function AnalysisView({ shifts }: Props) {
     if (payload) setSelectedTrendMonth(payload);
   };
 
-  const handleTimeBlockClick = (entry: unknown) => {
-    const timeEntry = entry as TimeOfDayData;
-    if (timeEntry.isSpacer) return;
-    setSelectedTimeBlock(timeEntry.name.replace("(予)", ""));
+  const clearSelections = () => {
+    setSelectedWeekday(null);
+    setSelectedTrendMonth(null);
+    setSelectedHoursMonth(null);
+  };
+
+  const selectSubTab = (nextSubTab: 'monthly' | 'cumulative') => {
+    setSubTab(nextSubTab);
+    clearSelections();
+  };
+
+  const moveSelectedMonth = (nextMonth: Date) => {
+    setSelectedMonth(nextMonth);
+    clearSelections();
   };
 
   return (
@@ -372,7 +383,7 @@ export function AnalysisView({ shifts }: Props) {
       
       <div style={{ display: 'flex', background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '4px' }}>
         <button
-          onClick={() => setSubTab('monthly')}
+          onClick={() => selectSubTab('monthly')}
           style={{
             flex: 1, padding: '10px', textAlign: 'center', fontSize: '14px', fontWeight: 'bold', borderRadius: 'var(--radius-sm)',
             background: subTab === 'monthly' ? 'var(--primary)' : 'transparent',
@@ -382,7 +393,7 @@ export function AnalysisView({ shifts }: Props) {
           月ごと
         </button>
         <button
-          onClick={() => setSubTab('cumulative')}
+          onClick={() => selectSubTab('cumulative')}
           style={{
             flex: 1, padding: '10px', textAlign: 'center', fontSize: '14px', fontWeight: 'bold', borderRadius: 'var(--radius-sm)',
             background: subTab === 'cumulative' ? 'var(--primary)' : 'transparent',
@@ -395,11 +406,11 @@ export function AnalysisView({ shifts }: Props) {
 
       {subTab === 'monthly' && (
         <div className={styles.calendarHeader} style={{ background: 'var(--surface)', padding: '12px 16px', borderRadius: 'var(--radius-md)', marginBottom: 0 }}>
-          <button onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))} className={styles.iconBtn}>
+          <button onClick={() => moveSelectedMonth(subMonths(selectedMonth, 1))} className={styles.iconBtn}>
             <ChevronLeft size={20} />
           </button>
           <span>{format(selectedMonth, "yyyy年 M月", { locale: ja })}</span>
-          <button onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))} className={styles.iconBtn}>
+          <button onClick={() => moveSelectedMonth(addMonths(selectedMonth, 1))} className={styles.iconBtn}>
             <ChevronRight size={20} />
           </button>
         </div>
@@ -438,36 +449,44 @@ export function AnalysisView({ shifts }: Props) {
               <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
               {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
-              <Bar
-                dataKey="earned"
-                name="確定"
-                stackId="a"
-                fill="#03dac6"
-                radius={subTab === 'monthly' && dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]}
-                onClick={handleWeekdayClick}
-              />
-              <Bar
-                dataKey="future"
-                name="予定"
-                stackId="a"
-                fill="#03dac6"
-                fillOpacity={0.65}
-                radius={[4, 4, 0, 0]}
-                onClick={handleWeekdayClick}
-              />
+              {subTab === 'monthly' ? (
+                <>
+                  <Bar
+                    dataKey="earned"
+                    name="確定"
+                    stackId="a"
+                    fill="#03dac6"
+                    radius={dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]}
+                    onClick={handleWeekdayClick}
+                  />
+                  <Bar
+                    dataKey="future"
+                    name="予定"
+                    stackId="a"
+                    fill="#03dac6"
+                    fillOpacity={0.65}
+                    radius={[4, 4, 0, 0]}
+                    onClick={handleWeekdayClick}
+                  />
+                </>
+              ) : (
+                <Bar
+                  dataKey="total"
+                  name="シフト回数"
+                  fill="#03dac6"
+                  radius={[4, 4, 0, 0]}
+                  onClick={handleWeekdayClick}
+                />
+              )}
             </BarChart>
           </ResponsiveContainer>
         </div>
-        {selectedWeekday ? (
+        {selectedWeekday && (
           <div className={styles.chartSummaryRow}>
             <span>{selectedWeekday.name}曜</span>
-            <span>確定 {selectedWeekday.earned}回</span>
-            <span>予定 {selectedWeekday.future}回</span>
-            <span>合計 {selectedWeekday.earned + selectedWeekday.future}回</span>
-          </div>
-        ) : (
-          <div className={styles.chartSummaryRow}>
-            <span>曜日の棒をタップすると詳細を表示</span>
+            {subTab === 'monthly' && <span>確定 {selectedWeekday.earned}回</span>}
+            {subTab === 'monthly' && <span>予定 {selectedWeekday.future}回</span>}
+            <span>{subTab === 'monthly' ? '合計' : 'シフト'} {selectedWeekday.total}回</span>
           </div>
         )}
       </div>
@@ -501,7 +520,6 @@ export function AnalysisView({ shifts }: Props) {
                   }}
                   labelLine={false}
                   stroke="none"
-                  onClick={handleTimeBlockClick}
                 >
                   {timeOfDayData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="none" />
@@ -515,17 +533,11 @@ export function AnalysisView({ shifts }: Props) {
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', marginTop: '40px' }}>データがありません</p>
         )}
         {timeOfDayData.filter(d => !d.isSpacer).length > 0 && (
-          selectedTimeTotals ? (
-            <div className={styles.chartSummaryRow}>
-              <span>{selectedTimeTotals.label}</span>
-              <span>{selectedTimeTotals.hours.toFixed(1)}h</span>
-              <span>{totalChartHours > 0 ? `${((selectedTimeTotals.hours / totalChartHours) * 100).toFixed(0)}%` : "0%"}</span>
-            </div>
-          ) : (
-            <div className={styles.chartSummaryRow}>
-              <span>時間帯をタップすると詳細を表示</span>
-            </div>
-          )
+          <div className={styles.chartSummaryRow}>
+            <span>午前 {tooltipTotals.morning.toFixed(1)}h</span>
+            <span>午後 {tooltipTotals.afternoon.toFixed(1)}h</span>
+            <span>夜間 {tooltipTotals.night.toFixed(1)}h</span>
+          </div>
         )}
       </div>
 
@@ -554,16 +566,12 @@ export function AnalysisView({ shifts }: Props) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          {selectedTrendMonth ? (
+          {selectedTrendMonth && (
             <div className={styles.chartSummaryRow}>
               <span>{selectedTrendMonth.name}</span>
               <span>手取り ¥{(selectedTrendMonth.netBaseEarned + selectedTrendMonth.netBaseFuture).toLocaleString()}</span>
               <span>手当 ¥{(selectedTrendMonth.allowanceEarned + selectedTrendMonth.allowanceFuture).toLocaleString()}</span>
               <span>天引き ¥{(selectedTrendMonth.deductionEarned + selectedTrendMonth.deductionFuture).toLocaleString()}</span>
-            </div>
-          ) : (
-            <div className={styles.chartSummaryRow}>
-              <span>月の棒をタップすると詳細を表示</span>
             </div>
           )}
         </div>
@@ -589,14 +597,10 @@ export function AnalysisView({ shifts }: Props) {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          {selectedHoursMonth ? (
+          {selectedHoursMonth && (
             <div className={styles.chartSummaryRow}>
               <span>{selectedHoursMonth.name}</span>
               <span>労働時間 {selectedHoursMonth.totalHours.toFixed(1)}h</span>
-            </div>
-          ) : (
-            <div className={styles.chartSummaryRow}>
-              <span>月の点をタップすると詳細を表示</span>
             </div>
           )}
         </div>
