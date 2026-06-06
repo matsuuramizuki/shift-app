@@ -38,10 +38,10 @@ interface MonthlyTrendData {
   totalHours: number;
 }
 
-interface ChartClickState {
+interface ChartClickState<T> {
   activeLabel?: string;
   activePayload?: Array<{
-    payload?: MonthlyTrendData;
+    payload?: T;
   }>;
 }
 
@@ -338,8 +338,20 @@ export function AnalysisView({ shifts }: Props) {
     afternoon: aEarnedHours + aFutureHours,
     night: nEarnedHours + nFutureHours,
   };
+  const readWeekdayPayload = (state: unknown) => {
+    const chartState = state as ChartClickState<DayOfWeekData> | undefined;
+    const payload = chartState?.activePayload?.[0]?.payload;
+    if (payload) return payload;
+
+    if (chartState?.activeLabel) {
+      return dayOfWeekData.find(day => day.name === chartState.activeLabel) ?? null;
+    }
+
+    return null;
+  };
+
   const readMonthlyPayload = (state: unknown) => {
-    const chartState = state as ChartClickState | undefined;
+    const chartState = state as ChartClickState<MonthlyTrendData> | undefined;
     const payload = chartState?.activePayload?.[0]?.payload;
     if (payload) return payload;
 
@@ -355,13 +367,13 @@ export function AnalysisView({ shifts }: Props) {
   };
 
   const handleWeekdayClick = (data: unknown) => {
-    const payload = readShapePayload<DayOfWeekData>(data);
+    const payload = readWeekdayPayload(data) ?? readShapePayload<DayOfWeekData>(data);
     if (!payload) return;
     setSelectedWeekday(current => current?.name === payload.name ? null : payload);
   };
 
   const handleTrendMonthClick = (data: unknown) => {
-    const payload = readShapePayload<MonthlyTrendData>(data);
+    const payload = readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
     if (!payload) return;
     setSelectedTrendMonth(current => current?.name === payload.name ? null : payload);
   };
@@ -371,9 +383,41 @@ export function AnalysisView({ shifts }: Props) {
     setSelectedHoursMonth(current => current?.name === payload.name ? null : payload);
   };
 
-  const handleHoursDotClick = (_: unknown, eventPayload: unknown) => {
-    const payload = readShapePayload<MonthlyTrendData>(eventPayload);
-    handleHoursMonthClick(payload);
+  const renderHoursDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: MonthlyTrendData }) => {
+    if (cx === undefined || cy === undefined) return <></>;
+
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={5}
+        fill="var(--primary)"
+        stroke="var(--background)"
+        strokeWidth={2}
+        onClick={(event) => {
+          event.stopPropagation();
+          handleHoursMonthClick(payload ?? null);
+        }}
+      />
+    );
+  };
+
+  const renderActiveHoursDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: MonthlyTrendData }) => {
+    if (cx === undefined || cy === undefined) return <></>;
+
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={8}
+        fill="var(--primary)"
+        stroke="transparent"
+        onClick={(event) => {
+          event.stopPropagation();
+          handleHoursMonthClick(payload ?? null);
+        }}
+      />
+    );
   };
 
   const clearSelections = () => {
@@ -460,7 +504,7 @@ export function AnalysisView({ shifts }: Props) {
         <h3 className={styles.chartTitle}>{subTab === 'monthly' ? '月間曜日別シフト回数' : '通算曜日別シフト回数'}</h3>
         <div style={{ width: '100%', height: 200 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dayOfWeekData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+            <BarChart data={dayOfWeekData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }} onClick={handleWeekdayClick}>
               <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
               {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
@@ -472,7 +516,6 @@ export function AnalysisView({ shifts }: Props) {
                     stackId="a"
                     fill="#03dac6"
                     radius={dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]}
-                    onClick={handleWeekdayClick}
                   />
                   <Bar
                     dataKey="future"
@@ -481,7 +524,6 @@ export function AnalysisView({ shifts }: Props) {
                     fill="#03dac6"
                     fillOpacity={0.65}
                     radius={[4, 4, 0, 0]}
-                    onClick={handleWeekdayClick}
                   />
                 </>
               ) : (
@@ -490,7 +532,6 @@ export function AnalysisView({ shifts }: Props) {
                   name="シフト回数"
                   fill="#03dac6"
                   radius={[4, 4, 0, 0]}
-                  onClick={handleWeekdayClick}
                 />
               )}
             </BarChart>
@@ -509,7 +550,13 @@ export function AnalysisView({ shifts }: Props) {
       <div className={styles.chartContainer} style={{ marginBottom: 0 }}>
         <h3 className={styles.chartTitle}>{subTab === 'monthly' ? '月間時間帯別シフト割合 (時間)' : '通算時間帯別シフト割合 (時間)'}</h3>
         {timeOfDayData.filter(d => !d.isSpacer).length > 0 ? (
-          <div style={{ width: '100%', height: 220 }} onClick={() => setIsTimeOfDayOpen(open => !open)}>
+          <div className={styles.chartTapTarget}>
+            <button
+              type="button"
+              aria-label="時間帯別シフト時間を表示"
+              className={styles.chartTapLayer}
+              onClick={() => setIsTimeOfDayOpen(open => !open)}
+            />
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -561,7 +608,7 @@ export function AnalysisView({ shifts }: Props) {
           <h3 className={styles.chartTitle}>過去６ヶ月推移</h3>
           <div style={{ width: '100%', height: 250 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+              <BarChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }} onClick={handleTrendMonthClick}>
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
                 {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
@@ -572,12 +619,12 @@ export function AnalysisView({ shifts }: Props) {
                     <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#cf6679' }}></span>天引き</li>
                   </ul>
                 )} />
-                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#bb86fc" onClick={handleTrendMonthClick} />
-                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#03dac6" onClick={handleTrendMonthClick} />
-                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#cf6679" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} onClick={handleTrendMonthClick} />
-                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#bb86fc" fillOpacity={0.65} onClick={handleTrendMonthClick} />
-                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.65} onClick={handleTrendMonthClick} />
-                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.65} radius={[4, 4, 0, 0]} onClick={handleTrendMonthClick} />
+                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#bb86fc" />
+                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#03dac6" />
+                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#cf6679" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
+                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#bb86fc" fillOpacity={0.65} />
+                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.65} />
+                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.65} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -614,12 +661,8 @@ export function AnalysisView({ shifts }: Props) {
                   name="労働時間"
                   stroke="var(--primary)"
                   strokeWidth={3}
-                  dot={{ fill: 'var(--primary)', strokeWidth: 2, r: 5, onClick: handleHoursDotClick }}
-                  activeDot={{
-                    r: 8,
-                    stroke: 'transparent',
-                    onClick: handleHoursDotClick
-                  }}
+                  dot={renderHoursDot}
+                  activeDot={renderActiveHoursDot}
                 />
               </LineChart>
             </ResponsiveContainer>
