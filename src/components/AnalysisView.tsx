@@ -139,6 +139,9 @@ export function AnalysisView({ shifts }: Props) {
   const [selectedTrendMonth, setSelectedTrendMonth] = useState<MonthlyTrendData | null>(null);
   const [selectedHoursMonth, setSelectedHoursMonth] = useState<MonthlyTrendData | null>(null);
   const lastClickTimeRef = useRef(0);
+  const lastHoveredWeekdayRef = useRef<DayOfWeekData | null>(null);
+  const lastHoveredTrendRef = useRef<MonthlyTrendData | null>(null);
+  const lastHoveredHoursRef = useRef<MonthlyTrendData | null>(null);
   const now = new Date();
   const todayStr = format(now, "yyyy-MM-dd");
   const isPast = (dateStr: string) => dateStr <= todayStr;
@@ -369,28 +372,35 @@ export function AnalysisView({ shifts }: Props) {
 
   const handleWeekdayClick = (data: unknown) => {
     const now = Date.now();
-    if (now - lastClickTimeRef.current < 200) return;
+    if (now - lastClickTimeRef.current < 400) return;
     lastClickTimeRef.current = now;
 
-    const payload = readWeekdayPayload(data) ?? readShapePayload<DayOfWeekData>(data);
+    const payload = lastHoveredWeekdayRef.current ?? readWeekdayPayload(data) ?? readShapePayload<DayOfWeekData>(data);
     if (!payload) return;
     setSelectedWeekday(current => current?.name === payload.name ? null : payload);
   };
 
   const handleTrendMonthClick = (data: unknown) => {
     const now = Date.now();
-    if (now - lastClickTimeRef.current < 200) return;
+    if (now - lastClickTimeRef.current < 400) return;
     lastClickTimeRef.current = now;
 
-    const payload = readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
+    const payload = lastHoveredTrendRef.current ?? readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
     if (!payload) return;
     setSelectedTrendMonth(current => current?.name === payload.name ? null : payload);
   };
 
-  const handleHoursMonthClick = (payload: MonthlyTrendData | null) => {
+  const handleHoursMonthClick = (data: unknown) => {
     const now = Date.now();
-    if (now - lastClickTimeRef.current < 200) return;
+    if (now - lastClickTimeRef.current < 400) return;
     lastClickTimeRef.current = now;
+
+    let payload = null;
+    if (data && typeof data === 'object' && 'totalHours' in data) {
+      payload = data as MonthlyTrendData;
+    } else {
+      payload = lastHoveredHoursRef.current ?? readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
+    }
 
     if (!payload) return;
     setSelectedHoursMonth(current => current?.name === payload.name ? null : payload);
@@ -402,30 +412,34 @@ export function AnalysisView({ shifts }: Props) {
     const isSelected = selectedHoursMonth?.name === payload?.name;
 
     return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={isSelected ? 8 : 5}
-        fill={isSelected ? "var(--secondary)" : "var(--primary)"}
-        stroke={isSelected ? "#ffffff" : "var(--background)"}
-        strokeWidth={isSelected ? 3 : 2}
-        style={{ cursor: "pointer" }}
-      />
+      <g style={{ cursor: "pointer", touchAction: "manipulation" }} onClick={(event) => { event.stopPropagation(); handleHoursMonthClick(payload); }}>
+        <circle cx={cx} cy={cy} r={24} fill="transparent" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={isSelected ? 8 : 5}
+          fill="var(--primary)"
+          stroke={isSelected ? "#ffffff" : "var(--background)"}
+          strokeWidth={isSelected ? 3 : 2}
+        />
+      </g>
     );
   };
 
-  const renderActiveHoursDot = ({ cx, cy }: { cx?: number; cy?: number }) => {
+  const renderActiveHoursDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: MonthlyTrendData }) => {
     if (cx === undefined || cy === undefined) return <></>;
 
     return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={8}
-        fill="var(--primary)"
-        stroke="transparent"
-        style={{ cursor: "pointer" }}
-      />
+      <g style={{ cursor: "pointer", touchAction: "manipulation" }} onClick={(event) => { event.stopPropagation(); handleHoursMonthClick(payload); }}>
+        <circle cx={cx} cy={cy} r={24} fill="transparent" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={8}
+          fill="var(--primary)"
+          stroke="transparent"
+        />
+      </g>
     );
   };
 
@@ -511,9 +525,17 @@ export function AnalysisView({ shifts }: Props) {
 
       <div className={styles.chartContainer} style={{ marginBottom: 0 }}>
         <h3 className={styles.chartTitle}>{subTab === 'monthly' ? '月間曜日別シフト回数' : '通算曜日別シフト回数'}</h3>
-        <div style={{ width: '100%', height: 200 }}>
+        <div style={{ width: '100%', height: 200, touchAction: 'manipulation' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dayOfWeekData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }} onClick={handleWeekdayClick}>
+            <BarChart 
+              data={dayOfWeekData} 
+              margin={{ top: 10, right: 20, left: -20, bottom: 0 }} 
+              onClick={handleWeekdayClick}
+              onMouseMove={(state) => {
+                const payload = readWeekdayPayload(state);
+                if (payload) lastHoveredWeekdayRef.current = payload;
+              }}
+            >
               <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
               {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
@@ -620,9 +642,17 @@ export function AnalysisView({ shifts }: Props) {
       {subTab === 'monthly' && (
         <div className={styles.chartContainer}>
           <h3 className={styles.chartTitle}>過去６ヶ月推移</h3>
-          <div style={{ width: '100%', height: 250 }}>
+          <div style={{ width: '100%', height: 250, touchAction: 'manipulation' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }} onClick={handleTrendMonthClick}>
+              <BarChart 
+                data={monthlyTrendData} 
+                margin={{ top: 10, right: 20, left: -10, bottom: 0 }} 
+                onClick={handleTrendMonthClick}
+                onMouseMove={(state) => {
+                  const payload = readMonthlyPayload(state);
+                  if (payload) lastHoveredTrendRef.current = payload;
+                }}
+              >
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
                 {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
@@ -658,14 +688,15 @@ export function AnalysisView({ shifts }: Props) {
       {subTab === 'cumulative' && (
         <div className={styles.chartContainer}>
           <h3 className={styles.chartTitle}>過去６ヶ月 労働時間推移</h3>
-          <div style={{ width: '100%', height: 250 }}>
+          <div style={{ width: '100%', height: 250, touchAction: 'manipulation' }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={monthlyTrendData}
                 margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
-                onClick={(state) => {
+                onClick={handleHoursMonthClick}
+                onMouseMove={(state) => {
                   const payload = readMonthlyPayload(state);
-                  handleHoursMonthClick(payload);
+                  if (payload) lastHoveredHoursRef.current = payload;
                 }}
               >
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
