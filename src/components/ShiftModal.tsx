@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { X } from "lucide-react";
@@ -6,78 +6,93 @@ import styles from "@/app/page.module.css";
 import type { Shift, Settings } from "@/lib/store";
 import { calculateSalary } from "@/lib/calc";
 
+const shiftTemplates = [
+  { label: "早番", startTime: "07:00", endTime: "12:00", breakMinutes: 0 },
+  { label: "日勤", startTime: "09:00", endTime: "18:00", breakMinutes: 60 },
+  { label: "遅番", startTime: "17:00", endTime: "22:00", breakMinutes: 0 },
+];
+
 interface ShiftModalProps {
   date: Date | null;
   shift: Shift | undefined;
   settings: Settings;
   onClose: () => void;
-  onSave: (shift: Shift) => void;
-  onDelete: (date: string) => void;
+  onSave: (shift: Shift) => Promise<void> | void;
+  onDelete: (date: string) => Promise<void> | void;
 }
 
 export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }: ShiftModalProps) {
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("18:00");
-  const [breakMins, setBreakMins] = useState("0");
-  const [deduction, setDeduction] = useState("0");
-  const [allowance, setAllowance] = useState("0");
-  const [memo, setMemo] = useState("");
+  const [startTime, setStartTime] = useState(() => shift?.startTime ?? "09:00");
+  const [endTime, setEndTime] = useState(() => shift?.endTime ?? "18:00");
+  const [breakMins, setBreakMins] = useState(() => (shift?.breakMinutes ?? 0).toString());
+  const [deduction, setDeduction] = useState(() => (shift?.deduction ?? 0).toString());
+  const [allowance, setAllowance] = useState(() => (shift?.allowance ?? 0).toString());
+  const [hourlyWage, setHourlyWage] = useState(() => (shift?.hourlyWage ?? settings.defaultHourlyWage).toString());
+  const [memo, setMemo] = useState(() => shift?.memo ?? "");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (shift) {
-      setStartTime(shift.startTime);
-      setEndTime(shift.endTime);
-      setBreakMins(shift.breakMinutes.toString());
-      setDeduction(shift.deduction.toString());
-      setAllowance((shift.allowance || 0).toString());
-      setMemo(shift.memo || "");
-    } else {
-      setStartTime("09:00");
-      setEndTime("18:00");
-      setBreakMins("0");
-      setDeduction("0");
-      setAllowance("0");
-      setMemo("");
-    }
-    setError("");
-  }, [shift, date]);
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!date) return null;
 
   const dateStr = format(date, "yyyy-MM-dd");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const numericBreak = parseInt(breakMins) || 0;
     const numericDeduct = parseInt(deduction) || 0;
     const numericAllowance = parseInt(allowance) || 0;
-    
-    const hourlyWage = shift ? shift.hourlyWage : settings.defaultHourlyWage;
+    const numericHourlyWage = parseInt(hourlyWage) || 0;
 
-    const calc = calculateSalary(startTime, endTime, numericBreak, numericDeduct, hourlyWage, numericAllowance);
+    if (numericHourlyWage <= 0) {
+      setError("時給は1円以上で入力してください");
+      return;
+    }
+
+    const calc = calculateSalary(startTime, endTime, numericBreak, numericDeduct, numericHourlyWage, numericAllowance);
 
     if (calc.error) {
       setError(calc.error);
       return;
     }
 
-    onSave({
-      date: dateStr,
-      startTime,
-      endTime,
-      breakMinutes: numericBreak,
-      deduction: numericDeduct,
-      hourlyWage,
-      allowance: numericAllowance,
-      memo
-    });
-    
-    onClose(); // Automatically close as requested
+    setIsSaving(true);
+    setError("");
+
+    try {
+      await onSave({
+        date: dateStr,
+        startTime,
+        endTime,
+        breakMinutes: numericBreak,
+        deduction: numericDeduct,
+        hourlyWage: numericHourlyWage,
+        allowance: numericAllowance,
+        memo
+      });
+
+      onClose();
+    } catch {
+      setError("保存に失敗しました。通信状態を確認してもう一度お試しください。");
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = () => {
-    onDelete(dateStr);
-    onClose();
+  const handleDelete = async () => {
+    setIsSaving(true);
+    setError("");
+
+    try {
+      await onDelete(dateStr);
+      onClose();
+    } catch {
+      setError("削除に失敗しました。通信状態を確認してもう一度お試しください。");
+      setIsSaving(false);
+    }
+  };
+
+  const applyTemplate = (template: (typeof shiftTemplates)[number]) => {
+    setStartTime(template.startTime);
+    setEndTime(template.endTime);
+    setBreakMins(template.breakMinutes.toString());
   };
 
   return (
@@ -89,6 +104,20 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
         </div>
 
         {error && <div className={styles.errorText}>{error}</div>}
+
+        <div className={styles.templateRow}>
+          {shiftTemplates.map(template => (
+            <button
+              key={template.label}
+              type="button"
+              className={styles.templateButton}
+              onClick={() => applyTemplate(template)}
+            >
+              <span>{template.label}</span>
+              <small>{template.startTime}-{template.endTime}</small>
+            </button>
+          ))}
+        </div>
 
         <div className={styles.inputGroup}>
           <label>開始時間</label>
@@ -116,6 +145,11 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
         </div>
 
         <div className={styles.inputGroup}>
+          <label>このシフトの時給 (円)</label>
+          <input type="number" inputMode="numeric" min="1" value={hourlyWage} onChange={e => setHourlyWage(e.target.value)} />
+        </div>
+
+        <div className={styles.inputGroup}>
           <label>メモ</label>
           <textarea 
             value={memo} 
@@ -124,13 +158,13 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
           />
         </div>
 
-        <button className={styles.btnPrimary} onClick={handleSave}>
-          保存する
+        <button className={styles.btnPrimary} onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "保存中..." : "保存する"}
         </button>
 
         {shift && (
-          <button className={styles.btnDanger} onClick={handleDelete}>
-            削除する
+          <button className={styles.btnDanger} onClick={handleDelete} disabled={isSaving}>
+            {isSaving ? "処理中..." : "削除する"}
           </button>
         )}
       </div>

@@ -86,23 +86,31 @@ export function useStore() {
   };
 
   const saveSettings = async (newSettings: Settings) => {
+    const previousSettings = settings;
     setSettings(newSettings);
     if (!user) return;
-    await supabase.from('settings').upsert({
+
+    const { error } = await supabase.from('settings').upsert({
       user_id: user.id,
       default_hourly_wage: newSettings.defaultHourlyWage,
       payday: newSettings.payday
     });
+
+    if (error) {
+      setSettings(previousSettings);
+      throw error;
+    }
   };
 
   const saveShift = async (shift: Shift) => {
+    const previousShifts = shifts;
     const newShifts = shifts.filter((s) => s.date !== shift.date);
     newShifts.push(shift);
     setShifts(newShifts);
     
     if (!user) return;
     
-    await supabase.from('shifts').upsert({
+    const { error } = await supabase.from('shifts').upsert({
       user_id: user.id,
       date: shift.date,
       start_time: shift.startTime,
@@ -113,12 +121,23 @@ export function useStore() {
       allowance: shift.allowance || 0,
       memo: shift.memo
     }, { onConflict: 'user_id, date' });
+
+    if (error) {
+      setShifts(previousShifts);
+      throw error;
+    }
   };
 
   const deleteShift = async (date: string) => {
     if (!user) return;
+    const previousShifts = shifts;
     setShifts(shifts.filter((s) => s.date !== date));
-    await supabase.from('shifts').delete().eq('user_id', user.id).eq('date', date);
+    const { error } = await supabase.from('shifts').delete().eq('user_id', user.id).eq('date', date);
+
+    if (error) {
+      setShifts(previousShifts);
+      throw error;
+    }
   };
 
   const signInWithGoogle = async () => {

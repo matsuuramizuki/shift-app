@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from "recharts";
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
@@ -11,12 +11,124 @@ interface Props {
   shifts: Shift[];
 }
 
+interface TimeOfDayData {
+  name: string;
+  value: number;
+  color: string;
+  opacity?: number;
+  showLabel?: boolean;
+  isSpacer?: boolean;
+}
+
+interface MonthlyTrendData {
+  name: string;
+  netBaseEarned: number;
+  allowanceEarned: number;
+  deductionEarned: number;
+  netBaseFuture: number;
+  allowanceFuture: number;
+  deductionFuture: number;
+  totalHours: number;
+}
+
+interface TooltipPayload {
+  name?: string;
+  value?: number | string;
+  color?: string;
+  payload?: {
+    color?: string;
+    isSpacer?: boolean;
+  };
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+  totals: {
+    morning: number;
+    afternoon: number;
+    night: number;
+  };
+}
+
+function CustomTooltip({ active, payload, label, totals }: CustomTooltipProps) {
+  if (!active || !payload?.length) return null;
+  if (payload[0].payload?.isSpacer) return null;
+
+  const firstName = String(payload[0].name ?? "");
+
+  if (firstName.includes("午前") || firstName.includes("午後") || firstName.includes("夜間")) {
+    const displayName = firstName.replace("(予)", "");
+    let formattedValue = "";
+    if (displayName === "午前") formattedValue = `${totals.morning.toFixed(1)}時間`;
+    if (displayName === "午後") formattedValue = `${totals.afternoon.toFixed(1)}時間`;
+    if (displayName === "夜間") formattedValue = `${totals.night.toFixed(1)}時間`;
+
+    return (
+      <div className={styles.tooltipBox}>
+        <p style={{ margin: 0, color: payload[0].payload?.color }}>
+          {displayName}: {formattedValue}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.tooltipBox}>
+      <p style={{ margin: 0, fontWeight: "bold", marginBottom: "4px" }}>{label}</p>
+      {payload.map((entry, index) => {
+        const entryName = String(entry.name ?? "");
+        const value = Number(entry.value ?? 0);
+        const isFuture = entryName.includes("予");
+        const color = entry.payload?.color || entry.color;
+        const opacity = isFuture ? 0.6 : 1;
+        const formattedValue = entryName === "earned" || entryName === "future" || entryName === "確定" || entryName === "予定"
+          ? `${value}回`
+          : entryName === "totalHours" || entryName === "労働時間"
+            ? `${value.toFixed(1)}時間`
+            : `¥${value.toLocaleString()}`;
+
+        let displayName = entryName;
+        if (displayName === "totalHours") displayName = "労働時間";
+        if (displayName === "earned") displayName = "確定";
+        if (displayName === "future") displayName = "予定";
+        if (displayName === "netBaseEarned") displayName = "手取り(確定)";
+        if (displayName === "netBaseFuture") displayName = "手取り(予定)";
+        if (displayName === "allowanceEarned") displayName = "手当(確定)";
+        if (displayName === "allowanceFuture") displayName = "手当(予定)";
+        if (displayName === "deductionEarned") displayName = "天引き(確定)";
+        if (displayName === "deductionFuture") displayName = "天引き(予定)";
+
+        if (value === 0) return null;
+
+        return (
+          <p key={`${displayName}-${index}`} style={{ margin: 0, color, opacity }}>
+            {displayName}: {formattedValue}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export function AnalysisView({ shifts }: Props) {
   const [subTab, setSubTab] = useState<'monthly' | 'cumulative'>('monthly');
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [usesCompactCharts, setUsesCompactCharts] = useState(false);
   const now = new Date();
   const todayStr = format(now, "yyyy-MM-dd");
   const isPast = (dateStr: string) => dateStr <= todayStr;
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(hover: none), (pointer: coarse), (max-width: 700px)");
+    const updateChartMode = () => setUsesCompactCharts(mediaQuery.matches);
+
+    updateChartMode();
+    mediaQuery.addEventListener("change", updateChartMode);
+
+    return () => mediaQuery.removeEventListener("change", updateChartMode);
+  }, []);
   
   const calcTimeBlocks = (sTime: string, eTime: string, bMins: number) => {
     const [sh, sm] = sTime.split(':').map(Number);
@@ -120,7 +232,7 @@ export function AnalysisView({ shifts }: Props) {
 
   const totalChartHours = mEarnedHours + mFutureHours + aEarnedHours + aFutureHours + nEarnedHours + nFutureHours;
   const spacerValue = totalChartHours * 0.02; // 2% gap
-  const timeOfDayData: any[] = [];
+  const timeOfDayData: TimeOfDayData[] = [];
 
   const addGroup = (earned: number, future: number, name: string, color: string) => {
     let added = false;
@@ -146,7 +258,7 @@ export function AnalysisView({ shifts }: Props) {
     future: dayOfWeekFutureCounts[i],
   }));
 
-  const monthlyTrendData = [];
+  const monthlyTrendData: MonthlyTrendData[] = [];
   for (let i = 5; i >= 0; i--) {
     const targetMonth = subMonths(now, i);
     const monthStr = format(targetMonth, "yyyy-MM");
@@ -193,71 +305,23 @@ export function AnalysisView({ shifts }: Props) {
     });
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      // If pie chart tooltip
-      if (payload[0].payload && payload[0].payload.isSpacer) return null;
-
-      // Group pie chart hover output to show only 1 line
-      if (payload[0].name.includes('午前') || payload[0].name.includes('午後') || payload[0].name.includes('夜間')) {
-        let displayName = payload[0].name.replace('(予)', '');
-        let formattedValue = '';
-        if (displayName === '午前') formattedValue = `${(mEarnedHours + mFutureHours).toFixed(1)}時間`;
-        if (displayName === '午後') formattedValue = `${(aEarnedHours + aFutureHours).toFixed(1)}時間`;
-        if (displayName === '夜間') formattedValue = `${(nEarnedHours + nFutureHours).toFixed(1)}時間`;
-        
-        return (
-          <div style={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 8, padding: '8px', color: "#fff", fontSize: '12px', zIndex: 100 }}>
-             <p style={{ margin: 0, color: payload[0].payload.color }}>
-               {displayName}: {formattedValue}
-             </p>
-          </div>
-        );
-      }
-
-      // Bar charts tooltip
-      return (
-        <div style={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 8, padding: '8px', color: "#fff", fontSize: '12px', zIndex: 100 }}>
-          <p style={{ margin: 0, fontWeight: 'bold', marginBottom: '4px' }}>{label}</p>
-          {payload.map((entry: any, index: number) => {
-            const isFuture = entry.name.includes('予');
-            const color = entry.payload?.color || entry.color;
-            const opacity = isFuture ? 0.6 : 1;
-            const formattedValue = entry.name === 'earned' || entry.name === 'future' || entry.name === '確定' || entry.name === '予定' 
-              ? `${entry.value}回` 
-              : entry.name === 'totalHours' || entry.name === '労働時間'
-                ? `${Number(entry.value).toFixed(1)}時間`
-                : `¥${Number(entry.value).toLocaleString()}`;
-            
-            let displayName = entry.name;
-            if (displayName === 'totalHours') displayName = '労働時間';
-            if (displayName === 'earned') displayName = '確定';
-            if (displayName === 'future') displayName = '予定';
-            if (displayName === 'netBaseEarned') displayName = '手取り(確定)';
-            if (displayName === 'netBaseFuture') displayName = '手取り(予定)';
-            if (displayName === 'allowanceEarned') displayName = '手当(確定)';
-            if (displayName === 'allowanceFuture') displayName = '手当(予定)';
-            if (displayName === 'deductionEarned') displayName = '天引き(確定)';
-            if (displayName === 'deductionFuture') displayName = '天引き(予定)';
-
-            if (entry.value === 0) return null;
-
-            return (
-              <p key={index} style={{ margin: 0, color: color, opacity }}>
-                {displayName}: {formattedValue}
-              </p>
-            );
-          })}
-        </div>
-      );
-    }
-    return null;
-  };
-
   const totalEarnings = displayEarnings + futureEarnings;
   const totalHours = displayHours + futureHours;
   const diffEarnings = totalEarnings - prevMonthEarnings;
   const diffHours = totalHours - prevMonthHours;
+  const totalShiftCount = dayOfWeekEarnedCounts.reduce((sum, count) => sum + count, 0) + dayOfWeekFutureCounts.reduce((sum, count) => sum + count, 0);
+  const futureShiftCount = dayOfWeekFutureCounts.reduce((sum, count) => sum + count, 0);
+  const earnedBase = monthlyTrendData.reduce((sum, month) => sum + month.netBaseEarned, 0);
+  const futureBase = monthlyTrendData.reduce((sum, month) => sum + month.netBaseFuture, 0);
+  const earnedAllowances = monthlyTrendData.reduce((sum, month) => sum + month.allowanceEarned, 0);
+  const futureAllowances = monthlyTrendData.reduce((sum, month) => sum + month.allowanceFuture, 0);
+  const earnedDeductions = monthlyTrendData.reduce((sum, month) => sum + month.deductionEarned, 0);
+  const futureDeductions = monthlyTrendData.reduce((sum, month) => sum + month.deductionFuture, 0);
+  const tooltipTotals = {
+    morning: mEarnedHours + mFutureHours,
+    afternoon: aEarnedHours + aFutureHours,
+    night: nEarnedHours + nFutureHours,
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -329,11 +393,15 @@ export function AnalysisView({ shifts }: Props) {
             <BarChart data={dayOfWeekData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
               <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
-              <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
+              {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
               <Bar dataKey="earned" name="確定" stackId="a" fill="#03dac6" radius={subTab === 'monthly' && dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
               <Bar dataKey="future" name="予定" stackId="a" fill="#03dac6" fillOpacity={0.65} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+        <div className={styles.chartSummaryRow}>
+          <span>合計 {totalShiftCount}回</span>
+          <span>予定 {futureShiftCount}回</span>
         </div>
       </div>
 
@@ -353,7 +421,7 @@ export function AnalysisView({ shifts }: Props) {
                   startAngle={90}
                   endAngle={-270}
                   dataKey="value"
-                  label={({ name, percent, x, y, textAnchor, payload }) => {
+                  label={({ name, x, y, textAnchor, payload }) => {
                     if (!payload.showLabel) return null;
                     const cleanName = String(name).replace('(予)', '');
                     const catTotal = cleanName === '午前' ? mEarnedHours + mFutureHours : cleanName === '午後' ? aEarnedHours + aFutureHours : nEarnedHours + nFutureHours;
@@ -371,12 +439,19 @@ export function AnalysisView({ shifts }: Props) {
                     <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="none" />
                   ))}
                 </Pie>
-                <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
+                {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
               </PieChart>
             </ResponsiveContainer>
           </div>
         ) : (
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', marginTop: '40px' }}>データがありません</p>
+        )}
+        {timeOfDayData.filter(d => !d.isSpacer).length > 0 && (
+          <div className={styles.chartSummaryRow}>
+            <span>午前 {tooltipTotals.morning.toFixed(1)}h</span>
+            <span>午後 {tooltipTotals.afternoon.toFixed(1)}h</span>
+            <span>夜間 {tooltipTotals.night.toFixed(1)}h</span>
+          </div>
         )}
       </div>
 
@@ -388,7 +463,7 @@ export function AnalysisView({ shifts }: Props) {
               <BarChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
-                <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
+                {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
                 <Legend content={() => (
                   <ul style={{ display: 'flex', justifyContent: 'center', listStyle: 'none', padding: 0, margin: 0, fontSize: '12px', gap: '16px' }}>
                     <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#bb86fc' }}></span>手取り</li>
@@ -405,6 +480,11 @@ export function AnalysisView({ shifts }: Props) {
               </BarChart>
             </ResponsiveContainer>
           </div>
+          <div className={styles.chartSummaryRow}>
+            <span>手取り ¥{(earnedBase + futureBase).toLocaleString()}</span>
+            <span>手当 ¥{(earnedAllowances + futureAllowances).toLocaleString()}</span>
+            <span>天引き ¥{(earnedDeductions + futureDeductions).toLocaleString()}</span>
+          </div>
         </div>
       )}
 
@@ -416,10 +496,13 @@ export function AnalysisView({ shifts }: Props) {
               <LineChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} />
-                <Tooltip cursor={{ stroke: 'transparent', fill: 'transparent' }} content={<CustomTooltip />} />
+                {!usesCompactCharts && <Tooltip cursor={{ stroke: 'transparent', fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
                 <Line type="linear" dataKey="totalHours" name="労働時間" stroke="var(--primary)" strokeWidth={3} dot={{ fill: 'var(--primary)', strokeWidth: 2 }} activeDot={{ r: 6, stroke: 'transparent' }} />
               </LineChart>
             </ResponsiveContainer>
+          </div>
+          <div className={styles.chartSummaryRow}>
+            <span>6ヶ月合計 {monthlyTrendData.reduce((sum, month) => sum + month.totalHours, 0).toFixed(1)}h</span>
           </div>
         </div>
       )}

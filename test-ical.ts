@@ -1,6 +1,7 @@
 import { generateICal } from './src/lib/ical';
+import type { Shift } from './src/lib/store';
 
-const sampleShifts = [
+const sampleShifts: Shift[] = [
   {
     id: '123',
     date: '2026-04-25',
@@ -12,7 +13,7 @@ const sampleShifts = [
   }
 ];
 
-const result = generateICal(sampleShifts as any);
+const result = generateICal(sampleShifts);
 console.log(JSON.stringify(result));
 console.log("---- RAW ----");
 console.log(result);

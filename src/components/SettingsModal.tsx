@@ -7,7 +7,7 @@ interface SettingsModalProps {
   userId: string;
   settings: Settings;
   onClose: () => void;
-  onSave: (settings: Settings) => void;
+  onSave: (settings: Settings) => Promise<void> | void;
   onSignOut: () => void;
 }
 
@@ -15,6 +15,8 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
   const [wage, setWage] = useState(settings.defaultHourlyWage.toString());
   const [paydayStr, setPaydayStr] = useState(settings.payday ? settings.payday.toString() : "");
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const calendarUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/api/calendar/${userId}` 
@@ -30,16 +32,27 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const numValue = parseInt(wage, 10);
     const numPayday = parseInt(paydayStr, 10);
     
-    if (!isNaN(numValue) && numValue >= 0) {
-      onSave({ 
+    if (isNaN(numValue) || numValue < 0) {
+      setError("基本時給は0円以上で入力してください。");
+      return;
+    }
+
+    setIsSaving(true);
+    setError("");
+
+    try {
+      await onSave({
         defaultHourlyWage: numValue,
         payday: !isNaN(numPayday) && numPayday >= 1 && numPayday <= 31 ? numPayday : undefined
       });
-      onClose(); // Automatically close
+      onClose();
+    } catch {
+      setError("設定の保存に失敗しました。通信状態を確認してもう一度お試しください。");
+      setIsSaving(false);
     }
   };
 
@@ -50,6 +63,8 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
           <div>設定</div>
           <button onClick={onClose}><X size={24} /></button>
         </div>
+
+        {error && <div className={styles.errorText}>{error}</div>}
 
         <div className={styles.inputGroup}>
           <label>基本時給 (円)</label>
@@ -79,8 +94,8 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
           ※給与日を設定すると、カレンダーのその日に前月の給与合計が表示されます。
         </p>
 
-        <button className={styles.btnPrimary} onClick={handleSave}>
-          保存する
+        <button className={styles.btnPrimary} onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "保存中..." : "保存する"}
         </button>
 
         <hr style={{ borderColor: 'var(--border)', margin: '24px 0', borderStyle: 'solid', borderWidth: '1px 0 0 0' }} />
