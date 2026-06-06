@@ -247,9 +247,9 @@ export function AnalysisView({ shifts }: Props) {
   const [activeWeekday, setActiveWeekday] = useState<DayOfWeekData | null>(null);
   const [activeTrendMonth, setActiveTrendMonth] = useState<MonthlyTrendData | null>(null);
   const [activeHoursMonth, setActiveHoursMonth] = useState<MonthlyTrendData | null>(null);
+  const monthlySwipeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressChartTapUntilRef = useRef(0);
   const now = new Date();
-  const todayStr = format(now, "yyyy-MM-dd");
-  const isPast = (dateStr: string) => dateStr <= todayStr;
   const isViewingPastMonth = subTab === 'monthly' && format(selectedMonth, "yyyy-MM") < format(now, "yyyy-MM");
 
   useEffect(() => {
@@ -483,6 +483,8 @@ export function AnalysisView({ shifts }: Props) {
     return items[index] ?? null;
   };
 
+  const shouldSuppressChartTap = () => Date.now() < suppressChartTapUntilRef.current;
+
   const toggleWeekday = (payload: DayOfWeekData) => {
     if (selectedWeekday?.name === payload.name) {
       setSelectedWeekday(null);
@@ -494,12 +496,14 @@ export function AnalysisView({ shifts }: Props) {
   };
 
   const handleWeekdayClick = (data: unknown) => {
+    if (shouldSuppressChartTap()) return;
     const payload = readWeekdayPayload(data) ?? readShapePayload<DayOfWeekData>(data);
     if (!payload) return;
     toggleWeekday(payload);
   };
 
   const handleWeekdayTap = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (shouldSuppressChartTap()) return;
     const payload = readIndexedPayload(event, dayOfWeekData);
     if (payload) toggleWeekday(payload);
   };
@@ -515,12 +519,14 @@ export function AnalysisView({ shifts }: Props) {
   };
 
   const handleTrendMonthClick = (data: unknown) => {
+    if (shouldSuppressChartTap()) return;
     const payload = readMonthlyPayload(data) ?? readShapePayload<MonthlyTrendData>(data);
     if (!payload) return;
     toggleTrendMonth(payload);
   };
 
   const handleTrendMonthTap = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (shouldSuppressChartTap()) return;
     const payload = readIndexedPayload(event, monthlyTrendData);
     if (payload) toggleTrendMonth(payload);
   };
@@ -536,6 +542,7 @@ export function AnalysisView({ shifts }: Props) {
   };
 
   const handleHoursMonthClick = (data: unknown) => {
+    if (shouldSuppressChartTap()) return;
     let payload: MonthlyTrendData | null = null;
     if (data && typeof data === 'object' && 'totalHours' in data) {
       payload = data as MonthlyTrendData;
@@ -548,8 +555,14 @@ export function AnalysisView({ shifts }: Props) {
   };
 
   const handleHoursMonthTap = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (shouldSuppressChartTap()) return;
     const payload = readIndexedPayload(event, monthlyTrendData);
     if (payload) toggleHoursMonth(payload);
+  };
+
+  const handleTimeOfDayTap = () => {
+    if (shouldSuppressChartTap()) return;
+    setIsTimeOfDayOpen(open => !open);
   };
 
   const renderHoursDot = ({ cx, cy, payload }: { cx?: number; cy?: number; payload?: MonthlyTrendData }) => {
@@ -605,8 +618,50 @@ export function AnalysisView({ shifts }: Props) {
     clearSelections();
   };
 
+  const handleMonthlySwipeStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (subTab !== 'monthly') return;
+
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    monthlySwipeStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+  };
+
+  const handleMonthlySwipeEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (subTab !== 'monthly' || !monthlySwipeStartRef.current) return;
+
+    const touch = event.changedTouches[0];
+    if (!touch) {
+      monthlySwipeStartRef.current = null;
+      return;
+    }
+
+    const deltaX = touch.clientX - monthlySwipeStartRef.current.x;
+    const deltaY = touch.clientY - monthlySwipeStartRef.current.y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    monthlySwipeStartRef.current = null;
+
+    if (absX < 50 || absX < absY * 1.25) return;
+
+    suppressChartTapUntilRef.current = Date.now() + 350;
+    moveSelectedMonth(deltaX < 0 ? addMonths(selectedMonth, 1) : subMonths(selectedMonth, 1));
+  };
+
+  const handleMonthlySwipeCancel = () => {
+    monthlySwipeStartRef.current = null;
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div
+      onTouchStart={handleMonthlySwipeStart}
+      onTouchEnd={handleMonthlySwipeEnd}
+      onTouchCancel={handleMonthlySwipeCancel}
+      style={{ display: 'flex', flexDirection: 'column', gap: '24px', touchAction: subTab === 'monthly' ? 'pan-y' : undefined }}
+    >
       
       <div style={{ display: 'flex', background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '4px' }}>
         <button
@@ -737,7 +792,7 @@ export function AnalysisView({ shifts }: Props) {
               type="button"
               aria-label="時間帯別シフト時間を表示"
               className={styles.chartTapLayer}
-              onClick={() => setIsTimeOfDayOpen(open => !open)}
+              onClick={handleTimeOfDayTap}
             />
             <TimeOfDayPieChart
               timeOfDayData={timeOfDayData}
