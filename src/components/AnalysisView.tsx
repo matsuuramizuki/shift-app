@@ -20,6 +20,12 @@ interface TimeOfDayData {
   isSpacer?: boolean;
 }
 
+interface DayOfWeekData {
+  name: string;
+  earned: number;
+  future: number;
+}
+
 interface MonthlyTrendData {
   name: string;
   netBaseEarned: number;
@@ -29,6 +35,16 @@ interface MonthlyTrendData {
   allowanceFuture: number;
   deductionFuture: number;
   totalHours: number;
+}
+
+interface ChartClickState {
+  activePayload?: Array<{
+    payload?: MonthlyTrendData;
+  }>;
+}
+
+interface ShapeClickData<T> {
+  payload?: T;
 }
 
 interface TooltipPayload {
@@ -116,6 +132,10 @@ export function AnalysisView({ shifts }: Props) {
   const [subTab, setSubTab] = useState<'monthly' | 'cumulative'>('monthly');
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [usesCompactCharts, setUsesCompactCharts] = useState(false);
+  const [selectedWeekday, setSelectedWeekday] = useState<DayOfWeekData | null>(null);
+  const [selectedTimeBlock, setSelectedTimeBlock] = useState<string | null>(null);
+  const [selectedTrendMonth, setSelectedTrendMonth] = useState<MonthlyTrendData | null>(null);
+  const [selectedHoursMonth, setSelectedHoursMonth] = useState<MonthlyTrendData | null>(null);
   const now = new Date();
   const todayStr = format(now, "yyyy-MM-dd");
   const isPast = (dateStr: string) => dateStr <= todayStr;
@@ -252,7 +272,7 @@ export function AnalysisView({ shifts }: Props) {
   addGroup(aEarnedHours, aFutureHours, '午後', '#81c784');
   addGroup(nEarnedHours, nFutureHours, '夜間', '#ba68c8');
 
-  const dayOfWeekData = dayNames.map((name, i) => ({
+  const dayOfWeekData: DayOfWeekData[] = dayNames.map((name, i) => ({
     name,
     earned: dayOfWeekEarnedCounts[i],
     future: dayOfWeekFutureCounts[i],
@@ -309,18 +329,42 @@ export function AnalysisView({ shifts }: Props) {
   const totalHours = displayHours + futureHours;
   const diffEarnings = totalEarnings - prevMonthEarnings;
   const diffHours = totalHours - prevMonthHours;
-  const totalShiftCount = dayOfWeekEarnedCounts.reduce((sum, count) => sum + count, 0) + dayOfWeekFutureCounts.reduce((sum, count) => sum + count, 0);
-  const futureShiftCount = dayOfWeekFutureCounts.reduce((sum, count) => sum + count, 0);
-  const earnedBase = monthlyTrendData.reduce((sum, month) => sum + month.netBaseEarned, 0);
-  const futureBase = monthlyTrendData.reduce((sum, month) => sum + month.netBaseFuture, 0);
-  const earnedAllowances = monthlyTrendData.reduce((sum, month) => sum + month.allowanceEarned, 0);
-  const futureAllowances = monthlyTrendData.reduce((sum, month) => sum + month.allowanceFuture, 0);
-  const earnedDeductions = monthlyTrendData.reduce((sum, month) => sum + month.deductionEarned, 0);
-  const futureDeductions = monthlyTrendData.reduce((sum, month) => sum + month.deductionFuture, 0);
   const tooltipTotals = {
     morning: mEarnedHours + mFutureHours,
     afternoon: aEarnedHours + aFutureHours,
     night: nEarnedHours + nFutureHours,
+  };
+  const selectedTimeTotals = selectedTimeBlock === "午前"
+    ? { label: "午前", hours: tooltipTotals.morning }
+    : selectedTimeBlock === "午後"
+      ? { label: "午後", hours: tooltipTotals.afternoon }
+      : selectedTimeBlock === "夜間"
+        ? { label: "夜間", hours: tooltipTotals.night }
+        : null;
+
+  const readMonthlyPayload = (state: unknown) => {
+    const chartState = state as ChartClickState | undefined;
+    return chartState?.activePayload?.[0]?.payload ?? null;
+  };
+
+  const readShapePayload = <T,>(data: unknown) => {
+    return (data as ShapeClickData<T> | undefined)?.payload ?? null;
+  };
+
+  const handleWeekdayClick = (data: unknown) => {
+    const payload = readShapePayload<DayOfWeekData>(data);
+    if (payload) setSelectedWeekday(payload);
+  };
+
+  const handleTrendMonthClick = (data: unknown) => {
+    const payload = readShapePayload<MonthlyTrendData>(data);
+    if (payload) setSelectedTrendMonth(payload);
+  };
+
+  const handleTimeBlockClick = (entry: unknown) => {
+    const timeEntry = entry as TimeOfDayData;
+    if (timeEntry.isSpacer) return;
+    setSelectedTimeBlock(timeEntry.name.replace("(予)", ""));
   };
 
   return (
@@ -394,15 +438,38 @@ export function AnalysisView({ shifts }: Props) {
               <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
               {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
-              <Bar dataKey="earned" name="確定" stackId="a" fill="#03dac6" radius={subTab === 'monthly' && dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
-              <Bar dataKey="future" name="予定" stackId="a" fill="#03dac6" fillOpacity={0.65} radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="earned"
+                name="確定"
+                stackId="a"
+                fill="#03dac6"
+                radius={subTab === 'monthly' && dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]}
+                onClick={handleWeekdayClick}
+              />
+              <Bar
+                dataKey="future"
+                name="予定"
+                stackId="a"
+                fill="#03dac6"
+                fillOpacity={0.65}
+                radius={[4, 4, 0, 0]}
+                onClick={handleWeekdayClick}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className={styles.chartSummaryRow}>
-          <span>合計 {totalShiftCount}回</span>
-          <span>予定 {futureShiftCount}回</span>
-        </div>
+        {selectedWeekday ? (
+          <div className={styles.chartSummaryRow}>
+            <span>{selectedWeekday.name}曜</span>
+            <span>確定 {selectedWeekday.earned}回</span>
+            <span>予定 {selectedWeekday.future}回</span>
+            <span>合計 {selectedWeekday.earned + selectedWeekday.future}回</span>
+          </div>
+        ) : (
+          <div className={styles.chartSummaryRow}>
+            <span>曜日の棒をタップすると詳細を表示</span>
+          </div>
+        )}
       </div>
 
       <div className={styles.chartContainer} style={{ marginBottom: 0 }}>
@@ -434,6 +501,7 @@ export function AnalysisView({ shifts }: Props) {
                   }}
                   labelLine={false}
                   stroke="none"
+                  onClick={handleTimeBlockClick}
                 >
                   {timeOfDayData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="none" />
@@ -447,11 +515,17 @@ export function AnalysisView({ shifts }: Props) {
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', marginTop: '40px' }}>データがありません</p>
         )}
         {timeOfDayData.filter(d => !d.isSpacer).length > 0 && (
-          <div className={styles.chartSummaryRow}>
-            <span>午前 {tooltipTotals.morning.toFixed(1)}h</span>
-            <span>午後 {tooltipTotals.afternoon.toFixed(1)}h</span>
-            <span>夜間 {tooltipTotals.night.toFixed(1)}h</span>
-          </div>
+          selectedTimeTotals ? (
+            <div className={styles.chartSummaryRow}>
+              <span>{selectedTimeTotals.label}</span>
+              <span>{selectedTimeTotals.hours.toFixed(1)}h</span>
+              <span>{totalChartHours > 0 ? `${((selectedTimeTotals.hours / totalChartHours) * 100).toFixed(0)}%` : "0%"}</span>
+            </div>
+          ) : (
+            <div className={styles.chartSummaryRow}>
+              <span>時間帯をタップすると詳細を表示</span>
+            </div>
+          )
         )}
       </div>
 
@@ -471,20 +545,27 @@ export function AnalysisView({ shifts }: Props) {
                     <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#cf6679' }}></span>天引き</li>
                   </ul>
                 )} />
-                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#bb86fc" />
-                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#03dac6" />
-                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#cf6679" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
-                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#bb86fc" fillOpacity={0.65} />
-                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.65} />
-                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.65} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#bb86fc" onClick={handleTrendMonthClick} />
+                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#03dac6" onClick={handleTrendMonthClick} />
+                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#cf6679" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} onClick={handleTrendMonthClick} />
+                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#bb86fc" fillOpacity={0.65} onClick={handleTrendMonthClick} />
+                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.65} onClick={handleTrendMonthClick} />
+                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.65} radius={[4, 4, 0, 0]} onClick={handleTrendMonthClick} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className={styles.chartSummaryRow}>
-            <span>手取り ¥{(earnedBase + futureBase).toLocaleString()}</span>
-            <span>手当 ¥{(earnedAllowances + futureAllowances).toLocaleString()}</span>
-            <span>天引き ¥{(earnedDeductions + futureDeductions).toLocaleString()}</span>
-          </div>
+          {selectedTrendMonth ? (
+            <div className={styles.chartSummaryRow}>
+              <span>{selectedTrendMonth.name}</span>
+              <span>手取り ¥{(selectedTrendMonth.netBaseEarned + selectedTrendMonth.netBaseFuture).toLocaleString()}</span>
+              <span>手当 ¥{(selectedTrendMonth.allowanceEarned + selectedTrendMonth.allowanceFuture).toLocaleString()}</span>
+              <span>天引き ¥{(selectedTrendMonth.deductionEarned + selectedTrendMonth.deductionFuture).toLocaleString()}</span>
+            </div>
+          ) : (
+            <div className={styles.chartSummaryRow}>
+              <span>月の棒をタップすると詳細を表示</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -493,7 +574,14 @@ export function AnalysisView({ shifts }: Props) {
           <h3 className={styles.chartTitle}>過去６ヶ月 労働時間推移</h3>
           <div style={{ width: '100%', height: 250 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+              <LineChart
+                data={monthlyTrendData}
+                margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                onClick={(state) => {
+                  const payload = readMonthlyPayload(state);
+                  if (payload) setSelectedHoursMonth(payload);
+                }}
+              >
                 <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} />
                 {!usesCompactCharts && <Tooltip cursor={{ stroke: 'transparent', fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
@@ -501,9 +589,16 @@ export function AnalysisView({ shifts }: Props) {
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className={styles.chartSummaryRow}>
-            <span>6ヶ月合計 {monthlyTrendData.reduce((sum, month) => sum + month.totalHours, 0).toFixed(1)}h</span>
-          </div>
+          {selectedHoursMonth ? (
+            <div className={styles.chartSummaryRow}>
+              <span>{selectedHoursMonth.name}</span>
+              <span>労働時間 {selectedHoursMonth.totalHours.toFixed(1)}h</span>
+            </div>
+          ) : (
+            <div className={styles.chartSummaryRow}>
+              <span>月の点をタップすると詳細を表示</span>
+            </div>
+          )}
         </div>
       )}
 

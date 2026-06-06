@@ -6,12 +6,6 @@ import styles from "@/app/page.module.css";
 import type { Shift, Settings } from "@/lib/store";
 import { calculateSalary } from "@/lib/calc";
 
-const shiftTemplates = [
-  { label: "早番", startTime: "07:00", endTime: "12:00", breakMinutes: 0 },
-  { label: "日勤", startTime: "09:00", endTime: "18:00", breakMinutes: 60 },
-  { label: "遅番", startTime: "17:00", endTime: "22:00", breakMinutes: 0 },
-];
-
 interface ShiftModalProps {
   date: Date | null;
   shift: Shift | undefined;
@@ -89,12 +83,6 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
     }
   };
 
-  const applyTemplate = (template: (typeof shiftTemplates)[number]) => {
-    setStartTime(template.startTime);
-    setEndTime(template.endTime);
-    setBreakMins(template.breakMinutes.toString());
-  };
-
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
@@ -104,20 +92,6 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
         </div>
 
         {error && <div className={styles.errorText}>{error}</div>}
-
-        <div className={styles.templateRow}>
-          {shiftTemplates.map(template => (
-            <button
-              key={template.label}
-              type="button"
-              className={styles.templateButton}
-              onClick={() => applyTemplate(template)}
-            >
-              <span>{template.label}</span>
-              <small>{template.startTime}-{template.endTime}</small>
-            </button>
-          ))}
-        </div>
 
         <div className={styles.inputGroup}>
           <label>開始時間</label>
