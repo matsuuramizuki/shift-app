@@ -70,6 +70,21 @@ interface CustomTooltipProps {
   };
 }
 
+type TapLayerStyle = React.CSSProperties & {
+  "--tap-left"?: string;
+  "--tap-right"?: string;
+};
+
+const weekdayTapLayerStyle: TapLayerStyle = {
+  "--tap-left": "20px",
+  "--tap-right": "20px",
+};
+
+const monthlyTrendTapLayerStyle: TapLayerStyle = {
+  "--tap-left": "40px",
+  "--tap-right": "20px",
+};
+
 function CustomTooltip({ active, payload, label, totals }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   if (payload[0].payload?.isSpacer) return null;
@@ -477,6 +492,8 @@ export function AnalysisView({ shifts }: Props) {
 
   const readIndexedPayload = <T,>(event: React.MouseEvent<HTMLButtonElement>, items: T[]) => {
     const rect = event.currentTarget.getBoundingClientRect();
+    if (items.length === 0 || rect.width <= 0) return null;
+
     const x = Math.min(Math.max(event.clientX - rect.left, 0), rect.width - 1);
     const index = Math.min(items.length - 1, Math.max(0, Math.floor((x / rect.width) * items.length)));
 
@@ -730,6 +747,7 @@ export function AnalysisView({ shifts }: Props) {
             type="button"
             aria-label="曜日別シフト回数を表示"
             className={styles.chartTapLayer}
+            style={weekdayTapLayerStyle}
             onClick={handleWeekdayTap}
           />
           <ResponsiveContainer width="100%" height="100%">
@@ -829,6 +847,7 @@ export function AnalysisView({ shifts }: Props) {
               type="button"
               aria-label="過去六ヶ月推移を表示"
               className={styles.chartTapLayer}
+              style={monthlyTrendTapLayerStyle}
               onClick={handleTrendMonthTap}
             />
             <ResponsiveContainer width="100%" height="100%">
@@ -879,6 +898,7 @@ export function AnalysisView({ shifts }: Props) {
               type="button"
               aria-label="過去六ヶ月の労働時間を表示"
               className={styles.chartTapLayer}
+              style={monthlyTrendTapLayerStyle}
               onClick={handleHoursMonthTap}
             />
             <ResponsiveContainer width="100%" height="100%">
