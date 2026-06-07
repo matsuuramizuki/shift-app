@@ -239,6 +239,7 @@ const TimeOfDayPieChart = React.memo(({
           labelLine={false}
           stroke="none"
           isAnimationActive={true}
+          animationDuration={600}
         >
           {timeOfDayData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={entry.opacity || 1} stroke="none" />
