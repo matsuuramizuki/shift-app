@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { format } from "date-fns";
+import React, { useRef, useState } from "react";
+import { addMonths, format, subMonths } from "date-fns";
 import { Settings as SettingsIcon, Home as HomeIcon, BarChart2 } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
@@ -22,6 +22,8 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   const [activeTab, setActiveTab] = useState<'home' | 'analysis'>('home');
+  const homeSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressHomeClickUntilRef = useRef(0);
 
   if (!isLoaded) {
     return <div className={styles.container}>Loading...</div>;
@@ -45,6 +47,53 @@ export default function Home() {
     ? shifts.find(s => s.date === format(selectedDate, "yyyy-MM-dd")) 
     : undefined;
 
+  const shouldSuppressHomeClick = () => Date.now() < suppressHomeClickUntilRef.current;
+
+  const setHomeMonth = (date: Date) => {
+    if (shouldSuppressHomeClick()) return;
+    setCurrentDate(date);
+  };
+
+  const moveHomeMonth = (date: Date) => {
+    setCurrentDate(date);
+  };
+
+  const handleHomeSwipeStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    homeSwipeStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+  };
+
+  const handleHomeSwipeEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (!homeSwipeStartRef.current) return;
+
+    const touch = event.changedTouches[0];
+    if (!touch) {
+      homeSwipeStartRef.current = null;
+      return;
+    }
+
+    const deltaX = touch.clientX - homeSwipeStartRef.current.x;
+    const deltaY = touch.clientY - homeSwipeStartRef.current.y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    homeSwipeStartRef.current = null;
+
+    if (absX < 50 || absX < absY * 1.25) return;
+
+    suppressHomeClickUntilRef.current = Date.now() + 350;
+    if (event.cancelable) event.preventDefault();
+    moveHomeMonth(deltaX < 0 ? addMonths(currentDate, 1) : subMonths(currentDate, 1));
+  };
+
+  const handleHomeSwipeCancel = () => {
+    homeSwipeStartRef.current = null;
+  };
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -55,19 +104,27 @@ export default function Home() {
       </header>
 
       {activeTab === 'home' ? (
-        <>
+        <div
+          className={styles.homeSwipeArea}
+          onTouchStart={handleHomeSwipeStart}
+          onTouchEnd={handleHomeSwipeEnd}
+          onTouchCancel={handleHomeSwipeCancel}
+        >
           <SummaryCards currentDate={currentDate} shifts={shifts} />
 
           <Calendar 
             currentDate={currentDate} 
-            setCurrentDate={setCurrentDate} 
+            setCurrentDate={setHomeMonth}
             shifts={shifts}
             settings={settings}
-            onDateClick={(date) => setSelectedDate(date)} 
+            onDateClick={(date) => {
+              if (shouldSuppressHomeClick()) return;
+              setSelectedDate(date);
+            }}
           />
 
           <UpcomingShifts shifts={shifts} />
-        </>
+        </div>
       ) : (
         <AnalysisView shifts={shifts} />
       )}

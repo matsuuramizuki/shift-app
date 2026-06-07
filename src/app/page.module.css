@@ -18,6 +18,10 @@
   font-weight: bold;
 }
 
+.homeSwipeArea {
+  touch-action: pan-y;
+}
+
 .iconBtn {
   background: var(--surface);
   border-radius: var(--radius-md);
