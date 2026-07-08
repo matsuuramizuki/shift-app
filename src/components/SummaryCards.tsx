@@ -3,6 +3,7 @@ import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
 import { calculateSalary } from "@/lib/calc";
 import { startOfMonth, endOfMonth, isWithinInterval, parseISO, format } from 'date-fns';
+import { Clock, Coins } from 'lucide-react';
 
 interface SummaryProps {
   currentDate: Date;
@@ -37,13 +38,24 @@ export function SummaryCards({ currentDate, shifts }: SummaryProps) {
   return (
     <div className={styles.summaryGrid}>
       <div className={styles.card}>
-        <div className={styles.cardLabel}>{monthLabel} 現在の労働時間</div>
-        <div className={styles.cardValue}>{totalHours.toFixed(1)} h</div>
+        <div className={styles.cardArtHours}>
+          <Clock size={22} />
+        </div>
+        <div className={styles.cardInfo}>
+          <div className={styles.cardLabel}>{monthLabel} 労働時間</div>
+          <div className={styles.cardValue}>{totalHours.toFixed(1)} h</div>
+        </div>
       </div>
       <div className={styles.card}>
-        <div className={styles.cardLabel}>{monthLabel} 現在の給与</div>
-        <div className={styles.cardValue}>¥{totalSalary.toLocaleString()}</div>
+        <div className={styles.cardArtEarnings}>
+          <Coins size={22} />
+        </div>
+        <div className={styles.cardInfo}>
+          <div className={styles.cardLabel}>{monthLabel} 見込給与</div>
+          <div className={styles.cardValue}>¥{totalSalary.toLocaleString()}</div>
+        </div>
       </div>
     </div>
   );
 }
+

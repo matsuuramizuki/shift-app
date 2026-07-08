@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { addMonths, format, subMonths } from "date-fns";
-import { Settings as SettingsIcon, Home as HomeIcon, BarChart2 } from "lucide-react";
+import React, { useRef, useState, useEffect } from "react";
+import { addMonths, format, subMonths, parseISO } from "date-fns";
+import { ja } from "date-fns/locale";
+import { Settings as SettingsIcon, Home as HomeIcon, BarChart2, Play } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
 
@@ -12,6 +13,7 @@ import { UpcomingShifts } from "@/components/UpcomingShifts";
 import { AnalysisView } from "@/components/AnalysisView";
 import { ShiftModal } from "@/components/ShiftModal";
 import { SettingsModal } from "@/components/SettingsModal";
+
 
 export default function Home() {
   const { user, settings, shifts, isLoaded, saveSettings, saveShift, deleteShift, signInWithGoogle, signOut } = useStore();
@@ -94,12 +96,63 @@ export default function Home() {
     homeSwipeStartRef.current = null;
   };
 
+  // Dynamic greetings based on current time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "おはようございます";
+    if (hour >= 12 && hour < 18) return "こんにちは";
+    return "こんばんは";
+  };
+
+  // Find active or next upcoming shift
+  const getActiveOrNextShift = () => {
+    const now = new Date();
+    const todayStr = format(now, "yyyy-MM-dd");
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+
+    const eligible = shifts
+      .map(s => {
+        const [sh, sm] = s.startTime.split(':').map(Number);
+        const [eh, em] = s.endTime.split(':').map(Number);
+        const startMins = sh * 60 + sm;
+        let endMins = eh * 60 + em;
+        if (endMins < startMins) endMins += 24 * 60; // overnight
+        return { ...s, startMins, endMins };
+      })
+      .filter(s => {
+        if (s.date > todayStr) return true;
+        if (s.date === todayStr) {
+          return currentMins < s.endMins;
+        }
+        return false;
+      })
+      .sort((a, b) => a.date.localeCompare(b.date) || a.startMins - b.startMins);
+
+    if (eligible.length === 0) return null;
+
+    const candidate = eligible[0];
+    const isCurrent = candidate.date === todayStr && currentMins >= candidate.startMins && currentMins <= candidate.endMins;
+    return { shift: candidate, isCurrent };
+  };
+
+  const activeOrNext = getActiveOrNextShift();
+  const greeting = getGreeting();
+  const userInitial = user.email ? user.email[0].toUpperCase() : "U";
+
   return (
     <div className={styles.container}>
+      {/* Dynamic Spotify Radial Gradient Background */}
+      <div className={styles.gradientBg} />
+
       <header className={styles.header}>
-        <div className={styles.title}>Shifts</div>
+        <div className={styles.headerLeft}>
+          <div className={styles.userAvatar} title={user.email || "ユーザー"}>
+            {userInitial}
+          </div>
+          <h1 className={styles.title}>{activeTab === 'home' ? greeting : "分析"}</h1>
+        </div>
         <button className={styles.iconBtn} onClick={() => setIsSettingsOpen(true)}>
-          <SettingsIcon size={24} />
+          <SettingsIcon size={20} />
         </button>
       </header>
 
@@ -151,20 +204,63 @@ export default function Home() {
         />
       )}
 
+      {/* Sticky Now Playing Shift Bar */}
+      {activeOrNext && (
+        <div 
+          className={styles.nowPlayingBar}
+          onClick={() => {
+            setSelectedDate(parseISO(activeOrNext.shift.date));
+          }}
+        >
+          <div className={styles.nowPlayingContent}>
+            <div className={styles.nowPlayingArt}>
+              <span className={styles.nowPlayingArtIcon}>🍞</span>
+            </div>
+            <div className={styles.nowPlayingInfo}>
+              <div className={styles.nowPlayingTitle}>
+                {activeOrNext.isCurrent ? "現在勤務中" : "次のシフト"}
+              </div>
+              <div className={styles.nowPlayingSubtitle}>
+                {format(parseISO(activeOrNext.shift.date), "M月d日(E)", { locale: ja })} {activeOrNext.shift.startTime} - {activeOrNext.shift.endTime}
+              </div>
+            </div>
+            <button 
+              className={styles.nowPlayingBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedDate(parseISO(activeOrNext.shift.date));
+              }}
+            >
+              <Play size={12} fill="currentColor" />
+            </button>
+          </div>
+          <div className={styles.nowPlayingProgressBg}>
+            <div 
+              className={styles.nowPlayingProgressBar} 
+              style={{ 
+                width: activeOrNext.isCurrent 
+                  ? `${Math.min(100, Math.max(0, ((new Date().getHours() * 60 + new Date().getMinutes() - activeOrNext.shift.startMins) / (activeOrNext.shift.endMins - activeOrNext.shift.startMins)) * 100))}%`
+                  : '0%' 
+              }} 
+            />
+          </div>
+        </div>
+      )}
+
       {/* Bottom Navigation */}
       <nav className={styles.bottomNav}>
         <button 
           className={`${styles.navItem} ${activeTab === 'home' ? styles.active : ''}`}
           onClick={() => setActiveTab('home')}
         >
-          <HomeIcon size={24} />
+          <HomeIcon size={20} />
           <span>ホーム</span>
         </button>
         <button 
           className={`${styles.navItem} ${activeTab === 'analysis' ? styles.active : ''}`}
           onClick={() => setActiveTab('analysis')}
         >
-          <BarChart2 size={24} />
+          <BarChart2 size={20} />
           <span>分析</span>
         </button>
       </nav>

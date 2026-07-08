@@ -86,9 +86,10 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
+        <div className={styles.modalHandle} />
         <div className={styles.modalHeader}>
           <div>{format(date, "M月d日(E)", { locale: ja })} のシフト</div>
-          <button onClick={onClose}><X size={24} /></button>
+          <button onClick={onClose}><X size={20} /></button>
         </div>
 
         {error && <div className={styles.errorText}>{error}</div>}

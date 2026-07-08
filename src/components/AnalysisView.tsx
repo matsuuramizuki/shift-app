@@ -375,9 +375,9 @@ export function AnalysisView({ shifts }: Props) {
       }
     };
 
-    addGroup(mEarnedHours, mFutureHours, '午前', '#ffb74d');
-    addGroup(aEarnedHours, aFutureHours, '午後', '#81c784');
-    addGroup(nEarnedHours, nFutureHours, '夜間', '#ba68c8');
+    addGroup(mEarnedHours, mFutureHours, '午前', '#FF8F00');
+    addGroup(aEarnedHours, aFutureHours, '午後', '#1ED760');
+    addGroup(nEarnedHours, nFutureHours, '夜間', '#A855F7');
 
     const dayOfWeekData: DayOfWeekData[] = dayNames.map((name, i) => ({
       name,
@@ -681,13 +681,13 @@ export function AnalysisView({ shifts }: Props) {
       style={{ display: 'flex', flexDirection: 'column', gap: '24px', touchAction: subTab === 'monthly' ? 'pan-y' : undefined }}
     >
       
-      <div style={{ display: 'flex', background: 'var(--surface)', borderRadius: 'var(--radius-md)', padding: '4px' }}>
+      <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.05)', borderRadius: 'var(--radius-pill)', padding: '4px', border: '1px solid rgba(255, 255, 255, 0.03)' }}>
         <button
           onClick={() => selectSubTab('monthly')}
           style={{
-            flex: 1, padding: '10px', textAlign: 'center', fontSize: '14px', fontWeight: 'bold', borderRadius: 'var(--radius-sm)',
-            background: subTab === 'monthly' ? 'var(--primary)' : 'transparent',
-            color: subTab === 'monthly' ? '#000' : 'var(--text-muted)'
+            flex: 1, padding: '8px 16px', textAlign: 'center', fontSize: '13px', fontWeight: '800', borderRadius: 'var(--radius-pill)',
+            background: subTab === 'monthly' ? '#ffffff' : 'transparent',
+            color: subTab === 'monthly' ? '#000000' : 'var(--text-muted)'
           }}
         >
           月ごと
@@ -695,9 +695,9 @@ export function AnalysisView({ shifts }: Props) {
         <button
           onClick={() => selectSubTab('cumulative')}
           style={{
-            flex: 1, padding: '10px', textAlign: 'center', fontSize: '14px', fontWeight: 'bold', borderRadius: 'var(--radius-sm)',
-            background: subTab === 'cumulative' ? 'var(--primary)' : 'transparent',
-            color: subTab === 'cumulative' ? '#000' : 'var(--text-muted)'
+            flex: 1, padding: '8px 16px', textAlign: 'center', fontSize: '13px', fontWeight: '800', borderRadius: 'var(--radius-pill)',
+            background: subTab === 'cumulative' ? '#ffffff' : 'transparent',
+            color: subTab === 'cumulative' ? '#000000' : 'var(--text-muted)'
           }}
         >
           通算
@@ -757,24 +757,33 @@ export function AnalysisView({ shifts }: Props) {
               margin={{ top: 10, right: 20, left: -20, bottom: 0 }} 
               onClick={handleWeekdayClick}
             >
-              <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
-              {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
+              <defs>
+                <linearGradient id="colorEarned" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#1ED760" stopOpacity={0.95}/>
+                  <stop offset="100%" stopColor="#1ED760" stopOpacity={0.4}/>
+                </linearGradient>
+                <linearGradient id="colorFuture" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#1ED760" stopOpacity={0.5}/>
+                  <stop offset="100%" stopColor="#1ED760" stopOpacity={0.15}/>
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="name" tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
+              {!usesCompactCharts && <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} content={<CustomTooltip totals={tooltipTotals} />} />}
               {subTab === 'monthly' && !isViewingPastMonth ? (
                 <>
                   <Bar
                     dataKey="earned"
                     name="確定"
                     stackId="a"
-                    fill="#03dac6"
+                    fill="url(#colorEarned)"
                     radius={dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="future"
                     name="予定"
                     stackId="a"
-                    fill="#03dac6"
-                    fillOpacity={0.65}
+                    fill="url(#colorFuture)"
                     radius={[4, 4, 0, 0]}
                   />
                 </>
@@ -782,7 +791,7 @@ export function AnalysisView({ shifts }: Props) {
                 <Bar
                   dataKey="total"
                   name="シフト回数"
-                  fill="#03dac6"
+                  fill="url(#colorEarned)"
                   radius={[4, 4, 0, 0]}
                 />
               )}
@@ -857,22 +866,48 @@ export function AnalysisView({ shifts }: Props) {
                 margin={{ top: 10, right: 20, left: -10, bottom: 0 }} 
                 onClick={handleTrendMonthClick}
               >
-                <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
-                {!usesCompactCharts && <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
+                <defs>
+                  <linearGradient id="trendNetEarned" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.95}/>
+                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.4}/>
+                  </linearGradient>
+                  <linearGradient id="trendNetFuture" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.5}/>
+                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.15}/>
+                  </linearGradient>
+                  <linearGradient id="trendAllowanceEarned" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#1ED760" stopOpacity={0.95}/>
+                    <stop offset="100%" stopColor="#1ED760" stopOpacity={0.4}/>
+                  </linearGradient>
+                  <linearGradient id="trendAllowanceFuture" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#1ED760" stopOpacity={0.5}/>
+                    <stop offset="100%" stopColor="#1ED760" stopOpacity={0.15}/>
+                  </linearGradient>
+                  <linearGradient id="trendDeductionEarned" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#EF4444" stopOpacity={0.95}/>
+                    <stop offset="100%" stopColor="#EF4444" stopOpacity={0.4}/>
+                  </linearGradient>
+                  <linearGradient id="trendDeductionFuture" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#EF4444" stopOpacity={0.5}/>
+                    <stop offset="100%" stopColor="#EF4444" stopOpacity={0.15}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
+                {!usesCompactCharts && <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} content={<CustomTooltip totals={tooltipTotals} />} />}
                 <Legend content={() => (
-                  <ul style={{ display: 'flex', justifyContent: 'center', listStyle: 'none', padding: 0, margin: 0, fontSize: '12px', gap: '16px' }}>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#bb86fc' }}></span>手取り</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#03dac6' }}></span>手当</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '12px', height: '12px', background: '#cf6679' }}></span>天引き</li>
+                  <ul style={{ display: 'flex', justifyContent: 'center', listStyle: 'none', padding: 0, margin: 0, fontSize: '11px', gap: '16px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: '#8B5CF6' }}></span>手取り</li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: '#1ED760' }}></span>手当</li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: '#EF4444' }}></span>天引き</li>
                   </ul>
                 )} />
-                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#bb86fc" />
-                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#03dac6" />
-                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#cf6679" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
-                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#bb86fc" fillOpacity={0.65} />
-                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#03dac6" fillOpacity={0.65} />
-                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#cf6679" fillOpacity={0.65} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="url(#trendNetEarned)" />
+                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="url(#trendAllowanceEarned)" />
+                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="url(#trendDeductionEarned)" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
+                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="url(#trendNetFuture)" />
+                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="url(#trendAllowanceFuture)" />
+                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="url(#trendDeductionFuture)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

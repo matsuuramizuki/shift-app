@@ -59,9 +59,10 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
+        <div className={styles.modalHandle} />
         <div className={styles.modalHeader}>
           <div>設定</div>
-          <button onClick={onClose}><X size={24} /></button>
+          <button onClick={onClose}><X size={20} /></button>
         </div>
 
         {error && <div className={styles.errorText}>{error}</div>}
