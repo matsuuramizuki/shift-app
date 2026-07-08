@@ -79,6 +79,7 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
             <button
               key={day.toISOString()}
               onClick={() => onDateClick(day)}
+              disabled={!isCurrentMonth}
               className={`${styles.dayCell} ${!isCurrentMonth ? styles.empty : ""} ${(isToday && isCurrentMonth) ? styles.today : ""} ${(shift && isCurrentMonth) ? styles.hasShift : ""}`}
             >
               {isCurrentMonth && (

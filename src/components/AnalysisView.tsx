@@ -716,10 +716,10 @@ export function AnalysisView({ shifts }: Props) {
         </div>
       )}
 
-      <div className={styles.summaryGrid} style={{ marginBottom: 0 }}>
-        <div className={styles.card}>
-          <div className={styles.cardLabel}>{subTab === 'monthly' ? '当月の総額' : '累計給与'}</div>
-          <div className={styles.cardValue}>
+      <div className={styles.analysisGrid} style={{ marginBottom: 0 }}>
+        <div className={styles.analysisCard}>
+          <div className={styles.analysisCardLabel}>{subTab === 'monthly' ? '当月の総額' : '累計給与'}</div>
+          <div className={styles.analysisCardValue}>
             ¥{subTab === 'monthly' ? totalEarnings.toLocaleString() : displayEarnings.toLocaleString()}
             {subTab === 'monthly' && (
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
@@ -728,9 +728,9 @@ export function AnalysisView({ shifts }: Props) {
             )}
           </div>
         </div>
-        <div className={styles.card}>
-          <div className={styles.cardLabel}>{subTab === 'monthly' ? '当月の総労働時間' : '累計労働時間'}</div>
-          <div className={styles.cardValue} style={{ color: 'var(--secondary)' }}>
+        <div className={styles.analysisCard}>
+          <div className={styles.analysisCardLabel}>{subTab === 'monthly' ? '当月の総労働時間' : '累計労働時間'}</div>
+          <div className={styles.analysisCardValue} style={{ color: 'var(--secondary)' }}>
             {subTab === 'monthly' ? totalHours.toFixed(1) : displayHours.toFixed(1)}<span style={{ fontSize: '14px' }}>h</span>
             {subTab === 'monthly' && (
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
