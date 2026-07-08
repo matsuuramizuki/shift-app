@@ -75,28 +75,34 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
           const isCurrentMonth = isSameMonth(day, monthStart);
           const isToday = isSameDay(day, new Date());
 
+          if (!isCurrentMonth) {
+            return (
+              <div
+                key={day.toISOString()}
+                aria-hidden="true"
+                className={`${styles.dayCell} ${styles.empty}`}
+              />
+            );
+          }
+
           return (
             <button
+              type="button"
               key={day.toISOString()}
               onClick={() => onDateClick(day)}
-              disabled={!isCurrentMonth}
-              className={`${styles.dayCell} ${!isCurrentMonth ? styles.empty : ""} ${(isToday && isCurrentMonth) ? styles.today : ""} ${(shift && isCurrentMonth) ? styles.hasShift : ""}`}
+              className={`${styles.dayCell} ${isToday ? styles.today : ""} ${shift ? styles.hasShift : ""}`}
             >
-              {isCurrentMonth && (
-                <>
-                  {format(day, "d")}
-                  {shift && (
-                    <div className={styles.shiftIndicator}>
-                      <span>{shift.startTime}</span>
-                      <span>{shift.endTime}</span>
-                    </div>
-                  )}
-                  {actualPayday && isSameDay(day, actualPayday) && (
-                    <div className={styles.paydayIndicator}>
-                      ¥{prevMonthSalary.toLocaleString()}
-                    </div>
-                  )}
-                </>
+              {format(day, "d")}
+              {shift && (
+                <div className={styles.shiftIndicator}>
+                  <span>{shift.startTime}</span>
+                  <span>{shift.endTime}</span>
+                </div>
+              )}
+              {actualPayday && isSameDay(day, actualPayday) && (
+                <div className={styles.paydayIndicator}>
+                  ¥{prevMonthSalary.toLocaleString()}
+                </div>
               )}
             </button>
           );
