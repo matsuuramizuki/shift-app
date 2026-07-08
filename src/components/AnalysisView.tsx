@@ -757,16 +757,6 @@ export function AnalysisView({ shifts }: Props) {
               margin={{ top: 10, right: 20, left: -20, bottom: 0 }} 
               onClick={handleWeekdayClick}
             >
-              <defs>
-                <linearGradient id="colorEarned" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1ED760" stopOpacity={0.95}/>
-                  <stop offset="100%" stopColor="#1ED760" stopOpacity={0.4}/>
-                </linearGradient>
-                <linearGradient id="colorFuture" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1ED760" stopOpacity={0.5}/>
-                  <stop offset="100%" stopColor="#1ED760" stopOpacity={0.15}/>
-                </linearGradient>
-              </defs>
               <XAxis dataKey="name" tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
               {!usesCompactCharts && <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} content={<CustomTooltip totals={tooltipTotals} />} />}
@@ -776,14 +766,15 @@ export function AnalysisView({ shifts }: Props) {
                     dataKey="earned"
                     name="確定"
                     stackId="a"
-                    fill="url(#colorEarned)"
+                    fill="#1ED760"
                     radius={dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="future"
                     name="予定"
                     stackId="a"
-                    fill="url(#colorFuture)"
+                    fill="#1ED760"
+                    fillOpacity={0.5}
                     radius={[4, 4, 0, 0]}
                   />
                 </>
@@ -791,7 +782,7 @@ export function AnalysisView({ shifts }: Props) {
                 <Bar
                   dataKey="total"
                   name="シフト回数"
-                  fill="url(#colorEarned)"
+                  fill="#1ED760"
                   radius={[4, 4, 0, 0]}
                 />
               )}
@@ -866,32 +857,6 @@ export function AnalysisView({ shifts }: Props) {
                 margin={{ top: 10, right: 20, left: -10, bottom: 0 }} 
                 onClick={handleTrendMonthClick}
               >
-                <defs>
-                  <linearGradient id="trendNetEarned" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.95}/>
-                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.4}/>
-                  </linearGradient>
-                  <linearGradient id="trendNetFuture" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.5}/>
-                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.15}/>
-                  </linearGradient>
-                  <linearGradient id="trendAllowanceEarned" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1ED760" stopOpacity={0.95}/>
-                    <stop offset="100%" stopColor="#1ED760" stopOpacity={0.4}/>
-                  </linearGradient>
-                  <linearGradient id="trendAllowanceFuture" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1ED760" stopOpacity={0.5}/>
-                    <stop offset="100%" stopColor="#1ED760" stopOpacity={0.15}/>
-                  </linearGradient>
-                  <linearGradient id="trendDeductionEarned" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#EF4444" stopOpacity={0.95}/>
-                    <stop offset="100%" stopColor="#EF4444" stopOpacity={0.4}/>
-                  </linearGradient>
-                  <linearGradient id="trendDeductionFuture" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#EF4444" stopOpacity={0.5}/>
-                    <stop offset="100%" stopColor="#EF4444" stopOpacity={0.15}/>
-                  </linearGradient>
-                </defs>
                 <XAxis dataKey="name" tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
                 {!usesCompactCharts && <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} content={<CustomTooltip totals={tooltipTotals} />} />}
@@ -902,12 +867,12 @@ export function AnalysisView({ shifts }: Props) {
                     <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: '#EF4444' }}></span>天引き</li>
                   </ul>
                 )} />
-                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="url(#trendNetEarned)" />
-                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="url(#trendAllowanceEarned)" />
-                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="url(#trendDeductionEarned)" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
-                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="url(#trendNetFuture)" />
-                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="url(#trendAllowanceFuture)" />
-                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="url(#trendDeductionFuture)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#8B5CF6" />
+                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#1ED760" />
+                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#EF4444" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
+                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#8B5CF6" fillOpacity={0.5} />
+                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#1ED760" fillOpacity={0.5} />
+                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#EF4444" fillOpacity={0.5} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
