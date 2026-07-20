@@ -90,7 +90,13 @@ export function generateICal(shifts: Shift[]): string {
     descriptionParts = [...descriptionParts, ...details];
 
     const description = escapeValue(descriptionParts.join('\n'));
-    const summary = escapeValue(shift.memo ? `バイト (${shift.memo.substring(0, 10)}${shift.memo.length > 10 ? '...' : ''})` : 'バイト');
+    const summary = escapeValue(
+      shift.isTentative
+        ? 'バイト（仮）'
+        : shift.memo
+          ? `バイト (${shift.memo.substring(0, 10)}${shift.memo.length > 10 ? '...' : ''})`
+          : 'バイト'
+    );
 
     rawLines.push(
       'BEGIN:VEVENT',

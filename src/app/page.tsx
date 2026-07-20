@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { addMonths, format, subMonths, parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Settings as SettingsIcon, Home as HomeIcon, BarChart2, Play } from "lucide-react";
+import { Settings as SettingsIcon, Home as HomeIcon, BarChart2, ChevronRight, CalendarDays } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
 
@@ -28,15 +28,16 @@ export default function Home() {
   const suppressHomeClickUntilRef = useRef(0);
 
   if (!isLoaded) {
-    return <div className={styles.container}>Loading...</div>;
+    return <div className={styles.loadingState}>シフトを読み込んでいます…</div>;
   }
 
   if (!user) {
     return (
       <div className={styles.container}>
         <div className={styles.loginCard}>
-          <h1>Shift App</h1>
-          <p>シフト情報をクラウドで安全に管理</p>
+          <div className={styles.loginIcon}><CalendarDays size={28} /></div>
+          <h1>シフト管理</h1>
+          <p>勤務予定と給与を、ひとつのカレンダーで。</p>
           <button className={styles.btnPrimary} onClick={signInWithGoogle}>
             Googleでログイン
           </button>
@@ -141,7 +142,7 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      {/* Dynamic Spotify Radial Gradient Background */}
+      {/* Soft ambient background */}
       <div className={styles.gradientBg} />
 
       <header className={styles.header}>
@@ -151,7 +152,7 @@ export default function Home() {
           </div>
           <h1 className={styles.title}>{activeTab === 'home' ? greeting : "分析"}</h1>
         </div>
-        <button className={styles.iconBtn} onClick={() => setIsSettingsOpen(true)}>
+        <button className={styles.iconBtn} aria-label="設定を開く" onClick={() => setIsSettingsOpen(true)}>
           <SettingsIcon size={20} />
         </button>
       </header>
@@ -219,6 +220,7 @@ export default function Home() {
             <div className={styles.nowPlayingInfo}>
               <div className={styles.nowPlayingTitle}>
                 {activeOrNext.isCurrent ? "現在勤務中" : "次のシフト"}
+                {activeOrNext.shift.isTentative && <span className={styles.nowPlayingBadge}>仮</span>}
               </div>
               <div className={styles.nowPlayingSubtitle}>
                 {format(parseISO(activeOrNext.shift.date), "M月d日(E)", { locale: ja })} {activeOrNext.shift.startTime} - {activeOrNext.shift.endTime}
@@ -231,7 +233,7 @@ export default function Home() {
                 setSelectedDate(parseISO(activeOrNext.shift.date));
               }}
             >
-              <Play size={12} fill="currentColor" />
+              <ChevronRight size={18} />
             </button>
           </div>
           <div className={styles.nowPlayingProgressBg}>
@@ -248,9 +250,10 @@ export default function Home() {
       )}
 
       {/* Bottom Navigation */}
-      <nav className={styles.bottomNav}>
+      <nav className={styles.bottomNav} aria-label="メインメニュー">
         <button 
           className={`${styles.navItem} ${activeTab === 'home' ? styles.active : ''}`}
+          aria-current={activeTab === 'home' ? 'page' : undefined}
           onClick={() => setActiveTab('home')}
         >
           <HomeIcon size={20} />
@@ -258,6 +261,7 @@ export default function Home() {
         </button>
         <button 
           className={`${styles.navItem} ${activeTab === 'analysis' ? styles.active : ''}`}
+          aria-current={activeTab === 'analysis' ? 'page' : undefined}
           onClick={() => setActiveTab('analysis')}
         >
           <BarChart2 size={20} />

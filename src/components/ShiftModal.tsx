@@ -23,6 +23,7 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
   const [allowance, setAllowance] = useState(() => (shift?.allowance ?? 0).toString());
   const [hourlyWage, setHourlyWage] = useState(() => (shift?.hourlyWage ?? settings.defaultHourlyWage).toString());
   const [memo, setMemo] = useState(() => shift?.memo ?? "");
+  const [isTentative, setIsTentative] = useState(() => shift?.isTentative ?? false);
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -60,7 +61,8 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
         deduction: numericDeduct,
         hourlyWage: numericHourlyWage,
         allowance: numericAllowance,
-        memo
+        memo,
+        isTentative
       });
 
       onClose();
@@ -89,10 +91,27 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
         <div className={styles.modalHandle} />
         <div className={styles.modalHeader}>
           <div>{format(date, "M月d日(E)", { locale: ja })} のシフト</div>
-          <button onClick={onClose}><X size={20} /></button>
+          <button type="button" aria-label="シフト入力を閉じる" onClick={onClose}><X size={20} /></button>
         </div>
 
         {error && <div className={styles.errorText}>{error}</div>}
+
+        <div className={styles.toggleRow}>
+          <div className={styles.toggleCopy}>
+            <span className={styles.toggleLabel}>仮のシフト</span>
+            <span className={styles.toggleDescription}>予定が未確定の場合にオンにします</span>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isTentative}
+            aria-label="仮のシフト"
+            className={`${styles.toggle} ${isTentative ? styles.toggleOn : ""}`}
+            onClick={() => setIsTentative(value => !value)}
+          >
+            <span className={styles.toggleThumb} />
+          </button>
+        </div>
 
         <div className={styles.inputGroup}>
           <label>開始時間</label>

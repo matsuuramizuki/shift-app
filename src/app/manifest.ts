@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'パン屋さんのための、シンプルで使いやすいシフト管理アプリ',
     start_url: '/',
     display: 'standalone',
-    background_color: '#000000',
-    theme_color: '#000000',
+    background_color: '#f5f5f7',
+    theme_color: '#f5f5f7',
     icons: [
       {
         src: '/icon.png',

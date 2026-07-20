@@ -62,7 +62,7 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
         <div className={styles.modalHandle} />
         <div className={styles.modalHeader}>
           <div>設定</div>
-          <button onClick={onClose}><X size={20} /></button>
+          <button type="button" aria-label="設定を閉じる" onClick={onClose}><X size={20} /></button>
         </div>
 
         {error && <div className={styles.errorText}>{error}</div>}
@@ -90,7 +90,7 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
           />
         </div>
 
-        <p style={{fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px'}}>
+        <p className={styles.settingsNote}>
           ※時給を変更しても、すでに保存されている過去のシフトの給与は変わりません。未来の新しいシフトに適用されます。<br/>
           ※給与日を設定すると、カレンダーのその日に前月の給与合計が表示されます。
         </p>
@@ -99,31 +99,34 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
           {isSaving ? "保存中..." : "保存する"}
         </button>
 
-        <hr style={{ borderColor: 'var(--border)', margin: '24px 0', borderStyle: 'solid', borderWidth: '1px 0 0 0' }} />
+        <hr className={styles.divider} />
 
-        <div style={{ marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '14px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className={styles.calendarSection}>
+          <h3 className={styles.calendarTitle}>
             <CalendarDays size={16} /> カレンダー連携 (iCal)
           </h3>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+          <p className={styles.calendarDescription}>
             GoogleカレンダーやiPhoneカレンダーの「URLで追加(照会)」に以下のURLを設定すると、シフトが自動同期されます。
           </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className={styles.calendarCopyRow}>
             <input 
               readOnly 
               value={calendarUrl} 
-              style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text-muted)', fontSize: '12px' }}
+              aria-label="カレンダー連携URL"
+              className={styles.calendarUrl}
             />
             <button 
+              type="button"
               onClick={handleCopyUrl}
-              style={{ padding: '0 12px', borderRadius: '4px', background: 'var(--primary)', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+              aria-label={copied ? "コピーしました" : "URLをコピー"}
+              className={styles.copyButton}
             >
               {copied ? <Check size={16} /> : <Copy size={16} />}
             </button>
           </div>
         </div>
 
-        <hr style={{ borderColor: 'var(--border)', margin: '24px 0', borderStyle: 'solid', borderWidth: '1px 0 0 0' }} />
+        <hr className={styles.divider} />
 
         <button 
           className={styles.btnDanger} 

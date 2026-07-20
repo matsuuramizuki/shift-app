@@ -40,6 +40,7 @@ export function UpcomingShifts({ shifts }: Props) {
                 <div className={styles.upcomingInfo}>
                   <div className={styles.upcomingDate}>
                     {format(s.dateObj, "M月d日(E)", { locale: ja })}
+                    {s.isTentative && <span className={styles.tentativeBadge}>仮</span>}
                   </div>
                   <div className={styles.upcomingTime}>
                     {s.startTime} - {s.endTime}
@@ -63,4 +64,3 @@ export function UpcomingShifts({ shifts }: Props) {
     </div>
   );
 }
-

@@ -90,13 +90,14 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
               type="button"
               key={day.toISOString()}
               onClick={() => onDateClick(day)}
-              className={`${styles.dayCell} ${isToday ? styles.today : ""} ${shift ? styles.hasShift : ""}`}
+              className={`${styles.dayCell} ${isToday ? styles.today : ""} ${shift ? styles.hasShift : ""} ${shift?.isTentative ? styles.tentativeShift : ""}`}
             >
               {format(day, "d")}
               {shift && (
                 <div className={styles.shiftIndicator}>
                   <span>{shift.startTime}</span>
                   <span>{shift.endTime}</span>
+                  {shift.isTentative && <span className={styles.tentativeDot}>仮</span>}
                 </div>
               )}
               {actualPayday && isSameDay(day, actualPayday) && (

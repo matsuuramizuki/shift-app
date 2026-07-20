@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { generateICal } from '@/lib/ical';
+import { decodeShiftMetadata } from '@/lib/shiftMetadata';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0; // completely disable caching
@@ -37,17 +38,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
       });
     }
 
-    const mappedShifts = shifts.map(item => ({
-      id: item.id,
-      date: item.date,
-      startTime: item.start_time,
-      endTime: item.end_time,
-      breakMinutes: item.break_minutes,
-      deduction: item.deduction,
-      hourlyWage: item.hourly_wage,
-      allowance: item.allowance || 0,
-      memo: item.memo
-    }));
+    const mappedShifts = shifts.map(item => {
+      const metadata = decodeShiftMetadata(item.memo, item.is_tentative);
+      return {
+        id: item.id,
+        date: item.date,
+        startTime: item.start_time,
+        endTime: item.end_time,
+        breakMinutes: item.break_minutes,
+        deduction: item.deduction,
+        hourlyWage: item.hourly_wage,
+        allowance: item.allowance || 0,
+        memo: metadata.memo,
+        isTentative: metadata.isTentative
+      };
+    });
 
     const icalString = generateICal(mappedShifts);
 
