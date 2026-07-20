@@ -1,4 +1,6 @@
-import { Shift } from './store';
+import type { Shift } from './store';
+
+const textEncoder = new TextEncoder();
 
 // Convert JST (Asia/Tokyo) date and time to UTC and format as iCal UTC string (ending with Z)
 function formatToICalUTC(dateStr: string, timeStr: string, isNextDay: boolean = false): string {
@@ -23,19 +25,30 @@ function getDtstamp(): string {
   return `${now.getUTCFullYear().toString().padStart(4, '0')}${(now.getUTCMonth()+1).toString().padStart(2, '0')}${now.getUTCDate().toString().padStart(2, '0')}T${now.getUTCHours().toString().padStart(2, '0')}${now.getUTCMinutes().toString().padStart(2, '0')}${now.getUTCSeconds().toString().padStart(2, '0')}Z`;
 }
 
-// iCal lines must be folded if they exceed 75 octets.
-// We use a safe character limit (20) to avoid splitting multi-byte UTF-8 characters.
+// RFC 5545 limits content lines to 75 octets, including UTF-8 text.
 function foldLine(line: string): string {
-  const chars = Array.from(line);
-  const limit = 20; 
-  if (chars.length <= limit) return line;
-  
-  let result = '';
-  for (let i = 0; i < chars.length; i += limit) {
-    if (i > 0) result += '\r\n ';
-    result += chars.slice(i, i + limit).join('');
+  if (textEncoder.encode(line).length <= 75) return line;
+
+  const folded: string[] = [];
+  let chunk = '';
+  let chunkBytes = 0;
+  let limit = 75;
+
+  for (const character of line) {
+    const characterBytes = textEncoder.encode(character).length;
+    if (chunk && chunkBytes + characterBytes > limit) {
+      folded.push(chunk);
+      chunk = '';
+      chunkBytes = 0;
+      limit = 74; // The continuation space counts as one octet.
+    }
+
+    chunk += character;
+    chunkBytes += characterBytes;
   }
-  return result;
+
+  if (chunk) folded.push(chunk);
+  return folded.join('\r\n ');
 }
 
 function escapeValue(str: string): string {
@@ -60,8 +73,8 @@ export function generateICal(shifts: Shift[]): string {
 
   const dtstamp = getDtstamp();
 
-  shifts.forEach(shift => {
-    if (!shift.date || !shift.startTime || !shift.endTime) return;
+  for (const shift of shifts) {
+    if (!shift.date || !shift.startTime || !shift.endTime) continue;
 
     const isOvernight = shift.endTime < shift.startTime;
 
@@ -110,7 +123,7 @@ export function generateICal(shifts: Shift[]): string {
       `SEQUENCE:0`,
       'END:VEVENT'
     );
-  });
+  }
 
   rawLines.push('END:VCALENDAR');
   

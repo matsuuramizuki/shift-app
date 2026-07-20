@@ -1,8 +1,8 @@
-import React from 'react';
+import { memo } from 'react';
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
 import { calculateSalary } from "@/lib/calc";
-import { startOfMonth, endOfMonth, isWithinInterval, parseISO, format } from 'date-fns';
+import { format } from 'date-fns';
 import { Clock, Coins } from 'lucide-react';
 
 interface SummaryProps {
@@ -10,28 +10,18 @@ interface SummaryProps {
   shifts: Shift[];
 }
 
-export function SummaryCards({ currentDate, shifts }: SummaryProps) {
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
-
-  const currentMonthShifts = shifts.filter(s => {
-    const date = parseISO(s.date);
-    return isWithinInterval(date, { start: monthStart, end: monthEnd });
-  });
-
+export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: SummaryProps) {
+  const monthPrefix = format(currentDate, "yyyy-MM");
   const todayStr = format(new Date(), "yyyy-MM-dd");
-  const isPast = (dateStr: string) => dateStr <= todayStr;
-
   let totalHours = 0;
   let totalSalary = 0;
 
-  currentMonthShifts.forEach(s => {
-    if (isPast(s.date)) {
-      const { hours, salary } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
-      totalHours += hours;
-      totalSalary += salary;
-    }
-  });
+  for (const shift of shifts) {
+    if (!shift.date.startsWith(monthPrefix) || shift.date > todayStr) continue;
+    const result = calculateSalary(shift.startTime, shift.endTime, shift.breakMinutes, shift.deduction, shift.hourlyWage, shift.allowance || 0);
+    totalHours += result.hours;
+    totalSalary += result.salary;
+  }
 
   const monthLabel = format(currentDate, "M月");
 
@@ -57,5 +47,4 @@ export function SummaryCards({ currentDate, shifts }: SummaryProps) {
       </div>
     </div>
   );
-}
-
+});

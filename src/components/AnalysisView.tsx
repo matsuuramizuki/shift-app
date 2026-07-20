@@ -320,22 +320,67 @@ export function AnalysisView({ shifts }: Props) {
     let aFutureHours = 0;
     let nFutureHours = 0;
 
-    shifts.forEach(s => {
+    const monthlyTrendData: MonthlyTrendData[] = [];
+    const trendByMonth = new Map<string, MonthlyTrendData>();
+
+    for (let i = 5; i >= 0; i--) {
+      const targetMonth = subMonths(now, i);
+      const trend: MonthlyTrendData = {
+        name: format(targetMonth, "M月"),
+        netBaseEarned: 0,
+        allowanceEarned: 0,
+        deductionEarned: 0,
+        netBaseFuture: 0,
+        allowanceFuture: 0,
+        deductionFuture: 0,
+        totalHours: 0,
+      };
+      monthlyTrendData.push(trend);
+      trendByMonth.set(format(targetMonth, "yyyy-MM"), trend);
+    }
+
+    for (const s of shifts) {
       const d = parseISO(s.date);
       const isTarget = subTab === 'cumulative' || isSameMonth(d, selectedMonth);
       const isPrevMonth = subTab === 'monthly' && isSameMonth(d, subMonths(selectedMonth, 1));
+      const past = isPast(s.date);
+      let calculation: ReturnType<typeof calculateSalary> | null = null;
+      const getCalculation = () => calculation ??= calculateSalary(
+        s.startTime,
+        s.endTime,
+        s.breakMinutes,
+        s.deduction,
+        s.hourlyWage,
+        s.allowance || 0
+      );
+
+      const trend = trendByMonth.get(s.date.slice(0, 7));
+      if (trend) {
+        const { hours } = getCalculation();
+        const allowance = s.allowance || 0;
+        const deduction = s.deduction || 0;
+        const netBase = Math.max(0, Math.floor(hours * s.hourlyWage) - deduction);
+        trend.totalHours += hours;
+
+        if (past) {
+          trend.netBaseEarned += netBase;
+          trend.allowanceEarned += allowance;
+          trend.deductionEarned += deduction;
+        } else {
+          trend.netBaseFuture += netBase;
+          trend.allowanceFuture += allowance;
+          trend.deductionFuture += deduction;
+        }
+      }
 
       if (isPrevMonth) {
-        const { salary, hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
+        const { salary, hours } = getCalculation();
         prevMonthEarnings += salary;
         prevMonthHours += hours;
       }
 
-      if (isTarget) {
-        const past = isPast(s.date);
-        if (subTab === 'cumulative' && !past) return;
-
-        const { salary, hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
+      if (isTarget && (subTab !== 'cumulative' || past)) {
+        const { salary, hours } = getCalculation();
         const dayIndex = getDay(d);
         const blocks = calcTimeBlocks(s.startTime, s.endTime, s.breakMinutes);
 
@@ -355,7 +400,7 @@ export function AnalysisView({ shifts }: Props) {
           nFutureHours += blocks.night;
         }
       }
-    });
+    }
 
     const totalChartHours = mEarnedHours + mFutureHours + aEarnedHours + aFutureHours + nEarnedHours + nFutureHours;
     const spacerValue = totalChartHours * 0.02; // 2% gap
@@ -385,53 +430,6 @@ export function AnalysisView({ shifts }: Props) {
       future: dayOfWeekFutureCounts[i],
       total: dayOfWeekEarnedCounts[i] + dayOfWeekFutureCounts[i],
     }));
-
-    const monthlyTrendData: MonthlyTrendData[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const targetMonth = subMonths(now, i);
-      const monthStr = format(targetMonth, "yyyy-MM");
-      const displayMonth = format(targetMonth, "M月");
-      
-      let netBaseEarned = 0;
-      let allowanceEarned = 0;
-      let deductionEarned = 0;
-      let netBaseFuture = 0;
-      let allowanceFuture = 0;
-      let deductionFuture = 0;
-      let totalHours = 0;
-      
-      shifts.forEach(s => {
-        if (s.date.startsWith(monthStr)) {
-          const { hours } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
-          totalHours += hours;
-          const rawBase = Math.floor(hours * s.hourlyWage);
-          const allow = s.allowance || 0;
-          const ded = s.deduction || 0;
-          const netBase = Math.max(0, rawBase - ded);
-          
-          if (isPast(s.date)) {
-            netBaseEarned += netBase;
-            allowanceEarned += allow;
-            deductionEarned += ded;
-          } else {
-            netBaseFuture += netBase;
-            allowanceFuture += allow;
-            deductionFuture += ded;
-          }
-        }
-      });
-
-      monthlyTrendData.push({
-        name: displayMonth,
-        netBaseEarned,
-        allowanceEarned,
-        deductionEarned,
-        netBaseFuture,
-        allowanceFuture,
-        deductionFuture,
-        totalHours,
-      });
-    }
 
     const totalEarnings = displayEarnings + futureEarnings;
     const totalHours = displayHours + futureHours;
@@ -463,6 +461,8 @@ export function AnalysisView({ shifts }: Props) {
       nFutureHours
     };
   }, [shifts, subTab, selectedMonth]);
+  const hasTimeOfDayData = timeOfDayData.some(data => !data.isSpacer);
+  const hasFutureTrendData = monthlyTrendData.some(data => data.netBaseFuture > 0 || data.allowanceFuture > 0 || data.deductionFuture > 0);
   const readWeekdayPayload = (state: unknown) => {
     const chartState = state as ChartClickState<DayOfWeekData> | undefined;
     const payload = chartState?.activePayload?.[0]?.payload;
@@ -805,7 +805,7 @@ export function AnalysisView({ shifts }: Props) {
 
       <div className={styles.chartContainer} style={{ marginBottom: 0 }}>
         <h3 className={styles.chartTitle}>{subTab === 'monthly' ? '月間時間帯別シフト割合 (時間)' : '通算時間帯別シフト割合 (時間)'}</h3>
-        {timeOfDayData.filter(d => !d.isSpacer).length > 0 ? (
+        {hasTimeOfDayData ? (
           <div className={styles.chartTapTarget}>
             <button
               type="button"
@@ -829,7 +829,7 @@ export function AnalysisView({ shifts }: Props) {
         ) : (
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', marginTop: '40px' }}>データがありません</p>
         )}
-        <div className={`${styles.chartSummaryWrapper} ${(timeOfDayData.filter(d => !d.isSpacer).length > 0 && isTimeOfDayOpen) ? styles.open : ''}`}>
+        <div className={`${styles.chartSummaryWrapper} ${(hasTimeOfDayData && isTimeOfDayOpen) ? styles.open : ''}`}>
           <div className={styles.chartSummaryInner}>
             <div className={styles.chartSummaryRow}>
               <span>午前 {tooltipTotals.morning.toFixed(1)}h</span>
@@ -869,7 +869,7 @@ export function AnalysisView({ shifts }: Props) {
                 )} />
                 <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#8B5CF6" />
                 <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#1ED760" />
-                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#EF4444" radius={monthlyTrendData.some(d => d.netBaseFuture > 0 || d.allowanceFuture > 0 || d.deductionFuture > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
+                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#EF4444" radius={hasFutureTrendData ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
                 <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#8B5CF6" fillOpacity={0.5} />
                 <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#1ED760" fillOpacity={0.5} />
                 <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#EF4444" fillOpacity={0.5} radius={[4, 4, 0, 0]} />

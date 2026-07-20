@@ -1,4 +1,7 @@
-import { differenceInMinutes, parse, isBefore } from "date-fns";
+function timeToMinutes(time: string) {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
 
 export function calculateSalary(
   startTime: string,
@@ -8,14 +11,14 @@ export function calculateSalary(
   hourlyWage: number,
   allowance: number = 0
 ): { hours: number; salary: number; error?: string } {
-  const start = parse(startTime, "HH:mm", new Date());
-  const end = parse(endTime, "HH:mm", new Date());
+  const start = timeToMinutes(startTime);
+  const end = timeToMinutes(endTime);
 
-  if (isBefore(end, start)) {
+  if (end < start) {
     return { hours: 0, salary: 0, error: "終了時間は開始時間より後にしてください" };
   }
 
-  const diffMins = differenceInMinutes(end, start);
+  const diffMins = end - start;
   const actualWorkMins = Math.max(0, diffMins - breakMinutes);
   
   const hours = actualWorkMins / 60;

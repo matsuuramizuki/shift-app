@@ -1,19 +1,60 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { addMonths, format, subMonths, parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
 import { Settings as SettingsIcon, Home as HomeIcon, BarChart2, ChevronRight, CalendarDays } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
+import type { Shift } from "@/lib/store";
 
 import { Calendar } from "@/components/Calendar";
 import { SummaryCards } from "@/components/SummaryCards";
 import { UpcomingShifts } from "@/components/UpcomingShifts";
-import { AnalysisView } from "@/components/AnalysisView";
 import { ShiftModal } from "@/components/ShiftModal";
 import { SettingsModal } from "@/components/SettingsModal";
 
+const AnalysisView = dynamic(
+  () => import("@/components/AnalysisView").then(module => module.AnalysisView),
+  { loading: () => <div className={styles.analysisLoading}>分析データを読み込んでいます…</div> }
+);
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "おはようございます";
+  if (hour >= 12 && hour < 18) return "こんにちは";
+  return "こんばんは";
+}
+
+function findActiveOrNextShift(shifts: Shift[]) {
+  const now = new Date();
+  const todayStr = format(now, "yyyy-MM-dd");
+  const currentMins = now.getHours() * 60 + now.getMinutes();
+  let candidate: (Shift & { startMins: number; endMins: number }) | null = null;
+
+  for (const shift of shifts) {
+    const [startHour, startMinute] = shift.startTime.split(':').map(Number);
+    const [endHour, endMinute] = shift.endTime.split(':').map(Number);
+    const startMins = startHour * 60 + startMinute;
+    let endMins = endHour * 60 + endMinute;
+    if (endMins < startMins) endMins += 24 * 60;
+
+    const isEligible = shift.date > todayStr || (shift.date === todayStr && currentMins < endMins);
+    if (!isEligible) continue;
+
+    if (!candidate || shift.date < candidate.date || (shift.date === candidate.date && startMins < candidate.startMins)) {
+      candidate = { ...shift, startMins, endMins };
+    }
+  }
+
+  if (!candidate) return null;
+
+  return {
+    shift: candidate,
+    isCurrent: candidate.date === todayStr && currentMins >= candidate.startMins && currentMins <= candidate.endMins,
+  };
+}
 
 export default function Home() {
   const { user, settings, shifts, isLoaded, saveSettings, saveShift, deleteShift, signInWithGoogle, signOut } = useStore();
@@ -26,6 +67,52 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'home' | 'analysis'>('home');
   const homeSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
   const suppressHomeClickUntilRef = useRef(0);
+
+  const selectedShift = useMemo(() => selectedDate
+    ? shifts.find(shift => shift.date === format(selectedDate, "yyyy-MM-dd"))
+    : undefined,
+  [selectedDate, shifts]);
+  const activeOrNext = useMemo(() => findActiveOrNextShift(shifts), [shifts]);
+  const greeting = useMemo(() => getGreeting(), []);
+
+  const shouldSuppressHomeClick = useCallback(
+    () => Date.now() < suppressHomeClickUntilRef.current,
+    []
+  );
+
+  const setHomeMonth = useCallback((date: Date) => {
+    if (!shouldSuppressHomeClick()) setCurrentDate(date);
+  }, [shouldSuppressHomeClick]);
+
+  const handleDateClick = useCallback((date: Date) => {
+    if (!shouldSuppressHomeClick()) setSelectedDate(date);
+  }, [shouldSuppressHomeClick]);
+
+  const handleHomeSwipeStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    if (touch) homeSwipeStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }, []);
+
+  const handleHomeSwipeEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
+    const start = homeSwipeStartRef.current;
+    homeSwipeStartRef.current = null;
+    if (!start) return;
+
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
+
+    suppressHomeClickUntilRef.current = Date.now() + 350;
+    if (event.cancelable) event.preventDefault();
+    setCurrentDate(date => deltaX < 0 ? addMonths(date, 1) : subMonths(date, 1));
+  }, []);
+
+  const handleHomeSwipeCancel = useCallback(() => {
+    homeSwipeStartRef.current = null;
+  }, []);
 
   if (!isLoaded) {
     return <div className={styles.loadingState}>シフトを読み込んでいます…</div>;
@@ -46,98 +133,6 @@ export default function Home() {
     );
   }
 
-  const selectedShift = selectedDate 
-    ? shifts.find(s => s.date === format(selectedDate, "yyyy-MM-dd")) 
-    : undefined;
-
-  const shouldSuppressHomeClick = () => Date.now() < suppressHomeClickUntilRef.current;
-
-  const setHomeMonth = (date: Date) => {
-    if (shouldSuppressHomeClick()) return;
-    setCurrentDate(date);
-  };
-
-  const moveHomeMonth = (date: Date) => {
-    setCurrentDate(date);
-  };
-
-  const handleHomeSwipeStart = (event: React.TouchEvent<HTMLDivElement>) => {
-    const touch = event.touches[0];
-    if (!touch) return;
-
-    homeSwipeStartRef.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-    };
-  };
-
-  const handleHomeSwipeEnd = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (!homeSwipeStartRef.current) return;
-
-    const touch = event.changedTouches[0];
-    if (!touch) {
-      homeSwipeStartRef.current = null;
-      return;
-    }
-
-    const deltaX = touch.clientX - homeSwipeStartRef.current.x;
-    const deltaY = touch.clientY - homeSwipeStartRef.current.y;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
-    homeSwipeStartRef.current = null;
-
-    if (absX < 50 || absX < absY * 1.25) return;
-
-    suppressHomeClickUntilRef.current = Date.now() + 350;
-    if (event.cancelable) event.preventDefault();
-    moveHomeMonth(deltaX < 0 ? addMonths(currentDate, 1) : subMonths(currentDate, 1));
-  };
-
-  const handleHomeSwipeCancel = () => {
-    homeSwipeStartRef.current = null;
-  };
-
-  // Dynamic greetings based on current time
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return "おはようございます";
-    if (hour >= 12 && hour < 18) return "こんにちは";
-    return "こんばんは";
-  };
-
-  // Find active or next upcoming shift
-  const getActiveOrNextShift = () => {
-    const now = new Date();
-    const todayStr = format(now, "yyyy-MM-dd");
-    const currentMins = now.getHours() * 60 + now.getMinutes();
-
-    const eligible = shifts
-      .map(s => {
-        const [sh, sm] = s.startTime.split(':').map(Number);
-        const [eh, em] = s.endTime.split(':').map(Number);
-        const startMins = sh * 60 + sm;
-        let endMins = eh * 60 + em;
-        if (endMins < startMins) endMins += 24 * 60; // overnight
-        return { ...s, startMins, endMins };
-      })
-      .filter(s => {
-        if (s.date > todayStr) return true;
-        if (s.date === todayStr) {
-          return currentMins < s.endMins;
-        }
-        return false;
-      })
-      .sort((a, b) => a.date.localeCompare(b.date) || a.startMins - b.startMins);
-
-    if (eligible.length === 0) return null;
-
-    const candidate = eligible[0];
-    const isCurrent = candidate.date === todayStr && currentMins >= candidate.startMins && currentMins <= candidate.endMins;
-    return { shift: candidate, isCurrent };
-  };
-
-  const activeOrNext = getActiveOrNextShift();
-  const greeting = getGreeting();
   const userInitial = user.email ? user.email[0].toUpperCase() : "U";
 
   return (
@@ -171,10 +166,7 @@ export default function Home() {
             setCurrentDate={setHomeMonth}
             shifts={shifts}
             settings={settings}
-            onDateClick={(date) => {
-              if (shouldSuppressHomeClick()) return;
-              setSelectedDate(date);
-            }}
+            onDateClick={handleDateClick}
           />
 
           <UpcomingShifts shifts={shifts} />

@@ -27,6 +27,20 @@
   font-size: 14px;
 }
 
+.analysisLoading {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  animation: contentFadeIn 220ms ease both;
+}
+
+@keyframes contentFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .header {
   position: relative;
   z-index: 2;

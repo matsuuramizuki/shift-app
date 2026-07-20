@@ -4,9 +4,8 @@ import { generateICal } from '@/lib/ical';
 import { decodeShiftMetadata } from '@/lib/shiftMetadata';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0; // completely disable caching
 
-export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ userId: string }> }) {
   const { userId } = await params;
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {

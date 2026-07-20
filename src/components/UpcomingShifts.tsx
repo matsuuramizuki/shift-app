@@ -1,21 +1,20 @@
-import React from 'react';
+import { memo } from 'react';
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
-import { format, parseISO, isAfter, isSameDay, startOfDay } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
 interface Props {
   shifts: Shift[];
 }
 
-export function UpcomingShifts({ shifts }: Props) {
-  const today = startOfDay(new Date());
-
+export const UpcomingShifts = memo(function UpcomingShifts({ shifts }: Props) {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
   const upcoming = shifts
-    .map(s => ({ ...s, dateObj: parseISO(s.date) }))
-    .filter(s => isAfter(s.dateObj, today) || isSameDay(s.dateObj, today))
-    .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())
-    .slice(0, 3);
+    .filter(shift => shift.date >= todayStr)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
+    .slice(0, 3)
+    .map(shift => ({ ...shift, dateObj: parseISO(shift.date) }));
 
   if (upcoming.length === 0) {
     return null;
@@ -57,4 +56,4 @@ export function UpcomingShifts({ shifts }: Props) {
       </div>
     </div>
   );
-}
+});

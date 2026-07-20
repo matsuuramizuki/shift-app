@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { X, LogOut, Copy, Check, CalendarDays } from "lucide-react";
 import styles from "@/app/page.module.css";
 import type { Settings } from "@/lib/store";

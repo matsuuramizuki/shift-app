@@ -1,4 +1,4 @@
-import React from "react";
+import { memo, useMemo } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, addMonths, subMonths } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -14,43 +14,43 @@ interface CalendarProps {
   onDateClick: (date: Date) => void;
 }
 
-export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDateClick }: CalendarProps) {
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart);
-  const endDate = endOfWeek(monthEnd);
+const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
 
-  const days = eachDayOfInterval({ start: startDate, end: endDate });
-  const weekDays = ["日", "月", "火", "水", "木", "金", "土"];
+export const Calendar = memo(function Calendar({ currentDate, setCurrentDate, shifts, settings, onDateClick }: CalendarProps) {
+  const { monthStart, days, shiftsByDate, actualPayday, prevMonthSalary } = useMemo(() => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(monthStart);
+    const days = eachDayOfInterval({ start: startOfWeek(monthStart), end: endOfWeek(monthEnd) });
+    const shiftsByDate = new Map(shifts.map(shift => [shift.date, shift]));
+    let actualPayday: Date | null = null;
+    let prevMonthSalary = 0;
 
-  // Payday logic
-  let actualPayday: Date | null = null;
-  let prevMonthSalary = 0;
+    if (settings.payday) {
+      const payDayNum = Math.min(settings.payday, monthEnd.getDate());
+      actualPayday = new Date(currentDate.getFullYear(), currentDate.getMonth(), payDayNum);
+      const dayOfWeek = actualPayday.getDay();
 
-  if (settings.payday) {
-    const lastDay = endOfMonth(currentDate).getDate();
-    const payDayNum = Math.min(settings.payday, lastDay);
-    let tempPayday = new Date(currentDate.getFullYear(), currentDate.getMonth(), payDayNum);
+      if (dayOfWeek === 6) actualPayday.setDate(actualPayday.getDate() - 1);
+      if (dayOfWeek === 0) actualPayday.setDate(actualPayday.getDate() - 2);
 
-    const dayOfWeek = tempPayday.getDay();
-    if (dayOfWeek === 6) {
-      tempPayday = new Date(currentDate.getFullYear(), currentDate.getMonth(), payDayNum - 1);
-    } else if (dayOfWeek === 0) {
-      tempPayday = new Date(currentDate.getFullYear(), currentDate.getMonth(), payDayNum - 2);
-    }
-    actualPayday = tempPayday;
-
-    // Calculate previous month's salary
-    const prevMonth = subMonths(currentDate, 1);
-    const prevMonthStr = format(prevMonth, "yyyy-MM");
-    
-    shifts.forEach(s => {
-      if (s.date.startsWith(prevMonthStr)) {
-        const { salary } = calculateSalary(s.startTime, s.endTime, s.breakMinutes, s.deduction, s.hourlyWage, s.allowance || 0);
-        prevMonthSalary += salary;
+      const prevMonthStr = format(subMonths(currentDate, 1), "yyyy-MM");
+      for (const shift of shifts) {
+        if (!shift.date.startsWith(prevMonthStr)) continue;
+        prevMonthSalary += calculateSalary(
+          shift.startTime,
+          shift.endTime,
+          shift.breakMinutes,
+          shift.deduction,
+          shift.hourlyWage,
+          shift.allowance || 0
+        ).salary;
       }
-    });
-  }
+    }
+
+    return { monthStart, days, shiftsByDate, actualPayday, prevMonthSalary };
+  }, [currentDate, settings.payday, shifts]);
+
+  const today = new Date();
 
   return (
     <div className={styles.calendarContainer}>
@@ -71,9 +71,9 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
 
         {days.map(day => {
           const formattedDate = format(day, "yyyy-MM-dd");
-          const shift = shifts.find(s => s.date === formattedDate);
+          const shift = shiftsByDate.get(formattedDate);
           const isCurrentMonth = isSameMonth(day, monthStart);
-          const isToday = isSameDay(day, new Date());
+          const isToday = isSameDay(day, today);
 
           if (!isCurrentMonth) {
             return (
@@ -111,4 +111,4 @@ export function Calendar({ currentDate, setCurrentDate, shifts, settings, onDate
       </div>
     </div>
   );
-}
+});
