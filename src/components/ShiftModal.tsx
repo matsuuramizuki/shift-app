@@ -96,71 +96,73 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
 
         {error && <div className={styles.errorText}>{error}</div>}
 
-        <div className={styles.toggleRow}>
-          <div className={styles.toggleCopy}>
-            <span className={styles.toggleLabel}>仮のシフト</span>
-            <span className={styles.toggleDescription}>予定が未確定の場合にオンにします</span>
+        <div className={styles.timeGrid}>
+          <div className={styles.inputGroup}>
+            <label>開始</label>
+            <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
           </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={isTentative}
-            aria-label="仮のシフト"
-            className={`${styles.toggle} ${isTentative ? styles.toggleOn : ""}`}
-            onClick={() => setIsTentative(value => !value)}
-          >
-            <span className={styles.toggleThumb} />
-          </button>
+          <div className={styles.inputGroup}>
+            <label>終了</label>
+            <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+          </div>
         </div>
 
-        <div className={styles.inputGroup}>
-          <label>開始時間</label>
-          <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
-        </div>
-        
-        <div className={styles.inputGroup}>
-          <label>終了時間</label>
-          <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label>休憩時間 (分)</label>
-          <input type="number" inputMode="numeric" value={breakMins} onChange={e => setBreakMins(e.target.value)} />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label>天引き金額 (円)</label>
-          <input type="number" inputMode="numeric" value={deduction} onChange={e => setDeduction(e.target.value)} />
+        <div className={styles.amountGrid}>
+          <div className={styles.inputGroup}>
+            <label>休憩（分）</label>
+            <input type="number" inputMode="numeric" value={breakMins} onChange={e => setBreakMins(e.target.value)} />
+          </div>
+          <div className={styles.inputGroup}>
+            <label>天引き（円）</label>
+            <input type="number" inputMode="numeric" value={deduction} onChange={e => setDeduction(e.target.value)} />
+          </div>
+          <div className={styles.inputGroup}>
+            <label>手当（円）</label>
+            <input type="number" inputMode="numeric" value={allowance} onChange={e => setAllowance(e.target.value)} />
+          </div>
         </div>
 
-        <div className={styles.inputGroup}>
-          <label>手当金額 (円)</label>
-          <input type="number" inputMode="numeric" value={allowance} onChange={e => setAllowance(e.target.value)} />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label>このシフトの時給 (円)</label>
-          <input type="number" inputMode="numeric" min="1" value={hourlyWage} onChange={e => setHourlyWage(e.target.value)} />
+        <div className={styles.compactSettingsRow}>
+          <div className={styles.inputGroup}>
+            <label>時給（円）</label>
+            <input type="number" inputMode="numeric" min="1" value={hourlyWage} onChange={e => setHourlyWage(e.target.value)} />
+          </div>
+          <div className={styles.compactToggleRow}>
+            <span className={styles.toggleLabel}>仮のシフト</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isTentative}
+              aria-label="仮のシフト"
+              className={`${styles.toggle} ${isTentative ? styles.toggleOn : ""}`}
+              onClick={() => setIsTentative(value => !value)}
+            >
+              <span className={styles.toggleThumb} />
+            </button>
+          </div>
         </div>
 
         <div className={styles.inputGroup}>
           <label>メモ</label>
-          <textarea 
-            value={memo} 
+          <textarea
+            rows={1}
+            className={styles.memoInput}
+            value={memo}
             onChange={e => setMemo(e.target.value)}
             placeholder="特記事項"
           />
         </div>
 
-        <button className={styles.btnPrimary} onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "保存中..." : "保存する"}
-        </button>
-
-        {shift && (
-          <button className={styles.btnDanger} onClick={handleDelete} disabled={isSaving}>
-            {isSaving ? "処理中..." : "削除する"}
+        <div className={styles.modalActions}>
+          {shift && (
+            <button className={styles.btnDanger} onClick={handleDelete} disabled={isSaving}>
+              {isSaving ? "処理中..." : "削除"}
+            </button>
+          )}
+          <button className={styles.btnPrimary} onClick={handleSave} disabled={isSaving}>
+            {isSaving ? "保存中..." : "保存"}
           </button>
-        )}
+        </div>
       </div>
     </div>
   );

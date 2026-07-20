@@ -408,7 +408,7 @@
 }
 
 .tentativeBadge,
-.nowPlayingBadge {
+.nextShiftBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -432,21 +432,6 @@
 .upcomingMemo {
   max-width: 260px;
   margin-top: 2px;
-}
-
-.upcomingAction {
-  flex: 0 0 auto;
-}
-
-.upcomingPlayBtn,
-.nowPlayingBtn {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(0, 113, 227, 0.08);
-  color: var(--primary);
 }
 
 .chartContainer {
@@ -565,40 +550,50 @@
   color: var(--text-muted);
 }
 
-.toggleRow {
-  min-height: 66px;
+.timeGrid,
+.amountGrid,
+.compactSettingsRow {
+  display: grid;
+  gap: 10px;
+}
+
+.timeGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.amountGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.compactSettingsRow {
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.8fr);
+  align-items: end;
+}
+
+.compactToggleRow {
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-  padding: 12px 14px;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 8px 11px;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 13px;
   background: white;
-}
-
-.toggleCopy {
-  display: flex;
-  flex-direction: column;
 }
 
 .toggleLabel {
   color: var(--text-main);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 650;
-}
-
-.toggleDescription {
-  margin-top: 2px;
-  color: var(--text-muted);
-  font-size: 11px;
+  white-space: nowrap;
 }
 
 .toggle {
   position: relative;
-  width: 51px;
-  height: 31px;
+  width: 44px;
+  height: 27px;
   flex: 0 0 auto;
   border-radius: var(--radius-pill);
   background: #e5e5ea;
@@ -613,8 +608,8 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 27px;
-  height: 27px;
+  width: 23px;
+  height: 23px;
   border-radius: 50%;
   background: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.24);
@@ -622,7 +617,7 @@
 }
 
 .toggleOn .toggleThumb {
-  transform: translateX(20px);
+  transform: translateX(17px);
 }
 
 .inputGroup {
@@ -652,8 +647,37 @@
 }
 
 .inputGroup textarea {
-  min-height: 84px;
+  min-height: 44px;
   resize: vertical;
+}
+
+.memoInput {
+  field-sizing: content;
+  max-height: 120px;
+}
+
+.modalActions {
+  position: sticky;
+  bottom: calc(-28px - env(safe-area-inset-bottom));
+  z-index: 3;
+  display: flex;
+  gap: 10px;
+  margin: 2px -4px 0;
+  padding: 12px 4px calc(28px + env(safe-area-inset-bottom));
+  background: linear-gradient(to bottom, rgba(250, 250, 252, 0), rgba(250, 250, 252, 0.98) 18px);
+}
+
+.modalActions .btnPrimary,
+.modalActions .btnDanger {
+  margin-top: 0;
+}
+
+.modalActions .btnPrimary {
+  flex: 1.7;
+}
+
+.modalActions .btnDanger {
+  flex: 1;
 }
 
 .inputGroup input:focus,
@@ -859,15 +883,19 @@
   color: var(--primary);
 }
 
-.nowPlayingBar {
+.nextShiftCard {
   position: fixed;
   right: 16px;
   bottom: calc(max(12px, env(safe-area-inset-bottom)) + 76px);
   left: 16px;
   z-index: 49;
   width: min(calc(100% - 32px), 560px);
-  overflow: hidden;
   margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.88);
@@ -878,37 +906,17 @@
   transition: transform 160ms ease;
 }
 
-.nowPlayingBar:active {
+.nextShiftCard:active {
   transform: scale(0.985);
 }
 
-.nowPlayingContent {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 10px 12px;
-}
-
-.nowPlayingArt {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  background: linear-gradient(145deg, #fff2c7, #f4c86a);
-}
-
-.nowPlayingArtIcon {
-  font-size: 19px;
-}
-
-.nowPlayingInfo {
+.nextShiftInfo {
   min-width: 0;
   flex: 1;
+  text-align: left;
 }
 
-.nowPlayingTitle {
+.nextShiftLabel {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -917,7 +925,7 @@
   font-weight: 700;
 }
 
-.nowPlayingSubtitle {
+.nextShiftTime {
   overflow: hidden;
   margin-top: 2px;
   color: var(--text-main);
@@ -927,16 +935,9 @@
   text-overflow: ellipsis;
 }
 
-.nowPlayingProgressBg {
-  width: 100%;
-  height: 3px;
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.nowPlayingProgressBar {
-  height: 100%;
-  background: var(--primary);
-  transition: width 300ms ease;
+.nextShiftChevron {
+  flex: 0 0 auto;
+  color: var(--text-sub);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -990,5 +991,25 @@
   .dayCell {
     min-height: 58px;
     border-radius: 10px;
+  }
+
+  .amountGrid {
+    gap: 6px;
+  }
+
+  .amountGrid .inputGroup input {
+    padding-right: 8px;
+    padding-left: 8px;
+    font-size: 14px;
+  }
+
+  .amountGrid .inputGroup label {
+    margin-left: 2px;
+    font-size: 10px;
+  }
+
+  .compactSettingsRow {
+    grid-template-columns: minmax(0, 1fr) 142px;
+    gap: 8px;
   }
 }

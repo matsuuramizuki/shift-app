@@ -3,7 +3,6 @@ import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
 import { format, parseISO, isAfter, isSameDay, startOfDay } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { Play } from 'lucide-react';
 
 interface Props {
   shifts: Shift[];
@@ -51,11 +50,6 @@ export function UpcomingShifts({ shifts }: Props) {
                     </div>
                   )}
                 </div>
-              </div>
-              <div className={styles.upcomingAction}>
-                <button className={styles.upcomingPlayBtn}>
-                  <Play size={12} fill="currentColor" />
-                </button>
               </div>
             </div>
           );

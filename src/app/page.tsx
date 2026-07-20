@@ -205,48 +205,25 @@ export default function Home() {
         />
       )}
 
-      {/* Sticky Now Playing Shift Bar */}
-      {activeOrNext && (
-        <div 
-          className={styles.nowPlayingBar}
+      {activeTab === 'home' && activeOrNext && (
+        <button
+          type="button"
+          className={styles.nextShiftCard}
           onClick={() => {
             setSelectedDate(parseISO(activeOrNext.shift.date));
           }}
         >
-          <div className={styles.nowPlayingContent}>
-            <div className={styles.nowPlayingArt}>
-              <span className={styles.nowPlayingArtIcon}>🍞</span>
-            </div>
-            <div className={styles.nowPlayingInfo}>
-              <div className={styles.nowPlayingTitle}>
+          <div className={styles.nextShiftInfo}>
+              <div className={styles.nextShiftLabel}>
                 {activeOrNext.isCurrent ? "現在勤務中" : "次のシフト"}
-                {activeOrNext.shift.isTentative && <span className={styles.nowPlayingBadge}>仮</span>}
+                {activeOrNext.shift.isTentative && <span className={styles.nextShiftBadge}>仮</span>}
               </div>
-              <div className={styles.nowPlayingSubtitle}>
+              <div className={styles.nextShiftTime}>
                 {format(parseISO(activeOrNext.shift.date), "M月d日(E)", { locale: ja })} {activeOrNext.shift.startTime} - {activeOrNext.shift.endTime}
               </div>
-            </div>
-            <button 
-              className={styles.nowPlayingBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedDate(parseISO(activeOrNext.shift.date));
-              }}
-            >
-              <ChevronRight size={18} />
-            </button>
           </div>
-          <div className={styles.nowPlayingProgressBg}>
-            <div 
-              className={styles.nowPlayingProgressBar} 
-              style={{ 
-                width: activeOrNext.isCurrent 
-                  ? `${Math.min(100, Math.max(0, ((new Date().getHours() * 60 + new Date().getMinutes() - activeOrNext.shift.startMins) / (activeOrNext.shift.endMins - activeOrNext.shift.startMins)) * 100))}%`
-                  : '0%' 
-              }} 
-            />
-          </div>
-        </div>
+          <ChevronRight className={styles.nextShiftChevron} size={18} aria-hidden="true" />
+        </button>
       )}
 
       {/* Bottom Navigation */}
