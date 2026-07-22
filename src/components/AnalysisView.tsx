@@ -681,13 +681,13 @@ export function AnalysisView({ shifts }: Props) {
       style={{ display: 'flex', flexDirection: 'column', gap: '24px', touchAction: subTab === 'monthly' ? 'pan-y' : undefined }}
     >
       
-      <div style={{ display: 'flex', background: 'rgba(255, 255, 255, 0.05)', borderRadius: 'var(--radius-pill)', padding: '4px', border: '1px solid rgba(255, 255, 255, 0.03)' }}>
+      <div style={{ display: 'flex', background: 'var(--segmented-control-bg)', borderRadius: 'var(--radius-pill)', padding: '4px', border: '1px solid var(--segmented-control-border)' }}>
         <button
           onClick={() => selectSubTab('monthly')}
           style={{
             flex: 1, padding: '8px 16px', textAlign: 'center', fontSize: '13px', fontWeight: '800', borderRadius: 'var(--radius-pill)',
-            background: subTab === 'monthly' ? '#ffffff' : 'transparent',
-            color: subTab === 'monthly' ? '#000000' : 'var(--text-muted)'
+            background: subTab === 'monthly' ? 'var(--segmented-control-active)' : 'transparent',
+            color: subTab === 'monthly' ? 'var(--segmented-control-active-text)' : 'var(--text-muted)'
           }}
         >
           月ごと
@@ -696,8 +696,8 @@ export function AnalysisView({ shifts }: Props) {
           onClick={() => selectSubTab('cumulative')}
           style={{
             flex: 1, padding: '8px 16px', textAlign: 'center', fontSize: '13px', fontWeight: '800', borderRadius: 'var(--radius-pill)',
-            background: subTab === 'cumulative' ? '#ffffff' : 'transparent',
-            color: subTab === 'cumulative' ? '#000000' : 'var(--text-muted)'
+            background: subTab === 'cumulative' ? 'var(--segmented-control-active)' : 'transparent',
+            color: subTab === 'cumulative' ? 'var(--segmented-control-active-text)' : 'var(--text-muted)'
           }}
         >
           通算
@@ -757,9 +757,9 @@ export function AnalysisView({ shifts }: Props) {
               margin={{ top: 10, right: 20, left: -20, bottom: 0 }} 
               onClick={handleWeekdayClick}
             >
-              <XAxis dataKey="name" tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
-              {!usesCompactCharts && <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} content={<CustomTooltip totals={tooltipTotals} />} />}
+              <XAxis dataKey="name" tick={{ fill: "var(--chart-axis)", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "var(--chart-axis)", fontSize: 11, fontWeight: 600 }} width={40} axisLine={false} tickLine={false} allowDecimals={false} />
+              {!usesCompactCharts && <Tooltip cursor={{ fill: 'var(--chart-cursor)' }} content={<CustomTooltip totals={tooltipTotals} />} />}
               {subTab === 'monthly' && !isViewingPastMonth ? (
                 <>
                   <Bar
@@ -857,9 +857,9 @@ export function AnalysisView({ shifts }: Props) {
                 margin={{ top: 10, right: 20, left: -10, bottom: 0 }} 
                 onClick={handleTrendMonthClick}
               >
-                <XAxis dataKey="name" tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#b3b3b3", fontSize: 11, fontWeight: 600 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
-                {!usesCompactCharts && <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} content={<CustomTooltip totals={tooltipTotals} />} />}
+                <XAxis dataKey="name" tick={{ fill: "var(--chart-axis)", fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "var(--chart-axis)", fontSize: 11, fontWeight: 600 }} width={50} axisLine={false} tickLine={false} tickFormatter={(val) => val === 0 ? "0" : val >= 1000 ? `¥${val/1000}k` : `¥${val}`} />
+                {!usesCompactCharts && <Tooltip cursor={{ fill: 'var(--chart-cursor)' }} content={<CustomTooltip totals={tooltipTotals} />} />}
                 <Legend content={() => (
                   <ul style={{ display: 'flex', justifyContent: 'center', listStyle: 'none', padding: 0, margin: 0, fontSize: '11px', gap: '16px', fontWeight: 600, color: 'var(--text-muted)' }}>
                     <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: '#8B5CF6' }}></span>手取り</li>
@@ -908,8 +908,8 @@ export function AnalysisView({ shifts }: Props) {
                 margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
                 onClick={handleHoursMonthClick}
               >
-                <XAxis dataKey="name" tick={{ fill: "#a0a0a0", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#a0a0a0", fontSize: 12 }} width={40} axisLine={false} tickLine={false} />
+                <XAxis dataKey="name" tick={{ fill: "var(--chart-axis)", fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "var(--chart-axis)", fontSize: 12 }} width={40} axisLine={false} tickLine={false} />
                 {!usesCompactCharts && <Tooltip cursor={{ stroke: 'transparent', fill: 'transparent' }} content={<CustomTooltip totals={tooltipTotals} />} />}
                 <Line
                   type="linear"

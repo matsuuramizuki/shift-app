@@ -1027,3 +1027,162 @@
     gap: 8px;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .gradientBg {
+    background:
+      radial-gradient(circle at 12% 0%, rgba(10, 132, 255, 0.2), transparent 44%),
+      radial-gradient(circle at 92% 5%, rgba(125, 122, 255, 0.14), transparent 38%);
+  }
+
+  .userAvatar {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: linear-gradient(145deg, #48a9ff, #0a66cc);
+    box-shadow: 0 6px 18px rgba(10, 132, 255, 0.26);
+  }
+
+  .iconBtn {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(44, 44, 46, 0.7);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.24);
+  }
+
+  .iconBtn:hover {
+    background: rgba(58, 58, 60, 0.92);
+  }
+
+  .card,
+  .analysisCard,
+  .calendarContainer,
+  .sectionContainer,
+  .chartContainer,
+  .loginCard {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .card:hover,
+  .analysisCard:hover {
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .calendarHeader .iconBtn:hover,
+  .dayCell:hover {
+    background: rgba(10, 132, 255, 0.14);
+  }
+
+  .dayCell {
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .dayCell.hasShift {
+    border-color: rgba(10, 132, 255, 0.2);
+    background: rgba(10, 132, 255, 0.16);
+    color: #64b5ff;
+  }
+
+  .dayCell.tentativeShift {
+    border-color: rgba(255, 159, 10, 0.22);
+    background: rgba(255, 159, 10, 0.14);
+    color: #ffb340;
+  }
+
+  .tentativeDot {
+    background: rgba(255, 159, 10, 0.2);
+  }
+
+  .paydayIndicator {
+    background: rgba(255, 214, 10, 0.18);
+    color: #ffd60a;
+  }
+
+  .upcomingItem:hover,
+  .chartSummaryRow span {
+    background: rgba(255, 255, 255, 0.055);
+  }
+
+  .upcomingArt {
+    border-color: rgba(10, 132, 255, 0.18);
+    background: rgba(10, 132, 255, 0.12);
+  }
+
+  .tentativeBadge,
+  .nextShiftBadge {
+    background: rgba(255, 159, 10, 0.18);
+    color: #ffb340;
+  }
+
+  .tooltipBox {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(44, 44, 46, 0.94);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+  }
+
+  .modalOverlay {
+    background: rgba(0, 0, 0, 0.58);
+  }
+
+  .modalContent {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(28, 28, 30, 0.96);
+    box-shadow: 0 -18px 64px rgba(0, 0, 0, 0.56);
+  }
+
+  .modalHandle {
+    background: #636366;
+  }
+
+  .modalHeader button {
+    background: #3a3a3c;
+  }
+
+  .compactToggleRow,
+  .inputGroup input,
+  .inputGroup textarea,
+  .calendarUrl {
+    background: #2c2c2e;
+  }
+
+  .toggle {
+    background: #48484a;
+  }
+
+  .toggleOn {
+    background: #30d158;
+  }
+
+  .toggleThumb {
+    background: #f5f5f7;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.48);
+  }
+
+  .modalActions {
+    background: linear-gradient(to bottom, rgba(28, 28, 30, 0), rgba(28, 28, 30, 0.99) 18px);
+  }
+
+  .inputGroup input:focus,
+  .inputGroup textarea:focus {
+    border-color: rgba(10, 132, 255, 0.64);
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.16);
+  }
+
+  .errorText {
+    background: rgba(255, 69, 58, 0.14);
+    color: #ff6961;
+  }
+
+  .bottomNav {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(28, 28, 30, 0.84);
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.48);
+  }
+
+  .navItem.active {
+    background: rgba(10, 132, 255, 0.16);
+  }
+
+  .nextShiftCard {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(44, 44, 46, 0.9);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.44);
+  }
+}
