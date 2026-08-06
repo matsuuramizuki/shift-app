@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, LogOut, Copy, Check, CalendarDays } from "lucide-react";
+import { X, LogOut, Copy, Check, CalendarDays, RefreshCw } from "lucide-react";
 import styles from "@/app/page.module.css";
 import type { Settings } from "@/lib/store";
 
@@ -15,21 +15,33 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
   const [wage, setWage] = useState(settings.defaultHourlyWage.toString());
   const [paydayStr, setPaydayStr] = useState(settings.payday ? settings.payday.toString() : "");
   const [copied, setCopied] = useState(false);
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const calendarUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/api/calendar/${userId}` 
+  const baseCalendarUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/api/calendar/${userId}`
     : '';
+  const calendarUrl = calendarRefreshKey
+    ? `${baseCalendarUrl}?refresh=${calendarRefreshKey}`
+    : baseCalendarUrl;
 
-  const handleCopyUrl = async () => {
+  const handleCopyUrl = async (url: string = calendarUrl) => {
     try {
-      await navigator.clipboard.writeText(calendarUrl);
+      await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
+  };
+
+  const handleCreateFreshCalendarUrl = () => {
+    const refreshKey = Date.now().toString(36);
+    const freshUrl = `${baseCalendarUrl}?refresh=${refreshKey}`;
+
+    setCalendarRefreshKey(refreshKey);
+    void handleCopyUrl(freshUrl);
   };
 
   const handleSave = async () => {
@@ -106,7 +118,7 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
             <CalendarDays size={16} /> カレンダー連携 (iCal)
           </h3>
           <p className={styles.calendarDescription}>
-            GoogleカレンダーやiPhoneカレンダーの「URLで追加(照会)」に以下のURLを設定すると、シフトが自動同期されます。
+            GoogleカレンダーやiPhoneカレンダーの「URLで追加（照会）」に設定すると、シフトが自動同期されます。
           </p>
           <div className={styles.calendarCopyRow}>
             <input 
@@ -117,13 +129,24 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
             />
             <button 
               type="button"
-              onClick={handleCopyUrl}
+              onClick={() => void handleCopyUrl()}
               aria-label={copied ? "コピーしました" : "URLをコピー"}
               className={styles.copyButton}
             >
               {copied ? <Check size={16} /> : <Copy size={16} />}
             </button>
           </div>
+          <button
+            type="button"
+            onClick={handleCreateFreshCalendarUrl}
+            className={styles.calendarRefreshButton}
+          >
+            <RefreshCw size={15} />
+            新しい連携URLを作成してコピー
+          </button>
+          <p className={styles.calendarRefreshNote}>
+            反映が止まった場合は、新しいURLでカレンダーを追加し直してください。
+          </p>
         </div>
 
         <hr className={styles.divider} />
