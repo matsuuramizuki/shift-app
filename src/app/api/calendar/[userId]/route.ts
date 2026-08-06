@@ -31,8 +31,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
     if (!shifts) {
       return new NextResponse(generateICal([]), {
         headers: {
-           'Content-Type': 'text/calendar; charset=utf-8',
-           'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Content-Type': 'text/calendar; charset=utf-8',
+          'Cache-Control': 'public, max-age=0, must-revalidate',
         }
       });
     }
@@ -58,8 +58,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
     return new NextResponse(icalString, {
       headers: {
         'Content-Type': 'text/calendar; charset=utf-8',
-        'Content-Disposition': `attachment; filename="shifts-${userId.substring(0, 8)}.ics"`,
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Cache-Control': 'public, max-age=0, must-revalidate',
       }
     });
 
