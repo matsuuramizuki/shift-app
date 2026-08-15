@@ -190,14 +190,6 @@
   letter-spacing: -0.025em;
 }
 
-.cardEstimate {
-  margin-top: 3px;
-  color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
 .analysisCard {
   min-height: 92px;
   padding: 17px;
