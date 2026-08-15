@@ -15,12 +15,20 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
   const todayStr = format(new Date(), "yyyy-MM-dd");
   let totalHours = 0;
   let totalSalary = 0;
+  let monthEndEstimate = 0;
 
   for (const shift of shifts) {
-    if (!shift.date.startsWith(monthPrefix) || shift.date > todayStr) continue;
+    if (!shift.date.startsWith(monthPrefix)) continue;
     const result = calculateSalary(shift.startTime, shift.endTime, shift.breakMinutes, shift.deduction, shift.hourlyWage, shift.allowance || 0);
-    totalHours += result.hours;
-    totalSalary += result.salary;
+
+    if (shift.date <= todayStr) {
+      totalHours += result.hours;
+      totalSalary += result.salary;
+    }
+
+    if (!shift.isTentative) {
+      monthEndEstimate += result.salary;
+    }
   }
 
   const monthLabel = format(currentDate, "M月");
@@ -42,7 +50,8 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
         </div>
         <div className={styles.cardInfo}>
           <div className={styles.cardLabel}>{monthLabel} 見込給与</div>
-          <div className={styles.cardValue}>¥{totalSalary.toLocaleString()}</div>
+          <div className={styles.cardValue}>¥{monthEndEstimate.toLocaleString()}</div>
+          <div className={styles.cardEstimate}>現時点 ¥{totalSalary.toLocaleString()}</div>
         </div>
       </div>
     </div>

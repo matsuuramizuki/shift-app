@@ -344,6 +344,7 @@ export function AnalysisView({ shifts }: Props) {
       const isTarget = subTab === 'cumulative' || isSameMonth(d, selectedMonth);
       const isPrevMonth = subTab === 'monthly' && isSameMonth(d, subMonths(selectedMonth, 1));
       const past = isPast(s.date);
+      const isTentativeForecast = !past && Boolean(s.isTentative);
       let calculation: ReturnType<typeof calculateSalary> | null = null;
       const getCalculation = () => calculation ??= calculateSalary(
         s.startTime,
@@ -355,7 +356,7 @@ export function AnalysisView({ shifts }: Props) {
       );
 
       const trend = trendByMonth.get(s.date.slice(0, 7));
-      if (trend) {
+      if (trend && !isTentativeForecast) {
         const { hours } = getCalculation();
         const allowance = s.allowance || 0;
         const deduction = s.deduction || 0;
@@ -379,7 +380,7 @@ export function AnalysisView({ shifts }: Props) {
         prevMonthHours += hours;
       }
 
-      if (isTarget && (subTab !== 'cumulative' || past)) {
+      if (isTarget && (subTab !== 'cumulative' || past) && !isTentativeForecast) {
         const { salary, hours } = getCalculation();
         const dayIndex = getDay(d);
         const blocks = calcTimeBlocks(s.startTime, s.endTime, s.breakMinutes);
