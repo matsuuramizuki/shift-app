@@ -15,6 +15,7 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
   const todayStr = format(new Date(), "yyyy-MM-dd");
   let totalHours = 0;
   let totalSalary = 0;
+  let monthEndHours = 0;
   let monthEndEstimate = 0;
 
   for (const shift of shifts) {
@@ -27,6 +28,7 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
     }
 
     if (!shift.isTentative) {
+      monthEndHours += result.hours;
       monthEndEstimate += result.salary;
     }
   }
@@ -41,7 +43,8 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
         </div>
         <div className={styles.cardInfo}>
           <div className={styles.cardLabel}>{monthLabel} 労働時間</div>
-          <div className={styles.cardValue}>{totalHours.toFixed(1)} h</div>
+          <div className={styles.cardValue}>現時点 {totalHours.toFixed(1)} h</div>
+          <div className={styles.cardEstimate}>当月見込み {monthEndHours.toFixed(1)} h</div>
         </div>
       </div>
       <div className={styles.card}>
@@ -50,8 +53,8 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
         </div>
         <div className={styles.cardInfo}>
           <div className={styles.cardLabel}>{monthLabel} 見込給与</div>
-          <div className={styles.cardValue}>¥{monthEndEstimate.toLocaleString()}</div>
-          <div className={styles.cardEstimate}>現時点 ¥{totalSalary.toLocaleString()}</div>
+          <div className={styles.cardValue}>現時点 ¥{totalSalary.toLocaleString()}</div>
+          <div className={styles.cardEstimate}>当月見込み ¥{monthEndEstimate.toLocaleString()}</div>
         </div>
       </div>
     </div>
