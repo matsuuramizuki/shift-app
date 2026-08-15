@@ -1,8 +1,10 @@
 import { memo } from 'react';
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
+import { calculateSalary } from "@/lib/calc";
 import { format, parseISO } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { Clock } from 'lucide-react';
 
 interface Props {
   shifts: Shift[];
@@ -13,8 +15,11 @@ export const UpcomingShifts = memo(function UpcomingShifts({ shifts }: Props) {
   const upcoming = shifts
     .filter(shift => shift.date >= todayStr)
     .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
-    .slice(0, 3)
-    .map(shift => ({ ...shift, dateObj: parseISO(shift.date) }));
+    .slice(0, 4)
+    .map(shift => {
+      const calc = calculateSalary(shift.startTime, shift.endTime, shift.breakMinutes, shift.deduction, shift.hourlyWage, shift.allowance || 0);
+      return { ...shift, dateObj: parseISO(shift.date), hours: calc.hours };
+    });
 
   if (upcoming.length === 0) {
     return null;
@@ -22,7 +27,10 @@ export const UpcomingShifts = memo(function UpcomingShifts({ shifts }: Props) {
 
   return (
     <div className={styles.sectionContainer}>
-      <h3 className={styles.sectionTitle}>直近の予定</h3>
+      <div className={styles.sectionHeader}>
+        <h3 className={styles.sectionTitle}>直近の予定</h3>
+        <span className={styles.sectionBadge}>{upcoming.length}件</span>
+      </div>
       <div className={styles.upcomingList}>
         {upcoming.map(s => {
           const dayNum = format(s.dateObj, "d");
@@ -37,11 +45,12 @@ export const UpcomingShifts = memo(function UpcomingShifts({ shifts }: Props) {
                 </div>
                 <div className={styles.upcomingInfo}>
                   <div className={styles.upcomingDate}>
-                    {format(s.dateObj, "M月d日(E)", { locale: ja })}
+                    <span>{format(s.dateObj, "M月d日(E)", { locale: ja })}</span>
                     {s.isTentative && <span className={styles.tentativeBadge}>仮</span>}
                   </div>
                   <div className={styles.upcomingTime}>
-                    {s.startTime} - {s.endTime}
+                    <Clock size={12} className={styles.upcomingTimeIcon} />
+                    <span>{s.startTime} - {s.endTime}</span>
                   </div>
                   {s.memo && (
                     <div className={styles.upcomingMemo}>
@@ -49,6 +58,9 @@ export const UpcomingShifts = memo(function UpcomingShifts({ shifts }: Props) {
                     </div>
                   )}
                 </div>
+              </div>
+              <div className={styles.upcomingItemRight}>
+                <span className={styles.upcomingHoursPill}>{s.hours.toFixed(1)}h</span>
               </div>
             </div>
           );

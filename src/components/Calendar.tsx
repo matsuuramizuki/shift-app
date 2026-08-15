@@ -65,8 +65,13 @@ export const Calendar = memo(function Calendar({ currentDate, setCurrentDate, sh
       </div>
 
       <div className={styles.grid}>
-        {weekDays.map(d => (
-          <div key={d} className={styles.dayLabel}>{d}</div>
+        {weekDays.map((d, idx) => (
+          <div
+            key={d}
+            className={`${styles.dayLabel} ${idx === 0 ? styles.dayLabelSun : idx === 6 ? styles.dayLabelSat : ""}`}
+          >
+            {d}
+          </div>
         ))}
 
         {days.map(day => {
@@ -74,6 +79,7 @@ export const Calendar = memo(function Calendar({ currentDate, setCurrentDate, sh
           const shift = shiftsByDate.get(formattedDate);
           const isCurrentMonth = isSameMonth(day, monthStart);
           const isToday = isSameDay(day, today);
+          const dayOfWeek = day.getDay();
 
           if (!isCurrentMonth) {
             return (
@@ -90,18 +96,20 @@ export const Calendar = memo(function Calendar({ currentDate, setCurrentDate, sh
               type="button"
               key={day.toISOString()}
               onClick={() => onDateClick(day)}
-              className={`${styles.dayCell} ${isToday ? styles.today : ""} ${shift ? styles.hasShift : ""} ${shift?.isTentative ? styles.tentativeShift : ""}`}
+              className={`${styles.dayCell} ${isToday ? styles.today : ""} ${shift ? styles.hasShift : ""} ${shift?.isTentative ? styles.tentativeShift : ""} ${dayOfWeek === 0 ? styles.sunCell : dayOfWeek === 6 ? styles.satCell : ""}`}
             >
-              {format(day, "d")}
+              <span className={`${styles.dayNumber} ${isToday ? styles.todayNumber : ""}`}>
+                {format(day, "d")}
+              </span>
               {shift && (
                 <div className={styles.shiftIndicator}>
-                  <span>{shift.startTime}</span>
-                  <span>{shift.endTime}</span>
+                  <span className={styles.shiftTimeText}>{shift.startTime}</span>
+                  <span className={styles.shiftTimeText}>{shift.endTime}</span>
                   {shift.isTentative && <span className={styles.tentativeDot}>仮</span>}
                 </div>
               )}
               {actualPayday && isSameDay(day, actualPayday) && (
-                <div className={styles.paydayIndicator}>
+                <div className={styles.paydayIndicator} title={`給与日: ¥${prevMonthSalary.toLocaleString()}`}>
                   ¥{prevMonthSalary.toLocaleString()}
                 </div>
               )}

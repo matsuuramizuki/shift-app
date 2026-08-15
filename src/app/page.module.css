@@ -120,18 +120,39 @@
   margin-bottom: 18px;
 }
 
+.summaryCard,
 .card,
 .analysisCard {
   position: relative;
   z-index: 2;
   min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  backdrop-filter: saturate(160%) blur(20px);
-  -webkit-backdrop-filter: saturate(160%) blur(20px);
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1), box-shadow 200ms ease;
+}
+
+.summaryCard:hover,
+.card:hover,
+.analysisCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  padding: 13px 14px 12px;
+}
+
+.summaryCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .card {
@@ -142,21 +163,16 @@
   gap: 11px;
 }
 
-.card:hover,
-.analysisCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
-}
-
 .cardArtHours,
 .cardArtEarnings {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 13px;
+  border-radius: 11px;
   color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .cardArtHours {
@@ -165,6 +181,121 @@
 
 .cardArtEarnings {
   background: linear-gradient(145deg, #af52de, #5856d6);
+}
+
+.summaryCardTitleGroup {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.summaryCardLabel {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.summaryProgressBadge {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 113, 227, 0.08);
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryMetrics {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.summaryMainMetric {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.summaryMetricTag {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.summaryMetricValue {
+  color: var(--text-main);
+  font-size: 19px;
+  font-weight: 760;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.summaryCurrency {
+  margin-right: 1px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.summaryMetricUnit {
+  margin-left: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.summarySubMetric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.summarySubLabel {
+  color: var(--text-sub);
+  font-weight: 550;
+}
+
+.summarySubValue {
+  color: var(--text-muted);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryProgressBarTrack {
+  width: 100%;
+  height: 4px;
+  margin-top: 9px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.summaryProgressBarFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hoursProgressFill {
+  background: linear-gradient(90deg, #34aadc, #007aff);
+}
+
+.earningsProgressFill {
+  background: linear-gradient(90deg, #af52de, #5856d6);
 }
 
 .cardInfo {
@@ -213,12 +344,12 @@
   z-index: 2;
   margin-bottom: 18px;
   padding: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  backdrop-filter: saturate(160%) blur(24px);
-  -webkit-backdrop-filter: saturate(160%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
 }
 
 .calendarHeader {
@@ -255,24 +386,59 @@
   padding: 2px 0 6px;
   color: var(--text-sub);
   text-align: center;
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.dayLabelSun {
+  color: #ff3b30;
+}
+
+.dayLabelSat {
+  color: #007aff;
 }
 
 .dayCell {
   position: relative;
-  min-height: 64px;
+  min-height: 66px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px 2px 4px;
+  padding: 5px 2px 4px;
   border: 1px solid transparent;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.018);
+  background: rgba(0, 0, 0, 0.016);
   color: var(--text-main);
   font-size: 12px;
   font-weight: 600;
-  transition: transform 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.dayNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.todayNumber {
+  background: var(--primary);
+  color: white !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+.sunCell .dayNumber:not(.todayNumber) {
+  color: #e0241b;
+}
+
+.satCell .dayNumber:not(.todayNumber) {
+  color: #0066d6;
 }
 
 .dayCell:hover {
@@ -280,7 +446,7 @@
 }
 
 .dayCell:active {
-  transform: scale(0.95);
+  transform: scale(0.94);
 }
 
 .dayCell.empty {
@@ -289,19 +455,18 @@
 }
 
 .dayCell.today {
-  border-color: var(--primary);
-  color: var(--primary);
+  border-color: rgba(0, 113, 227, 0.35);
 }
 
 .dayCell.hasShift {
-  border-color: rgba(0, 113, 227, 0.08);
-  background: #eaf4ff;
+  border-color: rgba(0, 113, 227, 0.12);
+  background: #ebf4ff;
   color: #0056b3;
 }
 
 .dayCell.tentativeShift {
-  border-color: rgba(255, 149, 0, 0.18);
-  background: #fff5e6;
+  border-color: rgba(255, 149, 0, 0.22);
+  background: #fff6e8;
   color: #9a5a00;
 }
 
@@ -311,17 +476,22 @@
   align-items: center;
   margin-top: 3px;
   color: currentColor;
+  line-height: 1.25;
+}
+
+.shiftTimeText {
   font-size: 8px;
   font-weight: 600;
-  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .tentativeDot {
   margin-top: 2px;
   padding: 1px 4px;
-  border-radius: 5px;
-  background: rgba(255, 149, 0, 0.16);
+  border-radius: 4px;
+  background: rgba(255, 149, 0, 0.18);
   font-size: 8px;
+  font-weight: 700;
 }
 
 .paydayIndicator {
@@ -331,43 +501,63 @@
   left: 2px;
   overflow: hidden;
   padding: 1px 2px;
-  border-radius: 5px;
-  background: #fff2cc;
-  color: #785700;
+  border-radius: 4px;
+  background: #fff0b3;
+  color: #7a5400;
   font-size: 7px;
-  font-weight: 700;
+  font-weight: 750;
+  text-align: center;
   white-space: nowrap;
   text-overflow: ellipsis;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
 .sectionTitle,
 .chartTitle {
-  margin-bottom: 14px;
   color: var(--text-main);
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 720;
   letter-spacing: -0.025em;
+}
+
+.sectionBadge {
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .upcomingList {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .upcomingItem {
-  min-height: 66px;
+  min-height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 8px;
+  gap: 12px;
+  padding: 8px 10px;
   border-radius: 14px;
-  transition: background 160ms ease;
+  background: rgba(0, 0, 0, 0.015);
+  border: 1px solid transparent;
+  transition: background 160ms ease, border-color 160ms ease;
 }
 
 .upcomingItem:hover {
-  background: rgba(0, 0, 0, 0.035);
+  background: rgba(0, 113, 227, 0.04);
+  border-color: rgba(0, 113, 227, 0.08);
 }
 
 .upcomingItemLeft {
@@ -377,17 +567,32 @@
   gap: 12px;
 }
 
+.upcomingItemRight {
+  flex: 0 0 auto;
+}
+
+.upcomingHoursPill {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(0, 113, 227, 0.08);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .upcomingArt {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(0, 113, 227, 0.1);
-  border-radius: 14px;
-  background: #eef6ff;
+  border: 1px solid rgba(0, 113, 227, 0.12);
+  border-radius: 12px;
+  background: #edf5ff;
 }
 
 .upcomingArtMonth {
@@ -398,10 +603,10 @@
 }
 
 .upcomingArtDay {
-  margin-top: 3px;
+  margin-top: 2px;
   color: var(--text-main);
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 750;
   line-height: 1;
 }
 
@@ -409,7 +614,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .upcomingDate {
@@ -417,8 +622,13 @@
   align-items: center;
   gap: 6px;
   color: var(--text-main);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 650;
+}
+
+.upcomingTimeIcon {
+  flex: 0 0 auto;
+  color: var(--text-sub);
 }
 
 .tentativeBadge,
@@ -426,7 +636,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 6px;
+  padding: 1px 6px;
   border-radius: var(--radius-pill);
   background: #fff0d6;
   color: #a45d00;
@@ -443,9 +653,16 @@
   text-overflow: ellipsis;
 }
 
+.upcomingTime {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .upcomingMemo {
   max-width: 260px;
   margin-top: 2px;
+  color: var(--text-sub);
 }
 
 .chartContainer {
@@ -943,19 +1160,50 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  padding: 12px 16px;
+  border: 1px solid var(--border-light);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.12);
+  background: var(--surface);
+  box-shadow: var(--shadow-floating);
   cursor: pointer;
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
-  transition: transform 160ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.nextShiftCard:hover {
+  transform: translateY(-1px);
 }
 
 .nextShiftCard:active {
   transform: scale(0.985);
+}
+
+.activeShiftHighlight {
+  border-color: rgba(52, 199, 89, 0.4);
+  box-shadow: 0 14px 40px rgba(52, 199, 89, 0.16);
+}
+
+.activePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--success);
+  font-weight: 750;
+}
+
+.activePillDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
 }
 
 .nextShiftInfo {
@@ -969,15 +1217,15 @@
   align-items: center;
   gap: 6px;
   color: var(--text-muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .nextShiftTime {
   overflow: hidden;
-  margin-top: 2px;
+  margin-top: 3px;
   color: var(--text-main);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1005,6 +1253,10 @@
     gap: 8px;
   }
 
+  .summaryCard {
+    padding: 10px 11px;
+  }
+
   .card {
     padding: 10px;
     gap: 8px;
@@ -1012,9 +1264,21 @@
 
   .cardArtHours,
   .cardArtEarnings {
-    width: 36px;
-    height: 36px;
-    border-radius: 11px;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+
+  .summaryCardLabel {
+    font-size: 10px;
+  }
+
+  .summaryMetricValue {
+    font-size: 16px;
+  }
+
+  .summarySubMetric {
+    font-size: 10px;
   }
 
   .cardLabel {
@@ -1085,6 +1349,7 @@
     background: rgba(58, 58, 60, 0.92);
   }
 
+  .summaryCard,
   .card,
   .analysisCard,
   .calendarContainer,
@@ -1094,9 +1359,24 @@
     border-color: rgba(255, 255, 255, 0.08);
   }
 
+  .summaryCard:hover,
   .card:hover,
   .analysisCard:hover {
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .summaryMetricTag {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+  }
+
+  .summaryProgressBadge {
+    background: rgba(10, 132, 255, 0.18);
+    color: #64b5ff;
+  }
+
+  .summaryProgressBarTrack {
+    background: rgba(255, 255, 255, 0.08);
   }
 
   .calendarHeader .iconBtn:hover,
@@ -1120,6 +1400,14 @@
     color: #ffb340;
   }
 
+  .sunCell .dayNumber:not(.todayNumber) {
+    color: #ff453a;
+  }
+
+  .satCell .dayNumber:not(.todayNumber) {
+    color: #0a84ff;
+  }
+
   .tentativeDot {
     background: rgba(255, 159, 10, 0.2);
   }
@@ -1129,14 +1417,23 @@
     color: #ffd60a;
   }
 
+  .upcomingItem {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
   .upcomingItem:hover,
   .chartSummaryRow span {
-    background: rgba(255, 255, 255, 0.055);
+    background: rgba(255, 255, 255, 0.06);
   }
 
   .upcomingArt {
     border-color: rgba(10, 132, 255, 0.18);
     background: rgba(10, 132, 255, 0.12);
+  }
+
+  .upcomingHoursPill {
+    background: rgba(10, 132, 255, 0.16);
+    color: #64b5ff;
   }
 
   .tentativeBadge,
@@ -1218,5 +1515,10 @@
     border-color: rgba(255, 255, 255, 0.1);
     background: rgba(44, 44, 46, 0.9);
     box-shadow: 0 14px 38px rgba(0, 0, 0, 0.44);
+  }
+
+  .activeShiftHighlight {
+    border-color: rgba(48, 209, 88, 0.45);
+    box-shadow: 0 14px 40px rgba(48, 209, 88, 0.22);
   }
 }

@@ -34,27 +34,79 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
   }
 
   const monthLabel = format(currentDate, "M月");
+  const hoursProgress = monthEndHours > 0 ? Math.min(100, Math.round((totalHours / monthEndHours) * 100)) : 0;
+  const salaryProgress = monthEndEstimate > 0 ? Math.min(100, Math.round((totalSalary / monthEndEstimate) * 100)) : 0;
 
   return (
     <div className={styles.summaryGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardArtHours}>
-          <Clock size={22} />
+      <div className={styles.summaryCard}>
+        <div className={styles.summaryCardHeader}>
+          <div className={styles.cardArtHours}>
+            <Clock size={18} />
+          </div>
+          <div className={styles.summaryCardTitleGroup}>
+            <span className={styles.summaryCardLabel}>{monthLabel} 労働時間</span>
+            {monthEndHours > 0 && (
+              <span className={styles.summaryProgressBadge}>{hoursProgress}%</span>
+            )}
+          </div>
         </div>
-        <div className={styles.cardInfo}>
-          <div className={styles.cardLabel}>{monthLabel} 労働時間</div>
-          <div className={styles.cardValue}>{totalHours.toFixed(1)}h / {monthEndHours.toFixed(1)}h</div>
+        
+        <div className={styles.summaryMetrics}>
+          <div className={styles.summaryMainMetric}>
+            <span className={styles.summaryMetricTag}>実績</span>
+            <span className={styles.summaryMetricValue}>
+              {totalHours.toFixed(1)}<span className={styles.summaryMetricUnit}>h</span>
+            </span>
+          </div>
+          <div className={styles.summarySubMetric}>
+            <span className={styles.summarySubLabel}>月末見込</span>
+            <span className={styles.summarySubValue}>{monthEndHours.toFixed(1)}h</span>
+          </div>
+        </div>
+
+        <div className={styles.summaryProgressBarTrack} aria-hidden="true">
+          <div
+            className={`${styles.summaryProgressBarFill} ${styles.hoursProgressFill}`}
+            style={{ width: `${hoursProgress}%` }}
+          />
         </div>
       </div>
-      <div className={styles.card}>
-        <div className={styles.cardArtEarnings}>
-          <Coins size={22} />
+
+      <div className={styles.summaryCard}>
+        <div className={styles.summaryCardHeader}>
+          <div className={styles.cardArtEarnings}>
+            <Coins size={18} />
+          </div>
+          <div className={styles.summaryCardTitleGroup}>
+            <span className={styles.summaryCardLabel}>{monthLabel} 見込給与</span>
+            {monthEndEstimate > 0 && (
+              <span className={styles.summaryProgressBadge}>{salaryProgress}%</span>
+            )}
+          </div>
         </div>
-        <div className={styles.cardInfo}>
-          <div className={styles.cardLabel}>{monthLabel} 見込給与</div>
-          <div className={styles.cardValue}>¥{totalSalary.toLocaleString()} / ¥{monthEndEstimate.toLocaleString()}</div>
+
+        <div className={styles.summaryMetrics}>
+          <div className={styles.summaryMainMetric}>
+            <span className={styles.summaryMetricTag}>実績</span>
+            <span className={styles.summaryMetricValue}>
+              <span className={styles.summaryCurrency}>¥</span>{totalSalary.toLocaleString()}
+            </span>
+          </div>
+          <div className={styles.summarySubMetric}>
+            <span className={styles.summarySubLabel}>月末見込</span>
+            <span className={styles.summarySubValue}>¥{monthEndEstimate.toLocaleString()}</span>
+          </div>
+        </div>
+
+        <div className={styles.summaryProgressBarTrack} aria-hidden="true">
+          <div
+            className={`${styles.summaryProgressBarFill} ${styles.earningsProgressFill}`}
+            style={{ width: `${salaryProgress}%` }}
+          />
         </div>
       </div>
     </div>
   );
 });
+

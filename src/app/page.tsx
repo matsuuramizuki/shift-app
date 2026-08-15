@@ -200,14 +200,23 @@ export default function Home() {
       {activeTab === 'home' && activeOrNext && (
         <button
           type="button"
-          className={styles.nextShiftCard}
+          className={`${styles.nextShiftCard} ${activeOrNext.isCurrent ? styles.activeShiftHighlight : ""}`}
           onClick={() => {
             setSelectedDate(parseISO(activeOrNext.shift.date));
           }}
         >
           <div className={styles.nextShiftInfo}>
               <div className={styles.nextShiftLabel}>
-                {activeOrNext.isCurrent ? "現在勤務中" : "次のシフト"}
+                {activeOrNext.isCurrent ? (
+                  <>
+                    <span className={styles.activePill}>
+                      <span className={styles.activePillDot} />
+                      現在勤務中
+                    </span>
+                  </>
+                ) : (
+                  <span>次のシフト</span>
+                )}
                 {activeOrNext.shift.isTentative && <span className={styles.nextShiftBadge}>仮</span>}
               </div>
               <div className={styles.nextShiftTime}>
