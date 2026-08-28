@@ -321,6 +321,28 @@
   letter-spacing: -0.025em;
 }
 
+.timeOfDayLegend {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.timeOfDayLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.timeOfDayLegend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
 .analysisCard {
   min-height: 92px;
   padding: 17px;
