@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
 import { calculateSalary } from "@/lib/calc";
@@ -12,27 +12,39 @@ interface SummaryProps {
 export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: SummaryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const monthPrefix = format(currentDate, "yyyy-MM");
-  const todayStr = format(new Date(), "yyyy-MM-dd");
-  let totalHours = 0;
-  let totalSalary = 0;
-  let monthEndHours = 0;
-  let monthEndEstimate = 0;
+  const { totalHours, totalSalary, monthEndHours, monthEndEstimate } = useMemo(() => {
+    const monthPrefix = format(currentDate, "yyyy-MM");
+    const todayStr = format(new Date(), "yyyy-MM-dd");
+    let totalHours = 0;
+    let totalSalary = 0;
+    let monthEndHours = 0;
+    let monthEndEstimate = 0;
 
-  for (const shift of shifts) {
-    if (!shift.date.startsWith(monthPrefix)) continue;
-    const result = calculateSalary(shift.startTime, shift.endTime, shift.breakMinutes, shift.deduction, shift.hourlyWage, shift.allowance || 0);
+    for (const shift of shifts) {
+      if (!shift.date.startsWith(monthPrefix)) continue;
 
-    if (shift.date <= todayStr) {
-      totalHours += result.hours;
-      totalSalary += result.salary;
+      const { hours, salary } = calculateSalary(
+        shift.startTime,
+        shift.endTime,
+        shift.breakMinutes,
+        shift.deduction,
+        shift.hourlyWage,
+        shift.allowance || 0
+      );
+
+      if (shift.date <= todayStr) {
+        totalHours += hours;
+        totalSalary += salary;
+      }
+
+      if (!shift.isTentative) {
+        monthEndHours += hours;
+        monthEndEstimate += salary;
+      }
     }
 
-    if (!shift.isTentative) {
-      monthEndHours += result.hours;
-      monthEndEstimate += result.salary;
-    }
-  }
+    return { totalHours, totalSalary, monthEndHours, monthEndEstimate };
+  }, [currentDate, shifts]);
 
   const monthLabel = format(currentDate, "M月");
 

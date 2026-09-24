@@ -106,8 +106,7 @@
   transform: scale(0.92);
 }
 
-/* Grids: 2-column parallel layout for both summary and analysis */
-.summaryGrid,
+/* Two-column summary and analysis grid */
 .analysisGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -138,168 +137,6 @@
   line-height: 1.2;
 }
 
-/* Spacious, uncluttered One UI Summary Card */
-.summaryCard {
-  position: relative;
-  z-index: 2;
-  min-width: 0;
-  min-height: 122px;
-  padding: 24px 22px 22px; /* Generous breathing room */
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 12px;
-  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), border-color 180ms ease, box-shadow 180ms ease;
-}
-
-.summaryInteractive:hover .summaryCard {
-  border-color: rgba(0, 114, 222, 0.22);
-}
-
-.summaryInteractive:active .summaryCard {
-  transform: scale(0.985);
-}
-
-.summaryCardHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.summaryIconBox {
-  width: 22px;
-  height: 22px;
-  display: grid;
-  place-items: center;
-  color: var(--primary);
-  flex: 0 0 auto;
-}
-
-.summaryCardLabel {
-  overflow: hidden;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.summaryChevron {
-  margin-left: auto;
-  color: var(--text-sub);
-  flex: 0 0 auto;
-  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-.summaryChevronOpen {
-  transform: rotate(180deg);
-}
-
-.summaryMetrics {
-  display: flex;
-  flex-direction: column;
-}
-
-.summaryMainMetric {
-  display: flex;
-  align-items: baseline;
-  padding: 4px 0 6px; /* Generous breathing room */
-}
-
-.summaryMetricValue {
-  color: var(--text-main);
-  font-size: 25px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
-}
-
-.summaryCurrency {
-  margin-right: 2px;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-sub);
-}
-
-.summaryMetricUnit {
-  margin-left: 2px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-sub);
-}
-
-/* Tap-to-expand details accordion */
-.summaryExpandArea {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 240ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 200ms ease, margin-top 240ms ease;
-  opacity: 0;
-  overflow: hidden;
-}
-
-.summaryExpandAreaOpen {
-  grid-template-rows: 1fr;
-  opacity: 1;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-light);
-}
-
-.summaryExpandContent {
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.summarySubMetric {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-}
-
-.summarySubLabel {
-  color: var(--text-sub);
-  font-weight: 600;
-}
-
-.summarySubValue {
-  color: var(--text-muted);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.summaryProgressBarTrack {
-  width: 100%;
-  height: 5px;
-  margin-top: 2px;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: var(--segmented-control-bg);
-}
-
-.summaryProgressBarFill {
-  height: 100%;
-  border-radius: var(--radius-pill);
-  transition: width 400ms cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-.hoursProgressFill {
-  background: var(--primary);
-}
-
-.earningsProgressFill {
-  background: var(--secondary);
-}
-
-.card,
 .analysisCard {
   position: relative;
   z-index: 2;
@@ -310,52 +147,6 @@
   box-shadow: var(--shadow-card);
 }
 
-.summarySubMetric {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-}
-
-.summarySubLabel {
-  color: var(--text-sub);
-  font-weight: 600;
-}
-
-.summarySubValue {
-  color: var(--text-muted);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.summaryProgressBarTrack {
-  width: 100%;
-  height: 6px; /* One UI Rounded Progress Bar */
-  margin-top: 10px;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: rgba(20, 23, 28, 0.06);
-}
-
-.summaryProgressBarFill {
-  height: 100%;
-  border-radius: var(--radius-pill);
-  transition: width 450ms cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-.hoursProgressFill {
-  background: linear-gradient(90deg, #3db2ff, #0072de);
-}
-
-.earningsProgressFill {
-  background: linear-gradient(90deg, #a78bfa, #6c5ce7);
-}
-
-.cardInfo {
-  min-width: 0;
-}
-
-.cardLabel,
 .analysisCardLabel {
   overflow: hidden;
   color: var(--text-muted);
@@ -364,14 +155,6 @@
   letter-spacing: 0.01em;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.cardValue {
-  margin-top: 2px;
-  color: var(--text-main);
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
 }
 
 .timeOfDayLegend {
@@ -1394,15 +1177,8 @@
     padding-left: 14px;
   }
 
-  .summaryGrid,
   .analysisGrid {
     gap: 12px;
-  }
-
-  .summaryCard {
-    min-height: 116px;
-    padding: 20px 18px 18px;
-    gap: 10px;
   }
 
   .analysisCard {
@@ -1410,41 +1186,12 @@
     padding: 18px 16px;
   }
 
-  .card {
-    padding: 14px;
-    gap: 8px;
-  }
-
-  .cardArtHours,
-  .cardArtEarnings {
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
-  }
-
-  .summaryCardLabel,
   .analysisCardLabel {
     font-size: 11.5px;
   }
 
-  .summaryMetricValue {
-    font-size: 23px;
-  }
-
   .analysisCardValue {
     font-size: 22px;
-  }
-
-  .summarySubMetric {
-    font-size: 11px;
-  }
-
-  .cardLabel {
-    font-size: 9px;
-  }
-
-  .cardValue {
-    font-size: 15px;
   }
 
   .calendarContainer,
@@ -1506,8 +1253,6 @@
     background: rgba(42, 47, 60, 0.95);
   }
 
-  .summaryCard,
-  .card,
   .analysisCard,
   .calendarContainer,
   .sectionContainer,
@@ -1516,24 +1261,8 @@
     border-color: rgba(255, 255, 255, 0.07);
   }
 
-  .summaryCard:hover,
-  .card:hover,
   .analysisCard:hover {
     box-shadow: 0 16px 42px rgba(0, 0, 0, 0.5);
-  }
-
-  .summaryMetricTag {
-    background: rgba(255, 255, 255, 0.07);
-    color: var(--text-muted);
-  }
-
-  .summaryProgressBadge {
-    background: rgba(41, 139, 245, 0.18);
-    color: #6ebbff;
-  }
-
-  .summaryProgressBarTrack {
-    background: rgba(255, 255, 255, 0.08);
   }
 
   .calendarHeader .iconBtn:hover,
