@@ -1,67 +1,72 @@
 :root {
-  --background: #f5f5f7;
-  --surface: rgba(255, 255, 255, 0.82);
+  /* One UI 8.5 / 9 Signature Palette */
+  --background: #f1f4f9;
+  --surface: rgba(255, 255, 255, 0.94);
   --surface-solid: #ffffff;
-  --surface-hover: rgba(255, 255, 255, 0.96);
-  --surface-active: #e8e8ed;
-  --primary: #0071e3;
-  --primary-hover: #0077ed;
-  --primary-variant: #e8f3ff;
-  --primary-glow: rgba(0, 113, 227, 0.2);
-  --secondary: #5e5ce6;
-  --success: #34c759;
-  --warning: #ff9500;
-  --error: #ff3b30;
-  --text-main: #1d1d1f;
-  --text-muted: #6e6e73;
-  --text-sub: #86868b;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-light: rgba(255, 255, 255, 0.85);
-  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.02), 0 12px 32px rgba(0, 0, 0, 0.05);
-  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.04), 0 18px 40px rgba(0, 0, 0, 0.08);
-  --shadow-floating: 0 14px 40px rgba(0, 0, 0, 0.12);
-  --segmented-control-bg: rgba(0, 0, 0, 0.04);
-  --segmented-control-border: rgba(0, 0, 0, 0.04);
+  --surface-hover: #ffffff;
+  --surface-active: #e6ebf2;
+  --primary: #0072de;
+  --primary-hover: #0063c6;
+  --primary-variant: #e8f2fe;
+  --primary-glow: rgba(0, 114, 222, 0.22);
+  --secondary: #6c5ce7;
+  --success: #00c48c;
+  --warning: #ff8a00;
+  --error: #ff4757;
+  --text-main: #14171c;
+  --text-muted: #5e6675;
+  --text-sub: #8690a0;
+  --border: rgba(20, 23, 28, 0.06);
+  --border-light: rgba(255, 255, 255, 0.95);
+  --shadow-card: 0 4px 20px -2px rgba(18, 38, 63, 0.05), 0 1px 3px 0 rgba(18, 38, 63, 0.03);
+  --shadow-card-hover: 0 8px 30px -4px rgba(18, 38, 63, 0.09), 0 2px 6px 0 rgba(18, 38, 63, 0.04);
+  --shadow-floating: 0 16px 40px -6px rgba(18, 38, 63, 0.14), 0 4px 14px -2px rgba(18, 38, 63, 0.06);
+  --segmented-control-bg: rgba(20, 23, 28, 0.05);
+  --segmented-control-border: rgba(20, 23, 28, 0.04);
   --segmented-control-active: #ffffff;
-  --segmented-control-active-text: #1d1d1f;
-  --chart-axis: #86868b;
-  --chart-cursor: rgba(0, 0, 0, 0.04);
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-pill: 999px;
+  --segmented-control-active-text: #0072de;
+  --chart-axis: #8690a0;
+  --chart-cursor: rgba(0, 114, 222, 0.06);
+
+  /* One UI Squircle & Rounding Scale */
+  --radius-xs: 8px;
+  --radius-sm: 14px;
+  --radius-md: 22px;
+  --radius-lg: 28px;
+  --radius-xl: 34px;
+  --radius-pill: 9999px;
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
-    --surface: rgba(28, 28, 30, 0.82);
-    --surface-solid: #1c1c1e;
-    --surface-hover: rgba(44, 44, 46, 0.94);
-    --surface-active: #3a3a3c;
-    --primary: #0a84ff;
-    --primary-hover: #409cff;
-    --primary-variant: #102a43;
-    --primary-glow: rgba(10, 132, 255, 0.28);
-    --secondary: #7d7aff;
-    --success: #30d158;
-    --warning: #ff9f0a;
-    --error: #ff453a;
-    --text-main: #f5f5f7;
-    --text-muted: #aeaeb2;
-    --text-sub: #8e8e93;
-    --border: rgba(255, 255, 255, 0.1);
+    --background: #08090b;
+    --surface: rgba(25, 28, 35, 0.88);
+    --surface-solid: #191b22;
+    --surface-hover: rgba(36, 40, 50, 0.94);
+    --surface-active: #2b303d;
+    --primary: #298bf5;
+    --primary-hover: #50a3ff;
+    --primary-variant: #102640;
+    --primary-glow: rgba(41, 139, 245, 0.3);
+    --secondary: #8272fb;
+    --success: #05d599;
+    --warning: #ffa126;
+    --error: #ff5e6d;
+    --text-main: #f3f5f8;
+    --text-muted: #9aa4b5;
+    --text-sub: #717b8c;
+    --border: rgba(255, 255, 255, 0.08);
     --border-light: rgba(255, 255, 255, 0.12);
-    --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.2), 0 16px 36px rgba(0, 0, 0, 0.35);
-    --shadow-card-hover: 0 4px 14px rgba(0, 0, 0, 0.25), 0 20px 48px rgba(0, 0, 0, 0.45);
-    --shadow-floating: 0 16px 48px rgba(0, 0, 0, 0.5);
-    --segmented-control-bg: rgba(118, 118, 128, 0.2);
-    --segmented-control-border: rgba(255, 255, 255, 0.04);
-    --segmented-control-active: #636366;
-    --segmented-control-active-text: #ffffff;
-    --chart-axis: #aeaeb2;
-    --chart-cursor: rgba(255, 255, 255, 0.06);
+    --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.35), 0 1px 4px 0 rgba(0, 0, 0, 0.2);
+    --shadow-card-hover: 0 10px 34px -4px rgba(0, 0, 0, 0.48), 0 2px 8px 0 rgba(0, 0, 0, 0.25);
+    --shadow-floating: 0 20px 50px -8px rgba(0, 0, 0, 0.65), 0 6px 18px -2px rgba(0, 0, 0, 0.35);
+    --segmented-control-bg: rgba(255, 255, 255, 0.08);
+    --segmented-control-border: rgba(255, 255, 255, 0.05);
+    --segmented-control-active: #282d38;
+    --segmented-control-active-text: #50a3ff;
+    --chart-axis: #8a94a6;
+    --chart-cursor: rgba(41, 139, 245, 0.12);
     color-scheme: dark;
   }
 }
@@ -81,9 +86,10 @@ body {
   min-height: 100vh;
   background: var(--background);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Hiragino Sans", "Yu Gothic UI", "Segoe UI", sans-serif;
+  /* Samsung One UI Modern Typography */
+  font-family: "Samsung Sans", "SamsungOne", "One UI Sans", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Noto Sans JP", "Hiragino Sans", sans-serif;
   line-height: 1.5;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.012em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -116,25 +122,25 @@ button {
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgba(0, 113, 227, 0.28);
+  outline: 3px solid var(--primary-glow);
   outline-offset: 2px;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.18);
   background-clip: padding-box;
 }
 
 @media (prefers-color-scheme: dark) {
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.2);
     background-clip: padding-box;
   }
 }

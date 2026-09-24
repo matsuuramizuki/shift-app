@@ -4,19 +4,19 @@
   width: min(100%, 680px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: max(24px, env(safe-area-inset-top)) 20px 164px;
+  padding: max(28px, env(safe-area-inset-top)) 20px 170px;
 }
 
 .gradientBg {
   position: fixed;
   inset: 0 0 auto;
-  height: 380px;
+  height: 420px;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(circle at 12% 0%, rgba(0, 113, 227, 0.14), transparent 42%),
-    radial-gradient(circle at 92% 5%, rgba(94, 92, 230, 0.1), transparent 36%);
-  filter: blur(8px);
+    radial-gradient(ellipse at 20% 0%, rgba(0, 114, 222, 0.12), transparent 55%),
+    radial-gradient(ellipse at 85% 10%, rgba(108, 92, 231, 0.08), transparent 48%);
+  filter: blur(12px);
 }
 
 .loadingState {
@@ -25,6 +25,7 @@
   place-items: center;
   color: var(--text-muted);
   font-size: 14px;
+  font-weight: 550;
 }
 
 .analysisLoading {
@@ -37,49 +38,67 @@
 }
 
 @keyframes contentFadeIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* One UI 8.5 / 9 Viewing Area Header */
 .header {
   position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 2px 2px 24px;
+  margin: 4px 4px 26px;
+  padding: 4px 2px;
 }
 
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
 }
 
 .userAvatar {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  background: linear-gradient(145deg, #8cc8ff, #0071e3);
-  box-shadow: 0 5px 14px rgba(0, 113, 227, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 18px; /* One UI Squircle */
+  background: linear-gradient(135deg, #4da1ff, #0072de);
+  box-shadow: 0 8px 18px rgba(0, 114, 222, 0.28);
   color: white;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.headerTextGroup {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .title {
   overflow: hidden;
   color: var(--text-main);
   font-size: clamp(24px, 6vw, 30px);
-  font-weight: 720;
-  letter-spacing: -0.045em;
+  font-weight: 800;
+  letter-spacing: -0.04em;
   white-space: nowrap;
   text-overflow: ellipsis;
+  line-height: 1.15;
+}
+
+.headerSubtitle {
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .homeSwipeArea {
@@ -94,45 +113,47 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.76);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.62);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 16px; /* One UI Squircle */
+  background: var(--surface);
+  box-shadow: 0 4px 16px rgba(18, 38, 63, 0.05);
   color: var(--text-main);
-  backdrop-filter: saturate(180%) blur(18px);
-  -webkit-backdrop-filter: saturate(180%) blur(18px);
-  transition: transform 180ms ease, background 180ms ease;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1), background 180ms ease, box-shadow 180ms ease;
 }
 
 .iconBtn:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface-hover);
+  box-shadow: 0 6px 20px rgba(18, 38, 63, 0.08);
 }
 
 .iconBtn:active {
-  transform: scale(0.94);
+  transform: scale(0.92);
 }
 
 .summaryGrid,
 .analysisGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
+/* One UI 8.5 / 9 Round-Island Cards */
 .summaryCard,
 .card,
 .analysisCard {
   position: relative;
   z-index: 2;
   min-width: 0;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg); /* 28px squircle */
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1), box-shadow 200ms ease;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  transition: transform 240ms cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 240ms ease;
 }
 
 .summaryCard:hover,
@@ -145,42 +166,45 @@
 .summaryCard {
   display: flex;
   flex-direction: column;
-  padding: 13px 14px 12px;
+  padding: 16px 16px 14px;
 }
 
 .summaryCardHeader {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .card {
   display: flex;
   align-items: center;
-  min-height: 78px;
-  padding: 12px;
-  gap: 11px;
+  min-height: 82px;
+  padding: 14px;
+  gap: 12px;
 }
 
+/* Samsung App Icon Squircles */
 .cardArtHours,
 .cardArtEarnings {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 11px;
+  border-radius: 14px; /* One UI Squircle Icon */
   color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
 }
 
 .cardArtHours {
-  background: linear-gradient(145deg, #34aadc, #007aff);
+  background: linear-gradient(135deg, #3db2ff, #0072de);
+  box-shadow: 0 6px 14px rgba(0, 114, 222, 0.28);
 }
 
 .cardArtEarnings {
-  background: linear-gradient(145deg, #af52de, #5856d6);
+  background: linear-gradient(135deg, #a78bfa, #6c5ce7);
+  box-shadow: 0 6px 14px rgba(108, 92, 231, 0.26);
 }
 
 .summaryCardTitleGroup {
@@ -196,7 +220,7 @@
   overflow: hidden;
   color: var(--text-muted);
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -204,19 +228,19 @@
 
 .summaryProgressBadge {
   flex: 0 0 auto;
-  padding: 1px 6px;
+  padding: 2px 7px;
   border-radius: var(--radius-pill);
-  background: rgba(0, 113, 227, 0.08);
+  background: var(--primary-variant);
   color: var(--primary);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 750;
   font-variant-numeric: tabular-nums;
 }
 
 .summaryMetrics {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .summaryMainMetric {
@@ -226,34 +250,34 @@
 }
 
 .summaryMetricTag {
-  padding: 1px 5px;
-  border-radius: 5px;
-  background: rgba(0, 0, 0, 0.04);
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(20, 23, 28, 0.05);
   color: var(--text-muted);
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 750;
   letter-spacing: 0.02em;
 }
 
 .summaryMetricValue {
   color: var(--text-main);
-  font-size: 19px;
-  font-weight: 760;
-  letter-spacing: -0.035em;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
   line-height: 1.15;
 }
 
 .summaryCurrency {
   margin-right: 1px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-sub);
 }
 
 .summaryMetricUnit {
   margin-left: 2px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text-sub);
 }
 
@@ -266,36 +290,36 @@
 
 .summarySubLabel {
   color: var(--text-sub);
-  font-weight: 550;
+  font-weight: 600;
 }
 
 .summarySubValue {
   color: var(--text-muted);
-  font-weight: 650;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .summaryProgressBarTrack {
   width: 100%;
-  height: 4px;
-  margin-top: 9px;
+  height: 6px; /* One UI Rounded Progress Bar */
+  margin-top: 10px;
   overflow: hidden;
   border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(20, 23, 28, 0.06);
 }
 
 .summaryProgressBarFill {
   height: 100%;
   border-radius: var(--radius-pill);
-  transition: width 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: width 450ms cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
 .hoursProgressFill {
-  background: linear-gradient(90deg, #34aadc, #007aff);
+  background: linear-gradient(90deg, #3db2ff, #0072de);
 }
 
 .earningsProgressFill {
-  background: linear-gradient(90deg, #af52de, #5856d6);
+  background: linear-gradient(90deg, #a78bfa, #6c5ce7);
 }
 
 .cardInfo {
@@ -364,38 +388,44 @@
 .chartContainer {
   position: relative;
   z-index: 2;
-  margin-bottom: 18px;
-  padding: 18px;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  padding: 20px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg); /* 28px Squircle */
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .calendarHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   color: var(--text-main);
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-size: 18px;
+  font-weight: 780;
+  letter-spacing: -0.03em;
 }
 
 .calendarHeader .iconBtn {
-  width: 38px;
-  height: 38px;
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgba(18, 38, 63, 0.04);
   color: var(--primary);
+  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
 }
 
 .calendarHeader .iconBtn:hover {
-  background: rgba(0, 113, 227, 0.08);
+  background: var(--primary-variant);
+}
+
+.calendarHeader .iconBtn:active {
+  transform: scale(0.92);
 }
 
 .grid {
@@ -405,181 +435,187 @@
 }
 
 .dayLabel {
-  padding: 2px 0 6px;
+  padding: 4px 0 8px;
   color: var(--text-sub);
   text-align: center;
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 750;
+  letter-spacing: 0.02em;
 }
 
 .dayLabelSun {
-  color: #ff3b30;
+  color: var(--error);
 }
 
 .dayLabelSat {
-  color: #007aff;
+  color: var(--primary);
 }
 
 .dayCell {
   position: relative;
-  min-height: 66px;
+  min-height: 68px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 5px 2px 4px;
+  padding: 6px 3px 5px;
   border: 1px solid transparent;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.016);
+  border-radius: 16px; /* One UI Squircle Cell */
+  background: rgba(20, 23, 28, 0.02);
   color: var(--text-main);
   font-size: 12px;
-  font-weight: 600;
-  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+  font-weight: 650;
+  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease, border-color 160ms ease;
 }
 
 .dayNumber {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 20px;
+  min-width: 24px;
+  height: 24px;
   border-radius: 50%;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1;
 }
 
+/* One UI 8.5 / 9 Signature Today Circle */
 .todayNumber {
   background: var(--primary);
   color: white !important;
-  font-weight: 700;
-  box-shadow: 0 2px 8px var(--primary-glow);
+  font-weight: 800;
+  box-shadow: 0 4px 12px var(--primary-glow);
 }
 
 .sunCell .dayNumber:not(.todayNumber) {
-  color: #e0241b;
+  color: var(--error);
 }
 
 .satCell .dayNumber:not(.todayNumber) {
-  color: #0066d6;
+  color: var(--primary);
 }
 
 .dayCell:hover {
-  background: rgba(0, 113, 227, 0.08);
+  background: var(--primary-variant);
+  border-color: rgba(0, 114, 222, 0.15);
 }
 
 .dayCell:active {
-  transform: scale(0.94);
+  transform: scale(0.92);
 }
 
 .dayCell.empty {
   pointer-events: none;
   background: transparent;
+  border-color: transparent;
 }
 
 .dayCell.today {
-  border-color: rgba(0, 113, 227, 0.35);
+  border-color: rgba(0, 114, 222, 0.35);
 }
 
 .dayCell.hasShift {
-  border-color: rgba(0, 113, 227, 0.12);
-  background: #ebf4ff;
-  color: #0056b3;
+  border-color: rgba(0, 114, 222, 0.18);
+  background: var(--primary-variant);
+  color: var(--primary);
 }
 
 .dayCell.tentativeShift {
-  border-color: rgba(255, 149, 0, 0.22);
-  background: #fff6e8;
-  color: #9a5a00;
+  border-color: rgba(255, 138, 0, 0.25);
+  background: #fff6eb;
+  color: #c96800;
 }
 
 .shiftIndicator {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 3px;
+  margin-top: 4px;
   color: currentColor;
   line-height: 1.25;
 }
 
 .shiftTimeText {
-  font-size: 8px;
-  font-weight: 600;
+  font-size: 8.5px;
+  font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 .tentativeDot {
   margin-top: 2px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  background: rgba(255, 149, 0, 0.18);
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 138, 0, 0.2);
   font-size: 8px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .paydayIndicator {
   position: absolute;
-  right: 2px;
-  bottom: 2px;
-  left: 2px;
+  right: 3px;
+  bottom: 3px;
+  left: 3px;
   overflow: hidden;
-  padding: 1px 2px;
-  border-radius: 4px;
-  background: #fff0b3;
-  color: #7a5400;
-  font-size: 7px;
-  font-weight: 750;
+  padding: 1.5px 3px;
+  border-radius: 6px;
+  background: #fff2cc;
+  color: #8c6100;
+  font-size: 7.5px;
+  font-weight: 800;
   text-align: center;
   white-space: nowrap;
   text-overflow: ellipsis;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .sectionHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .sectionTitle,
 .chartTitle {
   color: var(--text-main);
-  font-size: 17px;
-  font-weight: 720;
-  letter-spacing: -0.025em;
+  font-size: 18px;
+  font-weight: 780;
+  letter-spacing: -0.03em;
 }
 
 .sectionBadge {
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--text-muted);
+  background: var(--primary-variant);
+  color: var(--primary);
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 750;
 }
 
 .upcomingList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
+/* One UI 8.5 / 9 Rounded Item Card */
 .upcomingItem {
-  min-height: 64px;
+  min-height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 10px;
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.015);
-  border: 1px solid transparent;
-  transition: background 160ms ease, border-color 160ms ease;
+  padding: 10px 14px;
+  border-radius: 20px; /* One UI 8.5 squircle */
+  background: rgba(20, 23, 28, 0.025);
+  border: 1px solid var(--border);
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .upcomingItem:hover {
-  background: rgba(0, 113, 227, 0.04);
-  border-color: rgba(0, 113, 227, 0.08);
+  background: var(--primary-variant);
+  border-color: rgba(0, 114, 222, 0.16);
+  transform: translateY(-1px);
 }
 
 .upcomingItemLeft {
@@ -595,40 +631,42 @@
 
 .upcomingHoursPill {
   display: inline-block;
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: rgba(0, 113, 227, 0.08);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-variant);
   color: var(--primary);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 750;
   font-variant-numeric: tabular-nums;
 }
 
+/* Calendar Date Art Squircle */
 .upcomingArt {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(0, 113, 227, 0.12);
-  border-radius: 12px;
-  background: #edf5ff;
+  border: 1px solid rgba(0, 114, 222, 0.16);
+  border-radius: 15px; /* Squircle */
+  background: linear-gradient(180deg, #f4f8fe 0%, #e6effc 100%);
+  box-shadow: 0 2px 8px rgba(0, 114, 222, 0.08);
 }
 
 .upcomingArtMonth {
   color: var(--primary);
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 750;
   line-height: 1;
 }
 
 .upcomingArtDay {
   margin-top: 2px;
   color: var(--text-main);
-  font-size: 17px;
-  font-weight: 750;
+  font-size: 18px;
+  font-weight: 800;
   line-height: 1;
 }
 
@@ -636,7 +674,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .upcomingDate {
@@ -644,8 +682,8 @@
   align-items: center;
   gap: 6px;
   color: var(--text-main);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: 13.5px;
+  font-weight: 700;
 }
 
 .upcomingTimeIcon {
@@ -749,6 +787,7 @@
   z-index: 2;
 }
 
+/* One UI 8.5 / 9 Bottom Sheet Modal */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -757,57 +796,66 @@
   align-items: flex-end;
   justify-content: center;
   padding-top: 40px;
-  background: rgba(20, 20, 22, 0.3);
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  background: rgba(14, 18, 24, 0.45);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .modalContent {
   width: min(100%, 680px);
   max-height: 92vh;
   overflow-y: auto;
-  padding: 12px 22px calc(28px + env(safe-area-inset-bottom));
-  border: 1px solid rgba(255, 255, 255, 0.92);
+  padding: 14px 24px calc(28px + env(safe-area-inset-bottom));
+  border: 1px solid var(--border-light);
   border-bottom: 0;
-  border-radius: 28px 28px 0 0;
-  background: rgba(250, 250, 252, 0.94);
-  box-shadow: 0 -16px 60px rgba(0, 0, 0, 0.16);
+  border-radius: 36px 36px 0 0; /* One UI 8.5 / 9 High Rounding */
+  background: var(--surface);
+  box-shadow: 0 -20px 60px rgba(14, 18, 24, 0.16);
 }
 
 .modalHandle {
-  width: 36px;
+  width: 44px;
   height: 5px;
-  margin: 0 auto 14px;
+  margin: 0 auto 16px;
   border-radius: var(--radius-pill);
-  background: #c7c7cc;
+  background: #d3d9e2;
 }
 
 .modalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   color: var(--text-main);
-  font-size: 20px;
-  font-weight: 720;
+  font-size: 21px;
+  font-weight: 780;
   letter-spacing: -0.035em;
 }
 
 .modalHeader button {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: #e8e8ed;
+  border-radius: 14px; /* Squircle Close Button */
+  background: rgba(20, 23, 28, 0.05);
   color: var(--text-muted);
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
+}
+
+.modalHeader button:hover {
+  background: rgba(20, 23, 28, 0.09);
+}
+
+.modalHeader button:active {
+  transform: scale(0.92);
 }
 
 .timeGrid,
 .amountGrid,
 .compactSettingsRow {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .timeGrid {
@@ -823,84 +871,88 @@
   align-items: end;
 }
 
+/* One UI Grouped Settings Toggle Row */
 .compactToggleRow {
-  min-height: 48px;
+  min-height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding: 8px 11px;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
   border: 1px solid var(--border);
-  border-radius: 13px;
-  background: white;
+  border-radius: 18px; /* Squircle */
+  background: var(--surface-solid);
 }
 
 .toggleLabel {
   color: var(--text-main);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: 13.5px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
+/* Samsung One UI Iconic Pill Toggle */
 .toggle {
   position: relative;
-  width: 44px;
-  height: 27px;
+  width: 48px;
+  height: 28px;
   flex: 0 0 auto;
   border-radius: var(--radius-pill);
-  background: #e5e5ea;
-  transition: background 180ms ease;
+  background: #dbe0ea;
+  transition: background 220ms ease;
 }
 
 .toggleOn {
-  background: #34c759;
+  background: var(--success); /* Galaxy Mint Green */
 }
 
 .toggleThumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 2.5px;
+  left: 2.5px;
   width: 23px;
   height: 23px;
   border-radius: 50%;
   background: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.24);
-  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
 .toggleOn .toggleThumb {
-  transform: translateX(17px);
+  transform: translateX(20px);
 }
 
 .inputGroup {
   display: flex;
   flex-direction: column;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .inputGroup label {
-  margin: 0 4px 6px;
+  margin: 0 6px 7px;
   color: var(--text-muted);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
+/* One UI 8.5 / 9 Rounded Card Inputs */
 .inputGroup input,
 .inputGroup textarea {
   width: 100%;
-  min-height: 48px;
-  padding: 11px 13px;
+  min-height: 50px;
+  padding: 12px 15px;
   border: 1px solid var(--border);
-  border-radius: 13px;
-  background: white;
+  border-radius: 18px; /* Squircle Input */
+  background: var(--surface-solid);
   color: var(--text-main);
   font-size: 15px;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  font-weight: 550;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .inputGroup textarea {
-  min-height: 44px;
+  min-height: 48px;
   resize: vertical;
 }
 
@@ -914,10 +966,10 @@
   bottom: calc(-28px - env(safe-area-inset-bottom));
   z-index: 3;
   display: flex;
-  gap: 10px;
-  margin: 2px -4px 0;
-  padding: 12px 4px calc(28px + env(safe-area-inset-bottom));
-  background: linear-gradient(to bottom, rgba(250, 250, 252, 0), rgba(250, 250, 252, 0.98) 18px);
+  gap: 12px;
+  margin: 4px -4px 0;
+  padding: 14px 4px calc(28px + env(safe-area-inset-bottom));
+  background: linear-gradient(to bottom, rgba(241, 244, 249, 0), var(--background) 20px);
 }
 
 .modalActions .btnPrimary,
@@ -935,19 +987,19 @@
 
 .inputGroup input:focus,
 .inputGroup textarea:focus {
-  border-color: rgba(0, 113, 227, 0.5);
+  border-color: var(--primary);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+  box-shadow: 0 0 0 3.5px var(--primary-glow);
 }
 
 .errorText {
-  margin-bottom: 14px;
-  padding: 10px 12px;
-  border-radius: 11px;
-  background: rgba(255, 59, 48, 0.09);
-  color: #c9251c;
-  font-size: 12px;
-  font-weight: 600;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 71, 87, 0.1);
+  color: var(--error);
+  font-size: 12.5px;
+  font-weight: 700;
 }
 
 .settingsNote,
@@ -958,7 +1010,7 @@
 }
 
 .settingsNote {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .divider {
@@ -977,107 +1029,114 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  font-size: 15px;
-  font-weight: 680;
+  font-size: 15.5px;
+  font-weight: 750;
 }
 
 .calendarDescription {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .calendarCopyRow {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .calendarUrl {
   min-width: 0;
   flex: 1;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: white;
+  border-radius: 16px;
+  background: var(--surface-solid);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 12.5px;
 }
 
 .copyButton {
-  width: 44px;
-  min-height: 44px;
+  width: 48px;
+  min-height: 48px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--primary);
   color: white;
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
+}
+
+.copyButton:active {
+  transform: scale(0.92);
 }
 
 .calendarRefreshButton {
   width: 100%;
-  min-height: 42px;
+  min-height: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  margin-top: 10px;
-  padding: 10px 14px;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px 16px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--surface);
   color: var(--primary);
-  font-size: 13px;
-  font-weight: 650;
-  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+  font-size: 13.5px;
+  font-weight: 700;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .calendarRefreshButton:hover {
   border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  background: var(--primary-variant);
 }
 
 .calendarRefreshButton:active {
-  transform: scale(0.98);
+  transform: scale(0.96);
 }
 
 .calendarRefreshNote {
   margin-top: 8px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 11.5px;
   line-height: 1.5;
 }
 
+/* One UI 8.5 / 9 Pill Buttons */
 .btnPrimary,
 .btnDanger {
   width: 100%;
-  min-height: 48px;
-  margin-top: 12px;
-  padding: 12px 16px;
+  min-height: 52px;
+  margin-top: 14px;
+  padding: 14px 20px;
   border-radius: var(--radius-pill);
-  font-size: 15px;
-  font-weight: 650;
+  font-size: 15.5px;
+  font-weight: 750;
   text-align: center;
-  transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
+  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 160ms ease, background 160ms ease, box-shadow 200ms ease;
 }
 
 .btnPrimary {
   background: var(--primary);
   color: white;
-  box-shadow: 0 8px 18px rgba(0, 113, 227, 0.2);
+  box-shadow: 0 8px 22px rgba(0, 114, 222, 0.28);
 }
 
 .btnPrimary:hover:not(:disabled) {
   background: var(--primary-hover);
+  box-shadow: 0 10px 28px rgba(0, 114, 222, 0.36);
 }
 
 .btnDanger {
-  border: 1px solid rgba(255, 59, 48, 0.18);
-  background: rgba(255, 59, 48, 0.07);
+  border: 1px solid rgba(255, 71, 87, 0.2);
+  background: rgba(255, 71, 87, 0.08);
   color: var(--error);
 }
 
 .btnPrimary:active:not(:disabled),
 .btnDanger:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: scale(0.96);
 }
 
 .btnPrimary:disabled,
@@ -1094,60 +1153,61 @@
   align-items: center;
   justify-content: center;
   margin: 10vh auto 0;
-  padding: 40px 28px;
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  border-radius: 30px;
+  padding: 44px 30px;
+  border: 1px solid var(--border);
+  border-radius: 34px; /* One UI Heavy Rounding */
   background: var(--surface);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 24px 70px rgba(18, 38, 63, 0.1);
   text-align: center;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
 }
 
 .loginIcon {
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   display: grid;
   place-items: center;
-  margin-bottom: 22px;
-  border-radius: 18px;
-  background: linear-gradient(145deg, #2b9cff, #0066d6);
-  box-shadow: 0 14px 26px rgba(0, 113, 227, 0.24);
+  margin-bottom: 24px;
+  border-radius: 22px; /* One UI Squircle Icon */
+  background: linear-gradient(135deg, #3db2ff, #0072de);
+  box-shadow: 0 14px 28px rgba(0, 114, 222, 0.28);
   color: white;
 }
 
 .loginCard h1 {
   color: var(--text-main);
   font-size: 30px;
-  font-weight: 740;
-  letter-spacing: -0.045em;
+  font-weight: 780;
+  letter-spacing: -0.04em;
 }
 
 .loginCard p {
   max-width: 270px;
-  margin: 9px 0 24px;
+  margin: 10px 0 26px;
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 14.5px;
 }
 
+/* One UI 8.5 / 9 Floating Pill Navigation Dock */
 .bottomNav {
   position: fixed;
-  right: 16px;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  left: 16px;
+  right: 18px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 18px;
   z-index: 50;
-  width: min(calc(100% - 32px), 520px);
-  height: 66px;
+  width: min(calc(100% - 36px), 520px);
+  height: 68px;
   display: flex;
   align-items: center;
   margin: 0 auto;
-  padding: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.88);
-  border-radius: 22px;
-  background: rgba(248, 248, 250, 0.82);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.14);
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill); /* One UI Pill Dock */
+  background: var(--surface);
+  box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
 }
 
 .navItem {
@@ -1157,75 +1217,100 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  border-radius: 17px;
+  gap: 3px;
+  border-radius: var(--radius-pill); /* One UI Pill Tab */
   color: var(--text-muted);
-  font-size: 10px;
-  font-weight: 600;
-  transition: color 160ms ease, background 160ms ease;
+  font-size: 10.5px;
+  font-weight: 650;
+  transition: color 180ms ease, background 180ms ease, transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.navItem:active {
+  transform: scale(0.93);
 }
 
 .navItem.active {
-  background: rgba(0, 113, 227, 0.09);
+  background: var(--primary-variant);
   color: var(--primary);
+  font-weight: 750;
 }
 
+/* Samsung One UI 7/8.5/9 "Now Bar" (Live Floating Capsule) */
 .nextShiftCard {
   position: fixed;
-  right: 16px;
-  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 76px);
-  left: 16px;
+  right: 18px;
+  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 78px);
+  left: 18px;
   z-index: 49;
-  width: min(calc(100% - 32px), 560px);
+  width: min(calc(100% - 36px), 560px);
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  border: 1px solid var(--border-light);
-  border-radius: 18px;
+  gap: 14px;
+  padding: 13px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill); /* Now Bar Capsule */
   background: var(--surface);
   box-shadow: var(--shadow-floating);
   cursor: pointer;
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 200ms ease;
 }
 
 .nextShiftCard:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px rgba(18, 38, 63, 0.16);
 }
 
 .nextShiftCard:active {
-  transform: scale(0.985);
+  transform: scale(0.97);
 }
 
+.nowBarIcon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--primary-variant);
+  color: var(--primary);
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.nowBarIconActive {
+  background: rgba(0, 196, 140, 0.16);
+  color: var(--success);
+}
+
+/* Active Working Now Live Glow */
 .activeShiftHighlight {
-  border-color: rgba(52, 199, 89, 0.4);
-  box-shadow: 0 14px 40px rgba(52, 199, 89, 0.16);
+  border-color: rgba(0, 196, 140, 0.45);
+  box-shadow: 0 14px 40px rgba(0, 196, 140, 0.2);
 }
 
 .activePill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   color: var(--success);
-  font-weight: 750;
+  font-weight: 800;
 }
 
 .activePillDot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--success);
-  box-shadow: 0 0 8px var(--success);
+  box-shadow: 0 0 10px var(--success);
   animation: pulseDot 2s infinite ease-in-out;
 }
 
 @keyframes pulseDot {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
+  50% { opacity: 0.4; transform: scale(0.8); }
 }
 
 .nextShiftInfo {
@@ -1351,24 +1436,24 @@
 @media (prefers-color-scheme: dark) {
   .gradientBg {
     background:
-      radial-gradient(circle at 12% 0%, rgba(10, 132, 255, 0.2), transparent 44%),
-      radial-gradient(circle at 92% 5%, rgba(125, 122, 255, 0.14), transparent 38%);
+      radial-gradient(ellipse at 20% 0%, rgba(41, 139, 245, 0.18), transparent 52%),
+      radial-gradient(ellipse at 85% 10%, rgba(130, 114, 251, 0.12), transparent 45%);
   }
 
   .userAvatar {
     border-color: rgba(255, 255, 255, 0.16);
-    background: linear-gradient(145deg, #48a9ff, #0a66cc);
-    box-shadow: 0 6px 18px rgba(10, 132, 255, 0.26);
+    background: linear-gradient(135deg, #298bf5, #1263c6);
+    box-shadow: 0 8px 20px rgba(41, 139, 245, 0.32);
   }
 
   .iconBtn {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(44, 44, 46, 0.7);
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.24);
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(30, 33, 42, 0.75);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   }
 
   .iconBtn:hover {
-    background: rgba(58, 58, 60, 0.92);
+    background: rgba(42, 47, 60, 0.95);
   }
 
   .summaryCard,
@@ -1378,23 +1463,23 @@
   .sectionContainer,
   .chartContainer,
   .loginCard {
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.07);
   }
 
   .summaryCard:hover,
   .card:hover,
   .analysisCard:hover {
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.5);
   }
 
   .summaryMetricTag {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.07);
     color: var(--text-muted);
   }
 
   .summaryProgressBadge {
-    background: rgba(10, 132, 255, 0.18);
-    color: #64b5ff;
+    background: rgba(41, 139, 245, 0.18);
+    color: #6ebbff;
   }
 
   .summaryProgressBarTrack {
@@ -1403,35 +1488,35 @@
 
   .calendarHeader .iconBtn:hover,
   .dayCell:hover {
-    background: rgba(10, 132, 255, 0.14);
+    background: rgba(41, 139, 245, 0.16);
   }
 
   .dayCell {
-    background: rgba(255, 255, 255, 0.035);
+    background: rgba(255, 255, 255, 0.03);
   }
 
   .dayCell.hasShift {
-    border-color: rgba(10, 132, 255, 0.2);
-    background: rgba(10, 132, 255, 0.16);
-    color: #64b5ff;
+    border-color: rgba(41, 139, 245, 0.24);
+    background: rgba(41, 139, 245, 0.18);
+    color: #6ebbff;
   }
 
   .dayCell.tentativeShift {
-    border-color: rgba(255, 159, 10, 0.22);
-    background: rgba(255, 159, 10, 0.14);
-    color: #ffb340;
+    border-color: rgba(255, 161, 38, 0.25);
+    background: rgba(255, 161, 38, 0.15);
+    color: #ffb854;
   }
 
   .sunCell .dayNumber:not(.todayNumber) {
-    color: #ff453a;
+    color: var(--error);
   }
 
   .satCell .dayNumber:not(.todayNumber) {
-    color: #0a84ff;
+    color: var(--primary);
   }
 
   .tentativeDot {
-    background: rgba(255, 159, 10, 0.2);
+    background: rgba(255, 161, 38, 0.24);
   }
 
   .paydayIndicator {
@@ -1441,106 +1526,108 @@
 
   .upcomingItem {
     background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.06);
   }
 
   .upcomingItem:hover,
   .chartSummaryRow span {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.07);
   }
 
   .upcomingArt {
-    border-color: rgba(10, 132, 255, 0.18);
-    background: rgba(10, 132, 255, 0.12);
+    border-color: rgba(41, 139, 245, 0.22);
+    background: linear-gradient(180deg, rgba(41, 139, 245, 0.18) 0%, rgba(41, 139, 245, 0.1) 100%);
   }
 
   .upcomingHoursPill {
-    background: rgba(10, 132, 255, 0.16);
-    color: #64b5ff;
+    background: rgba(41, 139, 245, 0.18);
+    color: #6ebbff;
   }
 
   .tentativeBadge,
   .nextShiftBadge {
-    background: rgba(255, 159, 10, 0.18);
-    color: #ffb340;
+    background: rgba(255, 161, 38, 0.2);
+    color: #ffb854;
   }
 
   .tooltipBox {
     border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(44, 44, 46, 0.94);
-    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+    background: rgba(28, 32, 40, 0.96);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.5);
   }
 
   .modalOverlay {
-    background: rgba(0, 0, 0, 0.58);
+    background: rgba(0, 0, 0, 0.65);
   }
 
   .modalContent {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(28, 28, 30, 0.96);
-    box-shadow: 0 -18px 64px rgba(0, 0, 0, 0.56);
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(22, 25, 32, 0.98);
+    box-shadow: 0 -20px 64px rgba(0, 0, 0, 0.6);
   }
 
   .modalHandle {
-    background: #636366;
+    background: #464c5a;
   }
 
   .modalHeader button {
-    background: #3a3a3c;
+    background: #2b303d;
   }
 
   .compactToggleRow,
   .inputGroup input,
   .inputGroup textarea,
   .calendarUrl {
-    background: #2c2c2e;
+    background: #1e222b;
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
   .toggle {
-    background: #48484a;
+    background: #3e4453;
   }
 
   .toggleOn {
-    background: #30d158;
+    background: var(--success);
   }
 
   .toggleThumb {
-    background: #f5f5f7;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.48);
+    background: #f0f4f9;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   }
 
   .modalActions {
-    background: linear-gradient(to bottom, rgba(28, 28, 30, 0), rgba(28, 28, 30, 0.99) 18px);
+    background: linear-gradient(to bottom, rgba(22, 25, 32, 0), rgba(22, 25, 32, 0.99) 20px);
   }
 
   .inputGroup input:focus,
   .inputGroup textarea:focus {
-    border-color: rgba(10, 132, 255, 0.64);
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.16);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3.5px var(--primary-glow);
   }
 
   .errorText {
-    background: rgba(255, 69, 58, 0.14);
-    color: #ff6961;
+    background: rgba(255, 94, 109, 0.16);
+    color: #ff7582;
   }
 
   .bottomNav {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(28, 28, 30, 0.84);
-    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.48);
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(22, 25, 32, 0.88);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
   }
 
   .navItem.active {
-    background: rgba(10, 132, 255, 0.16);
+    background: rgba(41, 139, 245, 0.18);
   }
 
   .nextShiftCard {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(44, 44, 46, 0.9);
-    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.44);
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(26, 30, 39, 0.92);
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.5);
   }
 
   .activeShiftHighlight {
-    border-color: rgba(48, 209, 88, 0.45);
-    box-shadow: 0 14px 40px rgba(48, 209, 88, 0.22);
+    border-color: rgba(5, 213, 153, 0.45);
+    box-shadow: 0 14px 40px rgba(5, 213, 153, 0.22);
   }
 }

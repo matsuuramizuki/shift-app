@@ -421,9 +421,9 @@ export function AnalysisView({ shifts }: Props) {
       }
     };
 
-    addGroup(mEarnedHours, mFutureHours, '午前', '#FF8F00');
-    addGroup(aEarnedHours, aFutureHours, '午後', '#1ED760');
-    addGroup(nEarnedHours, nFutureHours, '夜間', '#A855F7');
+    addGroup(mEarnedHours, mFutureHours, '午前', '#FF8A00');
+    addGroup(aEarnedHours, aFutureHours, '午後', '#00C48C');
+    addGroup(nEarnedHours, nFutureHours, '夜間', '#6C5CE7');
 
     const dayOfWeekData: DayOfWeekData[] = dayNames.map((name, i) => ({
       name,
@@ -706,7 +706,7 @@ export function AnalysisView({ shifts }: Props) {
       </div>
 
       {subTab === 'monthly' && (
-        <div className={styles.calendarHeader} style={{ background: 'var(--surface)', padding: '12px 16px', borderRadius: 'var(--radius-md)', marginBottom: 0 }}>
+        <div className={styles.calendarHeader} style={{ background: 'var(--surface)', padding: '14px 18px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', marginBottom: 0 }}>
           <button onClick={() => moveSelectedMonth(subMonths(selectedMonth, 1))} className={styles.iconBtn}>
             <ChevronLeft size={20} />
           </button>
@@ -767,14 +767,14 @@ export function AnalysisView({ shifts }: Props) {
                     dataKey="earned"
                     name="確定"
                     stackId="a"
-                    fill="#1ED760"
+                    fill="#0072DE"
                     radius={dayOfWeekData.some(d => d.future > 0) ? [0, 0, 0, 0] : [4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="future"
                     name="予定"
                     stackId="a"
-                    fill="#1ED760"
+                    fill="#0072DE"
                     fillOpacity={0.5}
                     radius={[4, 4, 0, 0]}
                   />
@@ -783,7 +783,7 @@ export function AnalysisView({ shifts }: Props) {
                 <Bar
                   dataKey="total"
                   name="シフト回数"
-                  fill="#1ED760"
+                  fill="#0072DE"
                   radius={[4, 4, 0, 0]}
                 />
               )}
@@ -832,9 +832,9 @@ export function AnalysisView({ shifts }: Props) {
         )}
         {hasTimeOfDayData && (
           <div className={styles.timeOfDayLegend} aria-label="時間帯の凡例">
-            <span><i style={{ background: '#FF8F00' }} />午前</span>
-            <span><i style={{ background: '#1ED760' }} />午後</span>
-            <span><i style={{ background: '#A855F7' }} />夜間</span>
+            <span><i style={{ background: '#FF8A00' }} />午前</span>
+            <span><i style={{ background: '#00C48C' }} />午後</span>
+            <span><i style={{ background: '#6C5CE7' }} />夜間</span>
           </div>
         )}
         <div className={`${styles.chartSummaryWrapper} ${(hasTimeOfDayData && isTimeOfDayOpen) ? styles.open : ''}`}>
@@ -870,17 +870,17 @@ export function AnalysisView({ shifts }: Props) {
                 {!usesCompactCharts && <Tooltip cursor={{ fill: 'var(--chart-cursor)' }} content={<CustomTooltip totals={tooltipTotals} />} />}
                 <Legend content={() => (
                   <ul style={{ display: 'flex', justifyContent: 'center', listStyle: 'none', padding: 0, margin: 0, fontSize: '11px', gap: '16px', fontWeight: 600, color: 'var(--text-muted)' }}>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: '#8B5CF6' }}></span>手取り</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: '#1ED760' }}></span>手当</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', background: '#EF4444' }}></span>天引き</li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '3px', background: '#6C5CE7' }}></span>手取り</li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '3px', background: '#00C48C' }}></span>手当</li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '3px', background: '#FF4757' }}></span>天引き</li>
                   </ul>
                 )} />
-                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#8B5CF6" />
-                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#1ED760" />
-                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#EF4444" radius={hasFutureTrendData ? [0, 0, 0, 0] : [4, 4, 0, 0]} />
-                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#8B5CF6" fillOpacity={0.5} />
-                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#1ED760" fillOpacity={0.5} />
-                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#EF4444" fillOpacity={0.5} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="netBaseEarned" name="手取り(確定)" stackId="a" fill="#6C5CE7" />
+                <Bar dataKey="allowanceEarned" name="手当(確定)" stackId="a" fill="#00C48C" />
+                <Bar dataKey="deductionEarned" name="天引き(確定)" stackId="a" fill="#FF4757" radius={hasFutureTrendData ? [0, 0, 0, 0] : [6, 6, 0, 0]} />
+                <Bar dataKey="netBaseFuture" name="手取り(予定)" stackId="a" fill="#6C5CE7" fillOpacity={0.5} />
+                <Bar dataKey="allowanceFuture" name="手当(予定)" stackId="a" fill="#00C48C" fillOpacity={0.5} />
+                <Bar dataKey="deductionFuture" name="天引き(予定)" stackId="a" fill="#FF4757" fillOpacity={0.5} radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -4,7 +4,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { addMonths, format, subMonths, parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
-import { Settings as SettingsIcon, Home as HomeIcon, BarChart2, ChevronRight, CalendarDays } from "lucide-react";
+import { Settings as SettingsIcon, Home as HomeIcon, BarChart2, ChevronRight, CalendarDays, Clock } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
 import type { Shift } from "@/lib/store";
@@ -145,7 +145,12 @@ export default function Home() {
           <div className={styles.userAvatar} title={user.email || "ユーザー"}>
             {userInitial}
           </div>
-          <h1 className={styles.title}>{activeTab === 'home' ? greeting : "分析"}</h1>
+          <div className={styles.headerTextGroup}>
+            <h1 className={styles.title}>{activeTab === 'home' ? greeting : "勤務分析"}</h1>
+            <p className={styles.headerSubtitle}>
+              {activeTab === 'home' ? format(currentDate, "yyyy年 M月のシフト") : "シフト傾向・給与サマリー"}
+            </p>
+          </div>
         </div>
         <button className={styles.iconBtn} aria-label="設定を開く" onClick={() => setIsSettingsOpen(true)}>
           <SettingsIcon size={20} />
@@ -205,6 +210,9 @@ export default function Home() {
             setSelectedDate(parseISO(activeOrNext.shift.date));
           }}
         >
+          <div className={`${styles.nowBarIcon} ${activeOrNext.isCurrent ? styles.nowBarIconActive : ""}`}>
+            <Clock size={18} />
+          </div>
           <div className={styles.nextShiftInfo}>
               <div className={styles.nextShiftLabel}>
                 {activeOrNext.isCurrent ? (
