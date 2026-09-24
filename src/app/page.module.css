@@ -34,61 +34,48 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Genuine Samsung One UI Clean Viewing Area */
+/* Genuine Samsung One UI Large Viewing Area */
 .header {
   position: relative;
   z-index: 2;
+  margin: 10px 4px 24px;
+  padding: 0 4px;
+}
+
+.headerViewingArea {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.headerTopRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 6px 4px 22px;
-  padding: 2px 0;
+  margin-bottom: 4px;
 }
 
-.headerLeft {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-
-.userAvatar {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: var(--primary-variant);
-  border: 1px solid var(--border);
+.headerYearLabel {
   color: var(--primary);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.headerTextGroup {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
 }
 
 .title {
   overflow: hidden;
   color: var(--text-main);
-  font-size: clamp(22px, 5.5vw, 28px);
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  line-height: 1.2;
+  font-size: clamp(32px, 8vw, 42px);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+  margin: 2px 0 6px;
 }
 
 .headerSubtitle {
-  margin-top: 2px;
   color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 13.5px;
+  font-weight: 550;
 }
 
 .homeSwipeArea {
@@ -98,8 +85,8 @@
 }
 
 .iconBtn {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
@@ -107,7 +94,7 @@
   border-radius: 14px;
   background: var(--surface);
   color: var(--text-muted);
-  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease, color 160ms ease;
 }
 
 .iconBtn:hover {
@@ -119,12 +106,13 @@
   transform: scale(0.92);
 }
 
-/* Minimal Summary Cards System */
-.summaryGrid {
+/* Grids: 2-column parallel layout for both summary and analysis */
+.summaryGrid,
+.analysisGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 14px;
+  margin-bottom: 22px;
 }
 
 .summaryInteractive {
@@ -132,15 +120,21 @@
   user-select: none;
 }
 
+/* Spacious, uncluttered One UI Summary Card */
 .summaryCard {
   position: relative;
   z-index: 2;
   min-width: 0;
-  padding: 14px 16px;
+  min-height: 122px;
+  padding: 24px 22px 22px; /* Generous breathing room */
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
   transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), border-color 180ms ease, box-shadow 180ms ease;
 }
 
@@ -156,7 +150,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .summaryIconBox {
@@ -171,7 +165,7 @@
 .summaryCardLabel {
   overflow: hidden;
   color: var(--text-muted);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -197,14 +191,15 @@
 .summaryMainMetric {
   display: flex;
   align-items: baseline;
+  padding: 4px 0 6px; /* Generous breathing room */
 }
 
 .summaryMetricValue {
   color: var(--text-main);
-  font-size: 22px;
+  font-size: 25px;
   font-weight: 800;
   letter-spacing: -0.04em;
-  line-height: 1.15;
+  line-height: 1.1;
 }
 
 .summaryCurrency {
@@ -384,28 +379,34 @@
 }
 
 .analysisCard {
-  min-height: 92px;
-  padding: 17px;
+  min-height: 104px;
+  padding: 22px 20px 20px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .analysisCardLabel {
   margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
 .analysisCardValue {
-  color: var(--primary);
-  font-size: 22px;
-  font-weight: 720;
+  color: var(--text-main);
+  font-size: 24px;
+  font-weight: 800;
   letter-spacing: -0.035em;
+  line-height: 1.15;
 }
 
-.calendarContainer,
-.sectionContainer,
-.chartContainer {
+.calendarContainer {
   position: relative;
   z-index: 2;
   margin-bottom: 20px;
-  padding: 20px 18px;
+  padding: 18px 14px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -416,45 +417,46 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  padding: 0 4px;
   color: var(--text-main);
-  font-size: 18px;
-  font-weight: 780;
-  letter-spacing: -0.03em;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
 }
 
 .calendarHeader .iconBtn {
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
-  box-shadow: 0 2px 8px rgba(18, 38, 63, 0.04);
-  color: var(--primary);
-  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-main);
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
 }
 
 .calendarHeader .iconBtn:hover {
-  background: var(--primary-variant);
+  background: var(--surface-hover);
 }
 
 .calendarHeader .iconBtn:active {
   transform: scale(0.92);
 }
 
+/* Borderless Clean Grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  gap: 2px;
 }
 
 .dayLabel {
-  padding: 4px 0 8px;
+  padding: 2px 0 10px;
   color: var(--text-sub);
   text-align: center;
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.02em;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .dayLabelSun {
@@ -465,34 +467,52 @@
   color: var(--primary);
 }
 
+/* Clean, borderless Samsung Calendar day cell */
 .dayCell {
   position: relative;
   min-height: 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 4px 2px;
+  padding: 3px 1px 3px;
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: 12px;
   background: transparent;
   color: var(--text-main);
   font-size: 12px;
   transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 140ms ease;
 }
 
+.dayCell:hover {
+  background: var(--surface-hover);
+}
+
+.dayCell:active {
+  transform: scale(0.93);
+}
+
+.dayCell.empty {
+  pointer-events: none;
+  background: transparent;
+}
+
+.dayCell.today {
+  background: rgba(0, 114, 222, 0.04);
+}
+
 .dayNumber {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 22px;
-  height: 22px;
+  min-width: 24px;
+  height: 24px;
   border-radius: 50%;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 650;
   line-height: 1;
 }
 
-/* One UI Clean Today Circle */
+/* One UI Signature Solid Blue Circle for Today */
 .todayNumber {
   background: var(--primary);
   color: white !important;
@@ -507,44 +527,16 @@
   color: var(--primary);
 }
 
-.dayCell:hover {
-  background: var(--primary-variant);
-}
-
-.dayCell:active {
-  transform: scale(0.92);
-}
-
-.dayCell.empty {
-  pointer-events: none;
-  background: transparent;
-  border-color: transparent;
-}
-
-.dayCell.today {
-  border-color: rgba(0, 114, 222, 0.25);
-}
-
-.dayCell.hasShift {
-  background: rgba(0, 114, 222, 0.035);
-  border-color: rgba(0, 114, 222, 0.1);
-}
-
-.dayCell.tentativeShift {
-  background: rgba(255, 138, 0, 0.04);
-  border-color: rgba(255, 138, 0, 0.15);
-}
-
 /* Uncluttered Shift Pill */
 .shiftIndicator {
-  width: calc(100% - 4px);
+  width: calc(100% - 2px);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1px;
-  margin-top: 3px;
-  padding: 2px 1px;
-  border-radius: 6px;
+  margin-top: 2px;
+  padding: 2.5px 0;
+  border-radius: 5px;
   background: var(--primary-variant);
   color: var(--primary);
 }
@@ -569,6 +561,18 @@
   background: rgba(255, 138, 0, 0.2);
   font-size: 7.5px;
   font-weight: 800;
+}
+
+.sectionContainer,
+.chartContainer {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 20px;
+  padding: 20px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 
 .paydayIndicator {
@@ -1373,15 +1377,22 @@
 
   .summaryGrid,
   .analysisGrid {
-    gap: 8px;
+    gap: 12px;
   }
 
   .summaryCard {
-    padding: 10px 11px;
+    min-height: 116px;
+    padding: 20px 18px 18px;
+    gap: 10px;
+  }
+
+  .analysisCard {
+    min-height: 100px;
+    padding: 18px 16px;
   }
 
   .card {
-    padding: 10px;
+    padding: 14px;
     gap: 8px;
   }
 
@@ -1392,16 +1403,21 @@
     border-radius: 9px;
   }
 
-  .summaryCardLabel {
-    font-size: 10px;
+  .summaryCardLabel,
+  .analysisCardLabel {
+    font-size: 11.5px;
   }
 
   .summaryMetricValue {
-    font-size: 16px;
+    font-size: 23px;
+  }
+
+  .analysisCardValue {
+    font-size: 22px;
   }
 
   .summarySubMetric {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .cardLabel {

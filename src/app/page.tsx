@@ -141,20 +141,22 @@ export default function Home() {
       <div className={styles.gradientBg} />
 
       <header className={styles.header}>
-        <div className={styles.headerLeft}>
-          <div className={styles.userAvatar} title={user.email || "ユーザー"}>
-            {userInitial}
+        <div className={styles.headerViewingArea}>
+          <div className={styles.headerTopRow}>
+            <span className={styles.headerYearLabel}>
+              {activeTab === 'home' ? format(currentDate, "yyyy年") : "シフト管理"}
+            </span>
+            <button className={styles.iconBtn} aria-label="設定を開く" onClick={() => setIsSettingsOpen(true)}>
+              <SettingsIcon size={20} />
+            </button>
           </div>
-          <div className={styles.headerTextGroup}>
-            <h1 className={styles.title}>{activeTab === 'home' ? greeting : "勤務分析"}</h1>
-            <p className={styles.headerSubtitle}>
-              {activeTab === 'home' ? format(currentDate, "yyyy年 M月のシフト") : "シフト傾向・給与サマリー"}
-            </p>
-          </div>
+          <h1 className={styles.title}>
+            {activeTab === 'home' ? format(currentDate, "M月") : "勤務分析"}
+          </h1>
+          <p className={styles.headerSubtitle}>
+            {activeTab === 'home' ? greeting : "シフトの統計・給与推移"}
+          </p>
         </div>
-        <button className={styles.iconBtn} aria-label="設定を開く" onClick={() => setIsSettingsOpen(true)}>
-          <SettingsIcon size={20} />
-        </button>
       </header>
 
       {activeTab === 'home' ? (
@@ -200,39 +202,6 @@ export default function Home() {
           onSave={saveSettings}
           onSignOut={signOut}
         />
-      )}
-
-      {activeTab === 'home' && activeOrNext && (
-        <button
-          type="button"
-          className={`${styles.nextShiftCard} ${activeOrNext.isCurrent ? styles.activeShiftHighlight : ""}`}
-          onClick={() => {
-            setSelectedDate(parseISO(activeOrNext.shift.date));
-          }}
-        >
-          <div className={`${styles.nowBarIcon} ${activeOrNext.isCurrent ? styles.nowBarIconActive : ""}`}>
-            <Clock size={18} />
-          </div>
-          <div className={styles.nextShiftInfo}>
-              <div className={styles.nextShiftLabel}>
-                {activeOrNext.isCurrent ? (
-                  <>
-                    <span className={styles.activePill}>
-                      <span className={styles.activePillDot} />
-                      現在勤務中
-                    </span>
-                  </>
-                ) : (
-                  <span>次のシフト</span>
-                )}
-                {activeOrNext.shift.isTentative && <span className={styles.nextShiftBadge}>仮</span>}
-              </div>
-              <div className={styles.nextShiftTime}>
-                {format(parseISO(activeOrNext.shift.date), "M月d日(E)", { locale: ja })} {activeOrNext.shift.startTime} - {activeOrNext.shift.endTime}
-              </div>
-          </div>
-          <ChevronRight className={styles.nextShiftChevron} size={18} aria-hidden="true" />
-        </button>
       )}
 
       {/* Bottom Navigation */}
