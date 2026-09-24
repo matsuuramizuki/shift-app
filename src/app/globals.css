@@ -1,72 +1,72 @@
 :root {
-  /* One UI 8.5 / 9 Signature Palette */
-  --background: #f1f4f9;
-  --surface: rgba(255, 255, 255, 0.94);
+  /* Genuine Samsung One UI Flat & Clean System */
+  --background: #f3f5f8;
+  --surface: #ffffff;
   --surface-solid: #ffffff;
-  --surface-hover: #ffffff;
-  --surface-active: #e6ebf2;
+  --surface-hover: #f8fafc;
+  --surface-active: #eaedf2;
   --primary: #0072de;
   --primary-hover: #0063c6;
-  --primary-variant: #e8f2fe;
-  --primary-glow: rgba(0, 114, 222, 0.22);
+  --primary-variant: #ebf3fd;
+  --primary-glow: rgba(0, 114, 222, 0.16);
   --secondary: #6c5ce7;
   --success: #00c48c;
   --warning: #ff8a00;
   --error: #ff4757;
-  --text-main: #14171c;
-  --text-muted: #5e6675;
-  --text-sub: #8690a0;
-  --border: rgba(20, 23, 28, 0.06);
-  --border-light: rgba(255, 255, 255, 0.95);
-  --shadow-card: 0 4px 20px -2px rgba(18, 38, 63, 0.05), 0 1px 3px 0 rgba(18, 38, 63, 0.03);
-  --shadow-card-hover: 0 8px 30px -4px rgba(18, 38, 63, 0.09), 0 2px 6px 0 rgba(18, 38, 63, 0.04);
-  --shadow-floating: 0 16px 40px -6px rgba(18, 38, 63, 0.14), 0 4px 14px -2px rgba(18, 38, 63, 0.06);
-  --segmented-control-bg: rgba(20, 23, 28, 0.05);
-  --segmented-control-border: rgba(20, 23, 28, 0.04);
+  --text-main: #111418;
+  --text-muted: #616b7c;
+  --text-sub: #8c97a8;
+  --border: rgba(17, 20, 24, 0.07);
+  --border-light: rgba(17, 20, 24, 0.04);
+  --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-card-hover: 0 3px 8px rgba(0, 0, 0, 0.05);
+  --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --segmented-control-bg: #e8ebf0;
+  --segmented-control-border: transparent;
   --segmented-control-active: #ffffff;
   --segmented-control-active-text: #0072de;
-  --chart-axis: #8690a0;
-  --chart-cursor: rgba(0, 114, 222, 0.06);
+  --chart-axis: #8c97a8;
+  --chart-cursor: rgba(0, 114, 222, 0.05);
 
-  /* One UI Squircle & Rounding Scale */
+  /* Samsung One UI Curvature Scale */
   --radius-xs: 8px;
   --radius-sm: 14px;
-  --radius-md: 22px;
-  --radius-lg: 28px;
-  --radius-xl: 34px;
+  --radius-md: 20px;
+  --radius-lg: 26px;
+  --radius-xl: 32px;
   --radius-pill: 9999px;
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #08090b;
-    --surface: rgba(25, 28, 35, 0.88);
-    --surface-solid: #191b22;
-    --surface-hover: rgba(36, 40, 50, 0.94);
-    --surface-active: #2b303d;
+    --background: #090a0d;
+    --surface: #14171d;
+    --surface-solid: #14171d;
+    --surface-hover: #1c2028;
+    --surface-active: #232833;
     --primary: #298bf5;
     --primary-hover: #50a3ff;
-    --primary-variant: #102640;
-    --primary-glow: rgba(41, 139, 245, 0.3);
+    --primary-variant: #132235;
+    --primary-glow: rgba(41, 139, 245, 0.2);
     --secondary: #8272fb;
     --success: #05d599;
     --warning: #ffa126;
     --error: #ff5e6d;
-    --text-main: #f3f5f8;
-    --text-muted: #9aa4b5;
-    --text-sub: #717b8c;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-light: rgba(255, 255, 255, 0.12);
-    --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.35), 0 1px 4px 0 rgba(0, 0, 0, 0.2);
-    --shadow-card-hover: 0 10px 34px -4px rgba(0, 0, 0, 0.48), 0 2px 8px 0 rgba(0, 0, 0, 0.25);
-    --shadow-floating: 0 20px 50px -8px rgba(0, 0, 0, 0.65), 0 6px 18px -2px rgba(0, 0, 0, 0.35);
-    --segmented-control-bg: rgba(255, 255, 255, 0.08);
-    --segmented-control-border: rgba(255, 255, 255, 0.05);
-    --segmented-control-active: #282d38;
+    --text-main: #f1f4f8;
+    --text-muted: #8e99ab;
+    --text-sub: #667285;
+    --border: rgba(255, 255, 255, 0.07);
+    --border-light: rgba(255, 255, 255, 0.04);
+    --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.25);
+    --shadow-card-hover: 0 3px 10px rgba(0, 0, 0, 0.35);
+    --shadow-floating: 0 8px 28px rgba(0, 0, 0, 0.5);
+    --segmented-control-bg: #1e222b;
+    --segmented-control-border: transparent;
+    --segmented-control-active: #2a303d;
     --segmented-control-active-text: #50a3ff;
-    --chart-axis: #8a94a6;
-    --chart-cursor: rgba(41, 139, 245, 0.12);
+    --chart-axis: #7a8698;
+    --chart-cursor: rgba(41, 139, 245, 0.08);
     color-scheme: dark;
   }
 }

@@ -8,15 +8,7 @@
 }
 
 .gradientBg {
-  position: fixed;
-  inset: 0 0 auto;
-  height: 420px;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(0, 114, 222, 0.12), transparent 55%),
-    radial-gradient(ellipse at 85% 10%, rgba(108, 92, 231, 0.08), transparent 48%);
-  filter: blur(12px);
+  display: none; /* Fully eliminate AI-style aura gradients */
 }
 
 .loadingState {
@@ -34,23 +26,23 @@
   place-items: center;
   color: var(--text-muted);
   font-size: 13px;
-  animation: contentFadeIn 220ms ease both;
+  animation: contentFadeIn 200ms ease both;
 }
 
 @keyframes contentFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* One UI 8.5 / 9 Viewing Area Header */
+/* Genuine Samsung One UI Clean Viewing Area */
 .header {
   position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 4px 4px 26px;
-  padding: 4px 2px;
+  margin: 6px 4px 22px;
+  padding: 2px 0;
 }
 
 .headerLeft {
@@ -61,19 +53,17 @@
 }
 
 .userAvatar {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: 18px; /* One UI Squircle */
-  background: linear-gradient(135deg, #4da1ff, #0072de);
-  box-shadow: 0 8px 18px rgba(0, 114, 222, 0.28);
-  color: white;
+  border-radius: 14px;
+  background: var(--primary-variant);
+  border: 1px solid var(--border);
+  color: var(--primary);
   font-size: 15px;
-  font-weight: 750;
-  letter-spacing: -0.02em;
+  font-weight: 700;
 }
 
 .headerTextGroup {
@@ -85,12 +75,12 @@
 .title {
   overflow: hidden;
   color: var(--text-main);
-  font-size: clamp(24px, 6vw, 30px);
+  font-size: clamp(22px, 5.5vw, 28px);
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
   white-space: nowrap;
   text-overflow: ellipsis;
-  line-height: 1.15;
+  line-height: 1.2;
 }
 
 .headerSubtitle {
@@ -108,177 +98,203 @@
 }
 
 .iconBtn {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
   border: 1px solid var(--border);
-  border-radius: 16px; /* One UI Squircle */
+  border-radius: 14px;
   background: var(--surface);
-  box-shadow: 0 4px 16px rgba(18, 38, 63, 0.05);
-  color: var(--text-main);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1), background 180ms ease, box-shadow 180ms ease;
+  color: var(--text-muted);
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
 }
 
 .iconBtn:hover {
   background: var(--surface-hover);
-  box-shadow: 0 6px 20px rgba(18, 38, 63, 0.08);
+  color: var(--text-main);
 }
 
 .iconBtn:active {
   transform: scale(0.92);
 }
 
-.summaryGrid,
-.analysisGrid {
+/* Minimal Summary Cards System */
+.summaryGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-/* One UI 8.5 / 9 Round-Island Cards */
-.summaryCard,
-.card,
-.analysisCard {
-  position: relative;
-  z-index: 2;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg); /* 28px squircle */
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  transition: transform 240ms cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 240ms ease;
-}
-
-.summaryCard:hover,
-.card:hover,
-.analysisCard:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-card-hover);
+.summaryInteractive {
+  cursor: pointer;
+  user-select: none;
 }
 
 .summaryCard {
-  display: flex;
-  flex-direction: column;
-  padding: 16px 16px 14px;
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.summaryInteractive:hover .summaryCard {
+  border-color: rgba(0, 114, 222, 0.22);
+}
+
+.summaryInteractive:active .summaryCard {
+  transform: scale(0.985);
 }
 
 .summaryCardHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.card {
-  display: flex;
-  align-items: center;
-  min-height: 82px;
-  padding: 14px;
-  gap: 12px;
-}
-
-/* Samsung App Icon Squircles */
-.cardArtHours,
-.cardArtEarnings {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 auto;
+.summaryIconBox {
+  width: 22px;
+  height: 22px;
   display: grid;
   place-items: center;
-  border-radius: 14px; /* One UI Squircle Icon */
-  color: white;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-}
-
-.cardArtHours {
-  background: linear-gradient(135deg, #3db2ff, #0072de);
-  box-shadow: 0 6px 14px rgba(0, 114, 222, 0.28);
-}
-
-.cardArtEarnings {
-  background: linear-gradient(135deg, #a78bfa, #6c5ce7);
-  box-shadow: 0 6px 14px rgba(108, 92, 231, 0.26);
-}
-
-.summaryCardTitleGroup {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
+  color: var(--primary);
+  flex: 0 0 auto;
 }
 
 .summaryCardLabel {
   overflow: hidden;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.summaryProgressBadge {
+.summaryChevron {
+  margin-left: auto;
+  color: var(--text-sub);
   flex: 0 0 auto;
-  padding: 2px 7px;
-  border-radius: var(--radius-pill);
-  background: var(--primary-variant);
-  color: var(--primary);
-  font-size: 10px;
-  font-weight: 750;
-  font-variant-numeric: tabular-nums;
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.summaryChevronOpen {
+  transform: rotate(180deg);
 }
 
 .summaryMetrics {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
 .summaryMainMetric {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-}
-
-.summaryMetricTag {
-  padding: 1px 6px;
-  border-radius: 6px;
-  background: rgba(20, 23, 28, 0.05);
-  color: var(--text-muted);
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.02em;
 }
 
 .summaryMetricValue {
   color: var(--text-main);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1.15;
 }
 
 .summaryCurrency {
-  margin-right: 1px;
-  font-size: 14px;
+  margin-right: 2px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-sub);
 }
 
 .summaryMetricUnit {
   margin-left: 2px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-sub);
+}
+
+/* Tap-to-expand details accordion */
+.summaryExpandArea {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 240ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 200ms ease, margin-top 240ms ease;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.summaryExpandAreaOpen {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-light);
+}
+
+.summaryExpandContent {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summarySubMetric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.summarySubLabel {
+  color: var(--text-sub);
+  font-weight: 600;
+}
+
+.summarySubValue {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.summaryProgressBarTrack {
+  width: 100%;
+  height: 5px;
+  margin-top: 2px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--segmented-control-bg);
+}
+
+.summaryProgressBarFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 400ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.hoursProgressFill {
+  background: var(--primary);
+}
+
+.earningsProgressFill {
+  background: var(--secondary);
+}
+
+.card,
+.analysisCard {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 
 .summarySubMetric {
@@ -391,11 +407,9 @@
   margin-bottom: 20px;
   padding: 20px 18px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg); /* 28px Squircle */
+  border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
 }
 
 .calendarHeader {
@@ -453,38 +467,36 @@
 
 .dayCell {
   position: relative;
-  min-height: 68px;
+  min-height: 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px 3px 5px;
+  padding: 4px 2px;
   border: 1px solid transparent;
-  border-radius: 16px; /* One UI Squircle Cell */
-  background: rgba(20, 23, 28, 0.02);
+  border-radius: 14px;
+  background: transparent;
   color: var(--text-main);
   font-size: 12px;
-  font-weight: 650;
-  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease, border-color 160ms ease;
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 140ms ease;
 }
 
 .dayNumber {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  height: 24px;
+  min-width: 22px;
+  height: 22px;
   border-radius: 50%;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 650;
   line-height: 1;
 }
 
-/* One UI 8.5 / 9 Signature Today Circle */
+/* One UI Clean Today Circle */
 .todayNumber {
   background: var(--primary);
   color: white !important;
   font-weight: 800;
-  box-shadow: 0 4px 12px var(--primary-glow);
 }
 
 .sunCell .dayNumber:not(.todayNumber) {
@@ -497,7 +509,6 @@
 
 .dayCell:hover {
   background: var(--primary-variant);
-  border-color: rgba(0, 114, 222, 0.15);
 }
 
 .dayCell:active {
@@ -511,42 +522,52 @@
 }
 
 .dayCell.today {
-  border-color: rgba(0, 114, 222, 0.35);
+  border-color: rgba(0, 114, 222, 0.25);
 }
 
 .dayCell.hasShift {
-  border-color: rgba(0, 114, 222, 0.18);
+  background: rgba(0, 114, 222, 0.035);
+  border-color: rgba(0, 114, 222, 0.1);
+}
+
+.dayCell.tentativeShift {
+  background: rgba(255, 138, 0, 0.04);
+  border-color: rgba(255, 138, 0, 0.15);
+}
+
+/* Uncluttered Shift Pill */
+.shiftIndicator {
+  width: calc(100% - 4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  margin-top: 3px;
+  padding: 2px 1px;
+  border-radius: 6px;
   background: var(--primary-variant);
   color: var(--primary);
 }
 
-.dayCell.tentativeShift {
-  border-color: rgba(255, 138, 0, 0.25);
-  background: #fff6eb;
+.dayCell.tentativeShift .shiftIndicator {
+  background: #fff4e5;
   color: #c96800;
 }
 
-.shiftIndicator {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 4px;
-  color: currentColor;
-  line-height: 1.25;
-}
-
 .shiftTimeText {
-  font-size: 8.5px;
+  font-size: 8px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
 }
 
 .tentativeDot {
-  margin-top: 2px;
-  padding: 1px 5px;
-  border-radius: var(--radius-pill);
+  margin-top: 1px;
+  padding: 0.5px 3px;
+  border-radius: 4px;
   background: rgba(255, 138, 0, 0.2);
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 800;
 }
 
@@ -649,10 +670,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(0, 114, 222, 0.16);
-  border-radius: 15px; /* Squircle */
-  background: linear-gradient(180deg, #f4f8fe 0%, #e6effc 100%);
-  box-shadow: 0 2px 8px rgba(0, 114, 222, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--primary-variant);
 }
 
 .upcomingArtMonth {
@@ -1206,8 +1226,6 @@
   border-radius: var(--radius-pill); /* One UI Pill Dock */
   background: var(--surface);
   box-shadow: var(--shadow-floating);
-  backdrop-filter: blur(26px);
-  -webkit-backdrop-filter: blur(26px);
 }
 
 .navItem {
@@ -1254,9 +1272,7 @@
   background: var(--surface);
   box-shadow: var(--shadow-floating);
   cursor: pointer;
-  backdrop-filter: blur(26px);
-  -webkit-backdrop-filter: blur(26px);
-  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 200ms ease;
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 180ms ease;
 }
 
 .nextShiftCard:hover {
@@ -1435,15 +1451,14 @@
 
 @media (prefers-color-scheme: dark) {
   .gradientBg {
-    background:
-      radial-gradient(ellipse at 20% 0%, rgba(41, 139, 245, 0.18), transparent 52%),
-      radial-gradient(ellipse at 85% 10%, rgba(130, 114, 251, 0.12), transparent 45%);
+    display: none;
   }
 
   .userAvatar {
-    border-color: rgba(255, 255, 255, 0.16);
-    background: linear-gradient(135deg, #298bf5, #1263c6);
-    box-shadow: 0 8px 20px rgba(41, 139, 245, 0.32);
+    border-color: var(--border);
+    background: var(--primary-variant);
+    color: var(--primary);
+    box-shadow: none;
   }
 
   .iconBtn {
