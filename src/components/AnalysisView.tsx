@@ -830,13 +830,6 @@ export function AnalysisView({ shifts }: Props) {
         ) : (
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', textAlign: 'center', marginTop: '40px' }}>データがありません</p>
         )}
-        {hasTimeOfDayData && (
-          <div className={styles.timeOfDayLegend} aria-label="時間帯の凡例">
-            <span><i style={{ background: '#FF8A00' }} />午前</span>
-            <span><i style={{ background: '#00C48C' }} />午後</span>
-            <span><i style={{ background: '#6C5CE7' }} />夜間</span>
-          </div>
-        )}
         <div className={`${styles.chartSummaryWrapper} ${(hasTimeOfDayData && isTimeOfDayOpen) ? styles.open : ''}`}>
           <div className={styles.chartSummaryInner}>
             <div className={styles.chartSummaryRow}>
