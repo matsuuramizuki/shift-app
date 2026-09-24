@@ -2,12 +2,10 @@
 
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { addMonths, format, subMonths, parseISO } from "date-fns";
-import { ja } from "date-fns/locale";
-import { Settings as SettingsIcon, Home as HomeIcon, BarChart2, ChevronRight, CalendarDays, Clock } from "lucide-react";
+import { addMonths, format, subMonths } from "date-fns";
+import { Settings as SettingsIcon, Home as HomeIcon, BarChart2, CalendarDays } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
-import type { Shift } from "@/lib/store";
 
 import { Calendar } from "@/components/Calendar";
 import { SummaryCards } from "@/components/SummaryCards";
@@ -27,35 +25,6 @@ function getGreeting() {
   return "こんばんは";
 }
 
-function findActiveOrNextShift(shifts: Shift[]) {
-  const now = new Date();
-  const todayStr = format(now, "yyyy-MM-dd");
-  const currentMins = now.getHours() * 60 + now.getMinutes();
-  let candidate: (Shift & { startMins: number; endMins: number }) | null = null;
-
-  for (const shift of shifts) {
-    const [startHour, startMinute] = shift.startTime.split(':').map(Number);
-    const [endHour, endMinute] = shift.endTime.split(':').map(Number);
-    const startMins = startHour * 60 + startMinute;
-    let endMins = endHour * 60 + endMinute;
-    if (endMins < startMins) endMins += 24 * 60;
-
-    const isEligible = shift.date > todayStr || (shift.date === todayStr && currentMins < endMins);
-    if (!isEligible) continue;
-
-    if (!candidate || shift.date < candidate.date || (shift.date === candidate.date && startMins < candidate.startMins)) {
-      candidate = { ...shift, startMins, endMins };
-    }
-  }
-
-  if (!candidate) return null;
-
-  return {
-    shift: candidate,
-    isCurrent: candidate.date === todayStr && currentMins >= candidate.startMins && currentMins <= candidate.endMins,
-  };
-}
-
 export default function Home() {
   const { user, settings, shifts, isLoaded, saveSettings, saveShift, deleteShift, signInWithGoogle, signOut } = useStore();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -72,7 +41,6 @@ export default function Home() {
     ? shifts.find(shift => shift.date === format(selectedDate, "yyyy-MM-dd"))
     : undefined,
   [selectedDate, shifts]);
-  const activeOrNext = useMemo(() => findActiveOrNextShift(shifts), [shifts]);
   const greeting = useMemo(() => getGreeting(), []);
 
   const shouldSuppressHomeClick = useCallback(
@@ -132,8 +100,6 @@ export default function Home() {
       </div>
     );
   }
-
-  const userInitial = user.email ? user.email[0].toUpperCase() : "U";
 
   return (
     <div className={styles.container}>

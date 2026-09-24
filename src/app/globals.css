@@ -27,6 +27,7 @@
   --segmented-control-active-text: #0072de;
   --chart-axis: #8c97a8;
   --chart-cursor: rgba(0, 114, 222, 0.05);
+  --calendar-cell-border: rgba(17, 20, 24, 0.13);
 
   /* Samsung One UI Curvature Scale */
   --radius-xs: 8px;
@@ -67,6 +68,7 @@
     --segmented-control-active-text: #50a3ff;
     --chart-axis: #7a8698;
     --chart-cursor: rgba(41, 139, 245, 0.08);
+    --calendar-cell-border: rgba(255, 255, 255, 0.14);
     color-scheme: dark;
   }
 }

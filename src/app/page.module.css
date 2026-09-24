@@ -118,6 +118,24 @@
 .summaryInteractive {
   cursor: pointer;
   user-select: none;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.summaryInteractive .analysisCard {
+  min-height: 94px;
+  padding: 16px 15px 14px;
+  justify-content: flex-start;
+}
+
+.summaryInteractive .analysisCardLabel {
+  margin-bottom: 5px;
+  font-size: 11px;
+}
+
+.summaryInteractive .analysisCardValue {
+  font-size: 22px;
+  line-height: 1.2;
 }
 
 /* Spacious, uncluttered One UI Summary Card */
@@ -467,7 +485,7 @@
   color: var(--primary);
 }
 
-/* Clean, borderless Samsung Calendar day cell */
+/* Clearly separated calendar day cells */
 .dayCell {
   position: relative;
   min-height: 64px;
@@ -475,7 +493,7 @@
   flex-direction: column;
   align-items: center;
   padding: 3px 1px 3px;
-  border: 1px solid transparent;
+  border: 1px solid var(--calendar-cell-border);
   border-radius: 12px;
   background: transparent;
   color: var(--text-main);
@@ -493,6 +511,7 @@
 
 .dayCell.empty {
   pointer-events: none;
+  border-color: transparent;
   background: transparent;
 }
 

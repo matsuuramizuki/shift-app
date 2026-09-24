@@ -231,7 +231,19 @@ const TimeOfDayPieChart = React.memo(({
             const catTotal = cleanName === '午前' ? mEarnedHours + mFutureHours : cleanName === '午後' ? aEarnedHours + aFutureHours : nEarnedHours + nFutureHours;
             const catPercent = catTotal / totalChartHours;
             return (
-              <text x={x} y={y} fill="#fff" fontSize={10} fontWeight="bold" textAnchor={textAnchor} dominantBaseline="central" style={{ pointerEvents: 'none' }}>
+              <text
+                x={x}
+                y={y}
+                fill="var(--text-main)"
+                stroke="var(--surface)"
+                strokeWidth={3}
+                paintOrder="stroke"
+                fontSize={10}
+                fontWeight="bold"
+                textAnchor={textAnchor}
+                dominantBaseline="central"
+                style={{ pointerEvents: 'none' }}
+              >
                 {`${cleanName} ${(catPercent * 100).toFixed(0)}%`}
               </text>
             );
