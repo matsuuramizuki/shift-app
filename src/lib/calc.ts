@@ -1,4 +1,6 @@
-function timeToMinutes(time: string) {
+import type { Shift } from "./store";
+
+export function timeToMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
 }
@@ -18,13 +20,20 @@ export function calculateSalary(
     return { hours: 0, salary: 0, error: "終了時間は開始時間より後にしてください" };
   }
 
-  const diffMins = end - start;
-  const actualWorkMins = Math.max(0, diffMins - breakMinutes);
-  
-  const hours = actualWorkMins / 60;
-  
-  const rawSalary = Math.floor(hours * hourlyWage) + allowance - deduction;
-  const salary = Math.max(0, rawSalary); // never negative
-  
+  const hours = Math.max(0, end - start - breakMinutes) / 60;
+  const salary = Math.max(0, Math.floor(hours * hourlyWage) + allowance - deduction); // never negative
+
   return { hours, salary };
+}
+
+/** Shorthand for calculating a saved shift's hours and pay. */
+export function calculateShiftSalary(shift: Shift) {
+  return calculateSalary(
+    shift.startTime,
+    shift.endTime,
+    shift.breakMinutes,
+    shift.deduction,
+    shift.hourlyWage,
+    shift.allowance || 0
+  );
 }

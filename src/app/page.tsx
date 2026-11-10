@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { addMonths, format, subMonths } from "date-fns";
 import { Settings as SettingsIcon, Home as HomeIcon, BarChart2, CalendarDays } from "lucide-react";
 import styles from "./page.module.css";
 import { useStore } from "@/lib/store";
+import { useHorizontalSwipe } from "@/lib/useHorizontalSwipe";
 
 import { Calendar } from "@/components/Calendar";
 import { SummaryCards } from "@/components/SummaryCards";
@@ -18,6 +19,13 @@ const AnalysisView = dynamic(
   { loading: () => <div className={styles.analysisLoading}>分析データを読み込んでいます…</div> }
 );
 
+type Tab = 'home' | 'analysis';
+
+const NAV_ITEMS = [
+  { tab: 'home', label: 'ホーム', Icon: HomeIcon },
+  { tab: 'analysis', label: '分析', Icon: BarChart2 },
+] as const;
+
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) return "おはようございます";
@@ -28,14 +36,13 @@ function getGreeting() {
 export default function Home() {
   const { user, settings, shifts, isLoaded, saveSettings, saveShift, deleteShift, signInWithGoogle, signOut } = useStore();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  
+
   // Modals state
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  
-  const [activeTab, setActiveTab] = useState<'home' | 'analysis'>('home');
-  const homeSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
-  const suppressHomeClickUntilRef = useRef(0);
+
+  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const isHome = activeTab === 'home';
 
   const selectedShift = useMemo(() => selectedDate
     ? shifts.find(shift => shift.date === format(selectedDate, "yyyy-MM-dd"))
@@ -43,44 +50,18 @@ export default function Home() {
   [selectedDate, shifts]);
   const greeting = useMemo(() => getGreeting(), []);
 
-  const shouldSuppressHomeClick = useCallback(
-    () => Date.now() < suppressHomeClickUntilRef.current,
-    []
-  );
+  const handleHomeSwipe = useCallback((direction: "next" | "prev") => {
+    setCurrentDate(date => direction === "next" ? addMonths(date, 1) : subMonths(date, 1));
+  }, []);
+  const { handlers: homeSwipeHandlers, isClickSuppressed } = useHorizontalSwipe(handleHomeSwipe);
 
   const setHomeMonth = useCallback((date: Date) => {
-    if (!shouldSuppressHomeClick()) setCurrentDate(date);
-  }, [shouldSuppressHomeClick]);
+    if (!isClickSuppressed()) setCurrentDate(date);
+  }, [isClickSuppressed]);
 
   const handleDateClick = useCallback((date: Date) => {
-    if (!shouldSuppressHomeClick()) setSelectedDate(date);
-  }, [shouldSuppressHomeClick]);
-
-  const handleHomeSwipeStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    const touch = event.touches[0];
-    if (touch) homeSwipeStartRef.current = { x: touch.clientX, y: touch.clientY };
-  }, []);
-
-  const handleHomeSwipeEnd = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    const start = homeSwipeStartRef.current;
-    homeSwipeStartRef.current = null;
-    if (!start) return;
-
-    const touch = event.changedTouches[0];
-    if (!touch) return;
-
-    const deltaX = touch.clientX - start.x;
-    const deltaY = touch.clientY - start.y;
-    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY) * 1.25) return;
-
-    suppressHomeClickUntilRef.current = Date.now() + 350;
-    if (event.cancelable) event.preventDefault();
-    setCurrentDate(date => deltaX < 0 ? addMonths(date, 1) : subMonths(date, 1));
-  }, []);
-
-  const handleHomeSwipeCancel = useCallback(() => {
-    homeSwipeStartRef.current = null;
-  }, []);
+    if (!isClickSuppressed()) setSelectedDate(date);
+  }, [isClickSuppressed]);
 
   if (!isLoaded) {
     return <div className={styles.loadingState}>シフトを読み込んでいます…</div>;
@@ -103,39 +84,31 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      {/* Soft ambient background */}
-      <div className={styles.gradientBg} />
-
       <header className={styles.header}>
         <div className={styles.headerViewingArea}>
           <div className={styles.headerTopRow}>
             <span className={styles.headerYearLabel}>
-              {activeTab === 'home' ? format(currentDate, "yyyy年") : "シフト管理"}
+              {isHome ? format(currentDate, "yyyy年") : "シフト管理"}
             </span>
             <button className={styles.iconBtn} aria-label="設定を開く" onClick={() => setIsSettingsOpen(true)}>
               <SettingsIcon size={20} />
             </button>
           </div>
-          <h1 className={styles.title}>
-            {activeTab === 'home' ? format(currentDate, "M月") : "勤務分析"}
+          <h1 key={isHome ? format(currentDate, "yyyy-MM") : 'analysis'} className={styles.title}>
+            {isHome ? format(currentDate, "M月") : "勤務分析"}
           </h1>
           <p className={styles.headerSubtitle}>
-            {activeTab === 'home' ? greeting : "シフトの統計・給与推移"}
+            {isHome ? greeting : "シフトの統計・給与推移"}
           </p>
         </div>
       </header>
 
-      {activeTab === 'home' ? (
-        <div
-          className={styles.homeSwipeArea}
-          onTouchStart={handleHomeSwipeStart}
-          onTouchEnd={handleHomeSwipeEnd}
-          onTouchCancel={handleHomeSwipeCancel}
-        >
+      {isHome ? (
+        <div className={styles.homeSwipeArea} {...homeSwipeHandlers}>
           <SummaryCards currentDate={currentDate} shifts={shifts} />
 
-          <Calendar 
-            currentDate={currentDate} 
+          <Calendar
+            currentDate={currentDate}
             setCurrentDate={setHomeMonth}
             shifts={shifts}
             settings={settings}
@@ -172,22 +145,18 @@ export default function Home() {
 
       {/* Bottom Navigation */}
       <nav className={styles.bottomNav} aria-label="メインメニュー">
-        <button 
-          className={`${styles.navItem} ${activeTab === 'home' ? styles.active : ''}`}
-          aria-current={activeTab === 'home' ? 'page' : undefined}
-          onClick={() => setActiveTab('home')}
-        >
-          <HomeIcon size={20} />
-          <span>ホーム</span>
-        </button>
-        <button 
-          className={`${styles.navItem} ${activeTab === 'analysis' ? styles.active : ''}`}
-          aria-current={activeTab === 'analysis' ? 'page' : undefined}
-          onClick={() => setActiveTab('analysis')}
-        >
-          <BarChart2 size={20} />
-          <span>分析</span>
-        </button>
+        <span aria-hidden="true" className={`${styles.navIndicator} ${isHome ? '' : styles.navIndicatorRight}`} />
+        {NAV_ITEMS.map(({ tab, label, Icon }) => (
+          <button
+            key={tab}
+            className={`${styles.navItem} ${activeTab === tab ? styles.active : ''}`}
+            aria-current={activeTab === tab ? 'page' : undefined}
+            onClick={() => setActiveTab(tab)}
+          >
+            <Icon size={20} />
+            <span>{label}</span>
+          </button>
+        ))}
       </nav>
     </div>
   );

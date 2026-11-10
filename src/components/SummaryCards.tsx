@@ -1,8 +1,9 @@
 import { memo, useMemo, useState } from 'react';
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
-import { calculateSalary } from "@/lib/calc";
+import { calculateShiftSalary } from "@/lib/calc";
 import { format } from 'date-fns';
+import { StatCard } from "./StatCard";
 
 interface SummaryProps {
   currentDate: Date;
@@ -23,14 +24,7 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
     for (const shift of shifts) {
       if (!shift.date.startsWith(monthPrefix)) continue;
 
-      const { hours, salary } = calculateSalary(
-        shift.startTime,
-        shift.endTime,
-        shift.breakMinutes,
-        shift.deduction,
-        shift.hourlyWage,
-        shift.allowance || 0
-      );
+      const { hours, salary } = calculateShiftSalary(shift);
 
       if (shift.date <= todayStr) {
         totalHours += hours;
@@ -47,11 +41,12 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
   }, [currentDate, shifts]);
 
   const monthLabel = format(currentDate, "M月");
+  const toggle = () => setIsExpanded(prev => !prev);
 
   return (
     <div
       className={`${styles.analysisGrid} ${styles.summaryInteractive}`}
-      onClick={() => setIsExpanded(prev => !prev)}
+      onClick={toggle}
       role="button"
       tabIndex={0}
       aria-expanded={isExpanded}
@@ -59,35 +54,20 @@ export const SummaryCards = memo(function SummaryCards({ currentDate, shifts }: 
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          setIsExpanded(prev => !prev);
+          toggle();
         }
       }}
     >
-      {/* 労働時間カード */}
-      <div className={styles.analysisCard}>
-        <div className={styles.analysisCardLabel}>{monthLabel} 労働時間</div>
-        <div className={styles.analysisCardValue}>
-          {totalHours.toFixed(1)}<span style={{ fontSize: '14px', fontWeight: 600, marginLeft: '2px' }}>h</span>
-          {isExpanded && (
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
-              月末見込 {monthEndHours.toFixed(1)}h
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 給与実績カード */}
-      <div className={styles.analysisCard}>
-        <div className={styles.analysisCardLabel}>{monthLabel} 給与実績</div>
-        <div className={styles.analysisCardValue}>
-          ¥{totalSalary.toLocaleString()}
-          {isExpanded && (
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 'normal', marginTop: '4px' }}>
-              月末見込 ¥{monthEndEstimate.toLocaleString()}
-            </div>
-          )}
-        </div>
-      </div>
+      <StatCard
+        label={`${monthLabel} 労働時間`}
+        value={<>{totalHours.toFixed(1)}<span className={styles.valueUnit}>h</span></>}
+        detail={isExpanded && `月末見込 ${monthEndHours.toFixed(1)}h`}
+      />
+      <StatCard
+        label={`${monthLabel} 給与実績`}
+        value={`¥${totalSalary.toLocaleString()}`}
+        detail={isExpanded && `月末見込 ¥${monthEndEstimate.toLocaleString()}`}
+      />
     </div>
   );
 });

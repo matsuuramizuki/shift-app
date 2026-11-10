@@ -1,3 +1,42 @@
+/* ==========================================================================
+   Motion primitives
+   ========================================================================== */
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes contentFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes monthSwap {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
 .container {
   position: relative;
   z-index: 1;
@@ -7,10 +46,6 @@
   padding: max(28px, env(safe-area-inset-top)) 20px 170px;
 }
 
-.gradientBg {
-  display: none; /* Fully eliminate AI-style aura gradients */
-}
-
 .loadingState {
   min-height: 100vh;
   display: grid;
@@ -18,6 +53,7 @@
   color: var(--text-muted);
   font-size: 14px;
   font-weight: 550;
+  animation: fadeIn 400ms ease both;
 }
 
 .analysisLoading {
@@ -29,17 +65,13 @@
   animation: contentFadeIn 200ms ease both;
 }
 
-@keyframes contentFadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Genuine Samsung One UI Large Viewing Area */
+/* Large viewing area header */
 .header {
   position: relative;
   z-index: 2;
   margin: 10px 4px 24px;
   padding: 0 4px;
+  animation: riseIn 480ms var(--ease-out) both;
 }
 
 .headerViewingArea {
@@ -70,6 +102,7 @@
   letter-spacing: -0.045em;
   line-height: 1.05;
   margin: 2px 0 6px;
+  animation: monthSwap 360ms var(--ease-out) both;
 }
 
 .headerSubtitle {
@@ -84,6 +117,33 @@
   touch-action: pan-y;
 }
 
+/* Staggered entrance for home & analysis content */
+.homeSwipeArea > *,
+.analysisView > * {
+  animation: riseIn 520ms var(--ease-out) both;
+}
+
+.homeSwipeArea > :nth-child(1),
+.analysisView > :nth-child(1) { animation-delay: 40ms; }
+.homeSwipeArea > :nth-child(2),
+.analysisView > :nth-child(2) { animation-delay: 100ms; }
+.homeSwipeArea > :nth-child(3),
+.analysisView > :nth-child(3) { animation-delay: 160ms; }
+.analysisView > :nth-child(4) { animation-delay: 210ms; }
+.analysisView > :nth-child(5) { animation-delay: 260ms; }
+.analysisView > :nth-child(n + 6) { animation-delay: 300ms; }
+
+.analysisView {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Spacing comes from the flex gap */
+.analysisView > div {
+  margin-bottom: 0;
+}
+
 .iconBtn {
   width: 42px;
   height: 42px;
@@ -94,7 +154,8 @@
   border-radius: 14px;
   background: var(--surface);
   color: var(--text-muted);
-  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease, color 160ms ease;
+  box-shadow: var(--shadow-card);
+  transition: transform 180ms var(--ease-spring), background 160ms ease, color 160ms ease;
 }
 
 .iconBtn:hover {
@@ -106,7 +167,18 @@
   transform: scale(0.92);
 }
 
-/* Two-column summary and analysis grid */
+.iconBtn svg {
+  transition: transform 420ms var(--ease-spring);
+}
+
+.headerTopRow .iconBtn:hover svg {
+  transform: rotate(45deg);
+}
+
+/* ==========================================================================
+   Summary / analysis cards
+   ========================================================================== */
+
 .analysisGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -119,12 +191,22 @@
   user-select: none;
   gap: 10px;
   margin-bottom: 18px;
+  border-radius: var(--radius-lg);
 }
 
 .summaryInteractive .analysisCard {
   min-height: 94px;
   padding: 16px 15px 14px;
   justify-content: flex-start;
+  transition: transform 220ms var(--ease-spring), box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.summaryInteractive:hover .analysisCard {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.summaryInteractive:active .analysisCard {
+  transform: scale(0.98);
 }
 
 .summaryInteractive .analysisCardLabel {
@@ -141,6 +223,11 @@
   position: relative;
   z-index: 2;
   min-width: 0;
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 22px 20px 20px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -149,50 +236,13 @@
 
 .analysisCardLabel {
   overflow: hidden;
+  margin-bottom: 8px;
   color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.01em;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.timeOfDayLegend {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 4px;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.timeOfDayLegend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.timeOfDayLegend i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.analysisCard {
-  min-height: 104px;
-  padding: 22px 20px 20px;
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.analysisCardLabel {
-  margin-bottom: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
 }
 
 .analysisCardValue {
@@ -201,7 +251,86 @@
   font-weight: 800;
   letter-spacing: -0.035em;
   line-height: 1.15;
+  font-variant-numeric: tabular-nums;
 }
+
+.valueUnit {
+  margin-left: 2px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cardDetail {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  animation: contentFadeIn 260ms var(--ease-out) both;
+}
+
+/* ==========================================================================
+   Segmented control (analysis tabs)
+   ========================================================================== */
+
+.segmented {
+  position: relative;
+  display: flex;
+  padding: 4px;
+  border: 1px solid var(--segmented-control-border);
+  border-radius: var(--radius-pill);
+  background: var(--segmented-control-bg);
+}
+
+.segmentedIndicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: var(--radius-pill);
+  background: var(--segmented-control-active);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 380ms var(--ease-spring);
+}
+
+.segmentedIndicatorRight {
+  transform: translateX(100%);
+}
+
+.segmentedBtn {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  transition: color 220ms ease, transform 180ms var(--ease-spring);
+}
+
+.segmentedBtn:active {
+  transform: scale(0.96);
+}
+
+.segmentedBtnActive {
+  color: var(--segmented-control-active-text);
+}
+
+.calendarHeader.monthSwitcher {
+  margin-bottom: 0;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* ==========================================================================
+   Calendar
+   ========================================================================== */
 
 .calendarContainer {
   position: relative;
@@ -232,23 +361,32 @@
   border: none;
   border-radius: var(--radius-pill);
   background: transparent;
+  box-shadow: none;
   color: var(--text-main);
-  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
+  transition: transform 180ms var(--ease-spring), background 160ms ease;
 }
 
 .calendarHeader .iconBtn:hover {
-  background: var(--surface-hover);
+  background: var(--cell-hover);
 }
 
 .calendarHeader .iconBtn:active {
-  transform: scale(0.92);
+  transform: scale(0.88);
 }
 
-/* Borderless Clean Grid */
+.calendarMonthLabel {
+  display: inline-block;
+  animation: monthSwap 320ms var(--ease-out) both;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 3px;
+}
+
+.gridDays {
+  animation: monthSwap 360ms var(--ease-out) both;
 }
 
 .dayLabel {
@@ -268,28 +406,27 @@
   color: var(--primary);
 }
 
-/* Individually tinted calendar day cells */
 .dayCell {
   position: relative;
   min-height: 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 3px 1px 3px;
+  padding: 3px 1px;
   border: 1px solid transparent;
   border-radius: 12px;
-  background: var(--surface-hover);
+  background: var(--cell-bg);
   color: var(--text-main);
   font-size: 12px;
-  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 140ms ease;
+  transition: transform 200ms var(--ease-spring), background 160ms ease, border-color 160ms ease;
 }
 
 .dayCell:hover {
-  background: var(--surface-hover);
+  background: var(--cell-hover);
 }
 
 .dayCell:active {
-  transform: scale(0.93);
+  transform: scale(0.92);
 }
 
 .dayCell.empty {
@@ -299,7 +436,18 @@
 }
 
 .dayCell.today {
-  background: rgba(0, 114, 222, 0.04);
+  border-color: var(--primary-glow);
+}
+
+.dayCell.hasShift {
+  border-color: var(--shift-cell-border);
+  background: var(--shift-cell-bg);
+}
+
+.dayCell.tentativeShift {
+  border-color: var(--tentative-cell-border);
+  border-style: dashed;
+  background: var(--tentative-cell-bg);
 }
 
 .dayNumber {
@@ -314,11 +462,12 @@
   line-height: 1;
 }
 
-/* One UI Signature Solid Blue Circle for Today */
 .todayNumber {
   background: var(--primary);
-  color: white !important;
+  color: var(--on-primary) !important;
   font-weight: 800;
+  box-shadow: 0 3px 10px var(--primary-glow);
+  animation: popIn 420ms var(--ease-spring) 200ms both;
 }
 
 .sunCell .dayNumber:not(.todayNumber) {
@@ -329,23 +478,23 @@
   color: var(--primary);
 }
 
-/* Uncluttered Shift Pill */
+/* Shift time pill */
 .shiftIndicator {
-  width: calc(100% - 2px);
+  width: calc(100% - 4px);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1px;
   margin-top: 2px;
   padding: 2.5px 0;
-  border-radius: 5px;
-  background: var(--primary-variant);
-  color: var(--primary);
+  border-radius: 6px;
+  background: var(--shift-pill-bg);
+  color: var(--shift-pill-text);
 }
 
 .dayCell.tentativeShift .shiftIndicator {
-  background: #fff4e5;
-  color: #c96800;
+  background: var(--tentative-pill-bg);
+  color: var(--tentative-pill-text);
 }
 
 .shiftTimeText {
@@ -360,10 +509,31 @@
   margin-top: 1px;
   padding: 0.5px 3px;
   border-radius: 4px;
-  background: rgba(255, 138, 0, 0.2);
+  background: var(--tentative-pill-bg);
   font-size: 7.5px;
   font-weight: 800;
 }
+
+.paydayIndicator {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  left: 3px;
+  overflow: hidden;
+  padding: 1.5px 3px;
+  border-radius: 6px;
+  background: var(--payday-bg);
+  color: var(--payday-text);
+  font-size: 7.5px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   Sections & upcoming list
+   ========================================================================== */
 
 .sectionContainer,
 .chartContainer {
@@ -375,24 +545,6 @@
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
-}
-
-.paydayIndicator {
-  position: absolute;
-  right: 3px;
-  bottom: 3px;
-  left: 3px;
-  overflow: hidden;
-  padding: 1.5px 3px;
-  border-radius: 6px;
-  background: #fff2cc;
-  color: #8c6100;
-  font-size: 7.5px;
-  font-weight: 800;
-  text-align: center;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .sectionHeader {
@@ -425,7 +577,6 @@
   gap: 8px;
 }
 
-/* One UI 8.5 / 9 Rounded Item Card */
 .upcomingItem {
   min-height: 68px;
   display: flex;
@@ -433,15 +584,21 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 14px;
-  border-radius: 20px; /* One UI 8.5 squircle */
-  background: rgba(20, 23, 28, 0.025);
   border: 1px solid var(--border);
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  border-radius: 20px;
+  background: var(--subtle-fill);
+  transition: background 200ms ease, border-color 200ms ease, transform 220ms var(--ease-spring);
+  animation: riseIn 460ms var(--ease-out) both;
 }
 
+.upcomingItem:nth-child(1) { animation-delay: 200ms; }
+.upcomingItem:nth-child(2) { animation-delay: 250ms; }
+.upcomingItem:nth-child(3) { animation-delay: 300ms; }
+.upcomingItem:nth-child(4) { animation-delay: 350ms; }
+
 .upcomingItem:hover {
-  background: var(--primary-variant);
-  border-color: rgba(0, 114, 222, 0.16);
+  border-color: var(--shift-cell-border);
+  background: var(--shift-cell-bg);
   transform: translateY(-1px);
 }
 
@@ -460,14 +617,13 @@
   display: inline-block;
   padding: 4px 10px;
   border-radius: var(--radius-pill);
-  background: var(--primary-variant);
-  color: var(--primary);
+  background: var(--shift-pill-bg);
+  color: var(--shift-pill-text);
   font-size: 11px;
   font-weight: 750;
   font-variant-numeric: tabular-nums;
 }
 
-/* Calendar Date Art Squircle */
 .upcomingArt {
   width: 46px;
   height: 46px;
@@ -476,9 +632,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--shift-cell-border);
   border-radius: 14px;
-  background: var(--primary-variant);
+  background: var(--shift-cell-bg);
 }
 
 .upcomingArtMonth {
@@ -517,15 +673,14 @@
   color: var(--text-sub);
 }
 
-.tentativeBadge,
-.nextShiftBadge {
+.tentativeBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 1px 6px;
   border-radius: var(--radius-pill);
-  background: #fff0d6;
-  color: #a45d00;
+  background: var(--tentative-badge-bg);
+  color: var(--tentative-badge-text);
   font-size: 9px;
   font-weight: 700;
 }
@@ -543,6 +698,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  font-variant-numeric: tabular-nums;
 }
 
 .upcomingMemo {
@@ -551,8 +707,16 @@
   color: var(--text-sub);
 }
 
+/* ==========================================================================
+   Charts
+   ========================================================================== */
+
 .chartContainer {
   min-height: 250px;
+}
+
+.chartTitle {
+  font-size: 16px;
 }
 
 .chartSummaryWrapper {
@@ -561,7 +725,7 @@
   overflow: hidden;
   margin-top: 0;
   opacity: 0;
-  transition: grid-template-rows 250ms ease, opacity 200ms ease, margin-top 250ms ease;
+  transition: grid-template-rows 320ms var(--ease-out), opacity 240ms ease, margin-top 320ms var(--ease-out);
 }
 
 .chartSummaryWrapper.open {
@@ -584,17 +748,18 @@
   padding: 6px 9px;
   border: 1px solid var(--border);
   border-radius: 9px;
-  background: rgba(0, 0, 0, 0.025);
+  background: var(--subtle-fill);
   color: var(--text-muted);
   font-size: 11px;
+  font-variant-numeric: tabular-nums;
 }
 
 .tooltipBox {
   padding: 9px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  background: var(--tooltip-bg);
+  box-shadow: var(--shadow-floating);
   color: var(--text-main);
   font-size: 11px;
   backdrop-filter: blur(18px);
@@ -613,7 +778,10 @@
   z-index: 2;
 }
 
-/* One UI 8.5 / 9 Bottom Sheet Modal */
+/* ==========================================================================
+   Bottom sheet modal
+   ========================================================================== */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -622,29 +790,36 @@
   align-items: flex-end;
   justify-content: center;
   padding-top: 40px;
-  background: rgba(14, 18, 24, 0.45);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: var(--overlay);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  animation: fadeIn 260ms ease both;
 }
 
 .modalContent {
   width: min(100%, 680px);
   max-height: 92vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 14px 24px calc(28px + env(safe-area-inset-bottom));
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   border-bottom: 0;
-  border-radius: 36px 36px 0 0; /* One UI 8.5 / 9 High Rounding */
-  background: var(--surface);
-  box-shadow: 0 -20px 60px rgba(14, 18, 24, 0.16);
+  border-radius: 32px 32px 0 0;
+  background: var(--surface-elevated);
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.18);
+  animation: sheetUp 460ms var(--ease-sheet) both;
+}
+
+.modalContent > :not(.modalHandle) {
+  animation: contentFadeIn 360ms var(--ease-out) 120ms both;
 }
 
 .modalHandle {
-  width: 44px;
+  width: 40px;
   height: 5px;
   margin: 0 auto 16px;
   border-radius: var(--radius-pill);
-  background: #d3d9e2;
+  background: var(--handle);
 }
 
 .modalHeader {
@@ -663,18 +838,19 @@
   height: 38px;
   display: grid;
   place-items: center;
-  border-radius: 14px; /* Squircle Close Button */
-  background: rgba(20, 23, 28, 0.05);
+  border-radius: 14px;
+  background: var(--subtle-fill-strong);
   color: var(--text-muted);
-  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
+  transition: transform 180ms var(--ease-spring), background 160ms ease, color 160ms ease;
 }
 
 .modalHeader button:hover {
-  background: rgba(20, 23, 28, 0.09);
+  background: var(--surface-active);
+  color: var(--text-main);
 }
 
 .modalHeader button:active {
-  transform: scale(0.92);
+  transform: scale(0.9);
 }
 
 .timeGrid,
@@ -697,7 +873,6 @@
   align-items: end;
 }
 
-/* One UI Grouped Settings Toggle Row */
 .compactToggleRow {
   min-height: 52px;
   display: flex;
@@ -707,8 +882,8 @@
   margin-bottom: 16px;
   padding: 10px 14px;
   border: 1px solid var(--border);
-  border-radius: 18px; /* Squircle */
-  background: var(--surface-solid);
+  border-radius: 18px;
+  background: var(--input-bg);
 }
 
 .toggleLabel {
@@ -718,19 +893,18 @@
   white-space: nowrap;
 }
 
-/* Samsung One UI Iconic Pill Toggle */
 .toggle {
   position: relative;
   width: 48px;
   height: 28px;
   flex: 0 0 auto;
   border-radius: var(--radius-pill);
-  background: #dbe0ea;
-  transition: background 220ms ease;
+  background: var(--toggle-off);
+  transition: background 240ms ease;
 }
 
 .toggleOn {
-  background: var(--success); /* Galaxy Mint Green */
+  background: var(--success);
 }
 
 .toggleThumb {
@@ -740,13 +914,21 @@
   width: 23px;
   height: 23px;
   border-radius: 50%;
-  background: white;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  background: var(--toggle-thumb);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 280ms var(--ease-spring), width 180ms ease;
+}
+
+.toggle:active .toggleThumb {
+  width: 27px;
 }
 
 .toggleOn .toggleThumb {
   transform: translateX(20px);
+}
+
+.toggleOn:active .toggleThumb {
+  transform: translateX(16px);
 }
 
 .inputGroup {
@@ -762,19 +944,19 @@
   font-weight: 700;
 }
 
-/* One UI 8.5 / 9 Rounded Card Inputs */
 .inputGroup input,
 .inputGroup textarea {
   width: 100%;
   min-height: 50px;
   padding: 12px 15px;
   border: 1px solid var(--border);
-  border-radius: 18px; /* Squircle Input */
-  background: var(--surface-solid);
+  border-radius: 18px;
+  background: var(--input-bg);
   color: var(--text-main);
   font-size: 15px;
   font-weight: 550;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
 .inputGroup textarea {
@@ -782,9 +964,22 @@
   resize: vertical;
 }
 
+.inputGroup input::placeholder,
+.inputGroup textarea::placeholder {
+  color: var(--text-sub);
+}
+
 .memoInput {
   field-sizing: content;
   max-height: 120px;
+}
+
+.inputGroup input:focus,
+.inputGroup textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+  background: var(--surface-elevated);
+  box-shadow: 0 0 0 3.5px var(--primary-glow);
 }
 
 .modalActions {
@@ -795,7 +990,7 @@
   gap: 12px;
   margin: 4px -4px 0;
   padding: 14px 4px calc(28px + env(safe-area-inset-bottom));
-  background: linear-gradient(to bottom, rgba(241, 244, 249, 0), var(--background) 20px);
+  background: linear-gradient(to bottom, transparent, var(--surface-elevated) 20px);
 }
 
 .modalActions .btnPrimary,
@@ -811,21 +1006,15 @@
   flex: 1;
 }
 
-.inputGroup input:focus,
-.inputGroup textarea:focus {
-  border-color: var(--primary);
-  outline: none;
-  box-shadow: 0 0 0 3.5px var(--primary-glow);
-}
-
 .errorText {
   margin-bottom: 16px;
   padding: 12px 14px;
   border-radius: 16px;
-  background: rgba(255, 71, 87, 0.1);
+  background: color-mix(in srgb, var(--error) 14%, transparent);
   color: var(--error);
   font-size: 12.5px;
   font-weight: 700;
+  animation: contentFadeIn 240ms var(--ease-out) both;
 }
 
 .settingsNote,
@@ -855,6 +1044,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  color: var(--text-main);
   font-size: 15.5px;
   font-weight: 750;
 }
@@ -874,7 +1064,7 @@
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: var(--surface-solid);
+  background: var(--input-bg);
   color: var(--text-muted);
   font-size: 12.5px;
 }
@@ -887,12 +1077,20 @@
   place-items: center;
   border-radius: 16px;
   background: var(--primary);
-  color: white;
-  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), background 160ms ease;
+  color: var(--on-primary);
+  transition: transform 180ms var(--ease-spring), background 160ms ease;
+}
+
+.copyButton:hover {
+  background: var(--primary-hover);
 }
 
 .copyButton:active {
-  transform: scale(0.92);
+  transform: scale(0.9);
+}
+
+.copyButton svg {
+  animation: popIn 320ms var(--ease-spring) both;
 }
 
 .calendarRefreshButton {
@@ -906,11 +1104,11 @@
   padding: 12px 16px;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: var(--surface);
+  background: var(--surface-elevated);
   color: var(--primary);
   font-size: 13.5px;
   font-weight: 700;
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms var(--ease-spring);
 }
 
 .calendarRefreshButton:hover {
@@ -919,7 +1117,15 @@
 }
 
 .calendarRefreshButton:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
+}
+
+.calendarRefreshButton svg {
+  transition: transform 500ms var(--ease-spring);
+}
+
+.calendarRefreshButton:active svg {
+  transform: rotate(180deg);
 }
 
 .calendarRefreshNote {
@@ -929,7 +1135,10 @@
   line-height: 1.5;
 }
 
-/* One UI 8.5 / 9 Pill Buttons */
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
 .btnPrimary,
 .btnDanger {
   width: 100%;
@@ -940,24 +1149,35 @@
   font-size: 15.5px;
   font-weight: 750;
   text-align: center;
-  transition: transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 160ms ease, background 160ms ease, box-shadow 200ms ease;
+  transition: transform 200ms var(--ease-spring), opacity 160ms ease, background 160ms ease, box-shadow 200ms ease;
 }
 
 .btnPrimary {
   background: var(--primary);
-  color: white;
-  box-shadow: 0 8px 22px rgba(0, 114, 222, 0.28);
+  color: var(--on-primary);
+  box-shadow: 0 8px 22px var(--primary-glow);
 }
 
 .btnPrimary:hover:not(:disabled) {
   background: var(--primary-hover);
-  box-shadow: 0 10px 28px rgba(0, 114, 222, 0.36);
+  box-shadow: 0 10px 28px var(--primary-glow);
 }
 
 .btnDanger {
-  border: 1px solid rgba(255, 71, 87, 0.2);
-  background: rgba(255, 71, 87, 0.08);
+  border: 1px solid color-mix(in srgb, var(--error) 24%, transparent);
+  background: color-mix(in srgb, var(--error) 9%, transparent);
   color: var(--error);
+}
+
+.btnDanger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--error) 14%, transparent);
+}
+
+.btnWithIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btnPrimary:active:not(:disabled),
@@ -971,6 +1191,10 @@
   opacity: 0.5;
 }
 
+/* ==========================================================================
+   Login
+   ========================================================================== */
+
 .loginCard {
   width: min(100%, 430px);
   min-height: 420px;
@@ -981,12 +1205,11 @@
   margin: 10vh auto 0;
   padding: 44px 30px;
   border: 1px solid var(--border);
-  border-radius: 34px; /* One UI Heavy Rounding */
+  border-radius: 34px;
   background: var(--surface);
-  box-shadow: 0 24px 70px rgba(18, 38, 63, 0.1);
+  box-shadow: var(--shadow-floating);
   text-align: center;
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  animation: riseIn 560ms var(--ease-out) both;
 }
 
 .loginIcon {
@@ -995,10 +1218,11 @@
   display: grid;
   place-items: center;
   margin-bottom: 24px;
-  border-radius: 22px; /* One UI Squircle Icon */
+  border-radius: 22px;
   background: linear-gradient(135deg, #3db2ff, #0072de);
   box-shadow: 0 14px 28px rgba(0, 114, 222, 0.28);
   color: white;
+  animation: popIn 520ms var(--ease-spring) 160ms both;
 }
 
 .loginCard h1 {
@@ -1015,7 +1239,10 @@
   font-size: 14.5px;
 }
 
-/* One UI 8.5 / 9 Floating Pill Navigation Dock */
+/* ==========================================================================
+   Floating bottom navigation
+   ========================================================================== */
+
 .bottomNav {
   position: fixed;
   right: 18px;
@@ -1029,12 +1256,32 @@
   margin: 0 auto;
   padding: 6px 8px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-pill); /* One UI Pill Dock */
-  background: var(--surface);
+  border-radius: var(--radius-pill);
+  background: var(--nav-bg);
   box-shadow: var(--shadow-floating);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  animation: riseIn 520ms var(--ease-out) 120ms both;
+}
+
+.navIndicator {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 8px;
+  width: calc((100% - 16px) / 2);
+  border-radius: var(--radius-pill);
+  background: var(--primary-variant);
+  transition: transform 420ms var(--ease-spring);
+}
+
+.navIndicatorRight {
+  transform: translateX(100%);
 }
 
 .navItem {
+  position: relative;
+  z-index: 1;
   height: 100%;
   flex: 1;
   display: flex;
@@ -1042,11 +1289,15 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  border-radius: var(--radius-pill); /* One UI Pill Tab */
+  border-radius: var(--radius-pill);
   color: var(--text-muted);
   font-size: 10.5px;
   font-weight: 650;
-  transition: color 180ms ease, background 180ms ease, transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  transition: color 220ms ease, transform 180ms var(--ease-spring);
+}
+
+.navItem svg {
+  transition: transform 320ms var(--ease-spring);
 }
 
 .navItem:active {
@@ -1054,116 +1305,17 @@
 }
 
 .navItem.active {
-  background: var(--primary-variant);
   color: var(--primary);
   font-weight: 750;
 }
 
-/* Samsung One UI 7/8.5/9 "Now Bar" (Live Floating Capsule) */
-.nextShiftCard {
-  position: fixed;
-  right: 18px;
-  bottom: calc(max(16px, env(safe-area-inset-bottom)) + 78px);
-  left: 18px;
-  z-index: 49;
-  width: min(calc(100% - 36px), 560px);
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 13px 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill); /* Now Bar Capsule */
-  background: var(--surface);
-  box-shadow: var(--shadow-floating);
-  cursor: pointer;
-  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1), box-shadow 180ms ease;
+.navItem.active svg {
+  transform: translateY(-1px) scale(1.08);
 }
 
-.nextShiftCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 44px rgba(18, 38, 63, 0.16);
-}
-
-.nextShiftCard:active {
-  transform: scale(0.97);
-}
-
-.nowBarIcon {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-pill);
-  background: var(--primary-variant);
-  color: var(--primary);
-  transition: background 180ms ease, color 180ms ease;
-}
-
-.nowBarIconActive {
-  background: rgba(0, 196, 140, 0.16);
-  color: var(--success);
-}
-
-/* Active Working Now Live Glow */
-.activeShiftHighlight {
-  border-color: rgba(0, 196, 140, 0.45);
-  box-shadow: 0 14px 40px rgba(0, 196, 140, 0.2);
-}
-
-.activePill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--success);
-  font-weight: 800;
-}
-
-.activePillDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 10px var(--success);
-  animation: pulseDot 2s infinite ease-in-out;
-}
-
-@keyframes pulseDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-}
-
-.nextShiftInfo {
-  min-width: 0;
-  flex: 1;
-  text-align: left;
-}
-
-.nextShiftLabel {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.nextShiftTime {
-  overflow: hidden;
-  margin-top: 3px;
-  color: var(--text-main);
-  font-size: 14px;
-  font-weight: 650;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.nextShiftChevron {
-  flex: 0 0 auto;
-  color: var(--text-sub);
-}
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
 
 @media (hover: hover) and (pointer: fine) {
   .chartTapLayer {
@@ -1198,11 +1350,7 @@
   .sectionContainer,
   .chartContainer {
     padding: 14px;
-    border-radius: 20px;
-  }
-
-  .grid {
-    gap: 3px;
+    border-radius: 22px;
   }
 
   .dayCell {
@@ -1231,182 +1379,21 @@
   }
 }
 
+/* Dark-only refinements (colors themselves come from tokens in globals.css) */
 @media (prefers-color-scheme: dark) {
-  .gradientBg {
-    display: none;
-  }
-
-  .userAvatar {
-    border-color: var(--border);
-    background: var(--primary-variant);
-    color: var(--primary);
-    box-shadow: none;
-  }
-
-  .iconBtn {
-    border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(30, 33, 42, 0.75);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-  }
-
-  .iconBtn:hover {
-    background: rgba(42, 47, 60, 0.95);
-  }
-
   .analysisCard,
   .calendarContainer,
   .sectionContainer,
   .chartContainer,
   .loginCard {
-    border-color: rgba(255, 255, 255, 0.07);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 60%), var(--surface);
   }
 
-  .analysisCard:hover {
-    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.5);
-  }
-
-  .calendarHeader .iconBtn:hover,
-  .dayCell:hover {
-    background: rgba(41, 139, 245, 0.16);
-  }
-
-  .dayCell {
-    background: rgba(255, 255, 255, 0.03);
-  }
-
-  .dayCell.hasShift {
-    border-color: rgba(41, 139, 245, 0.24);
-    background: rgba(41, 139, 245, 0.18);
-    color: #6ebbff;
-  }
-
-  .dayCell.tentativeShift {
-    border-color: rgba(255, 161, 38, 0.25);
-    background: rgba(255, 161, 38, 0.15);
-    color: #ffb854;
-  }
-
-  .sunCell .dayNumber:not(.todayNumber) {
-    color: var(--error);
-  }
-
-  .satCell .dayNumber:not(.todayNumber) {
-    color: var(--primary);
-  }
-
-  .tentativeDot {
-    background: rgba(255, 161, 38, 0.24);
-  }
-
-  .paydayIndicator {
-    background: rgba(255, 214, 10, 0.18);
-    color: #ffd60a;
-  }
-
-  .upcomingItem {
-    background: rgba(255, 255, 255, 0.03);
-    border-color: rgba(255, 255, 255, 0.06);
-  }
-
-  .upcomingItem:hover,
-  .chartSummaryRow span {
-    background: rgba(255, 255, 255, 0.07);
-  }
-
-  .upcomingArt {
-    border-color: rgba(41, 139, 245, 0.22);
-    background: linear-gradient(180deg, rgba(41, 139, 245, 0.18) 0%, rgba(41, 139, 245, 0.1) 100%);
-  }
-
-  .upcomingHoursPill {
-    background: rgba(41, 139, 245, 0.18);
-    color: #6ebbff;
-  }
-
-  .tentativeBadge,
-  .nextShiftBadge {
-    background: rgba(255, 161, 38, 0.2);
-    color: #ffb854;
-  }
-
-  .tooltipBox {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(28, 32, 40, 0.96);
-    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.5);
-  }
-
-  .modalOverlay {
-    background: rgba(0, 0, 0, 0.65);
+  .segmentedIndicator {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   }
 
   .modalContent {
-    border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(22, 25, 32, 0.98);
     box-shadow: 0 -20px 64px rgba(0, 0, 0, 0.6);
-  }
-
-  .modalHandle {
-    background: #464c5a;
-  }
-
-  .modalHeader button {
-    background: #2b303d;
-  }
-
-  .compactToggleRow,
-  .inputGroup input,
-  .inputGroup textarea,
-  .calendarUrl {
-    background: #1e222b;
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  .toggle {
-    background: #3e4453;
-  }
-
-  .toggleOn {
-    background: var(--success);
-  }
-
-  .toggleThumb {
-    background: #f0f4f9;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-  }
-
-  .modalActions {
-    background: linear-gradient(to bottom, rgba(22, 25, 32, 0), rgba(22, 25, 32, 0.99) 20px);
-  }
-
-  .inputGroup input:focus,
-  .inputGroup textarea:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3.5px var(--primary-glow);
-  }
-
-  .errorText {
-    background: rgba(255, 94, 109, 0.16);
-    color: #ff7582;
-  }
-
-  .bottomNav {
-    border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(22, 25, 32, 0.88);
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6);
-  }
-
-  .navItem.active {
-    background: rgba(41, 139, 245, 0.18);
-  }
-
-  .nextShiftCard {
-    border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(26, 30, 39, 0.92);
-    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.5);
-  }
-
-  .activeShiftHighlight {
-    border-color: rgba(5, 213, 153, 0.45);
-    box-shadow: 0 14px 40px rgba(5, 213, 153, 0.22);
   }
 }

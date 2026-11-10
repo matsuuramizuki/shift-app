@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { generateICal } from '@/lib/ical';
-import { decodeShiftMetadata } from '@/lib/shiftMetadata';
+import { rowToShift } from '@/lib/shiftMetadata';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,40 +28,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
       return new NextResponse('Error fetching shifts', { status: 500 });
     }
 
-    if (!shifts) {
-      return new NextResponse(generateICal([]), {
-        headers: {
-          'Content-Type': 'text/calendar; charset=utf-8',
-          'Cache-Control': 'public, max-age=0, must-revalidate',
-        }
-      });
-    }
-
-    const mappedShifts = shifts.map(item => {
-      const metadata = decodeShiftMetadata(item.memo, item.is_tentative);
-      return {
-        id: item.id,
-        date: item.date,
-        startTime: item.start_time,
-        endTime: item.end_time,
-        breakMinutes: item.break_minutes,
-        deduction: item.deduction,
-        hourlyWage: item.hourly_wage,
-        allowance: item.allowance || 0,
-        memo: metadata.memo,
-        isTentative: metadata.isTentative
-      };
-    });
-
-    const icalString = generateICal(mappedShifts);
-
-    return new NextResponse(icalString, {
+    return new NextResponse(generateICal((shifts ?? []).map(rowToShift)), {
       headers: {
         'Content-Type': 'text/calendar; charset=utf-8',
         'Cache-Control': 'public, max-age=0, must-revalidate',
       }
     });
-
   } catch (error) {
     console.error('API Error:', error);
     return new NextResponse('Internal Server Error', { status: 500 });

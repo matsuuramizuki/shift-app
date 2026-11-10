@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import styles from "@/app/page.module.css";
 import type { Shift } from "@/lib/store";
-import { calculateSalary } from "@/lib/calc";
+import { calculateShiftSalary } from "@/lib/calc";
 import { format, parseISO } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { Clock } from 'lucide-react';
@@ -17,8 +17,7 @@ export const UpcomingShifts = memo(function UpcomingShifts({ shifts }: Props) {
     .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
     .slice(0, 4)
     .map(shift => {
-      const calc = calculateSalary(shift.startTime, shift.endTime, shift.breakMinutes, shift.deduction, shift.hourlyWage, shift.allowance || 0);
-      return { ...shift, dateObj: parseISO(shift.date), hours: calc.hours };
+      return { ...shift, dateObj: parseISO(shift.date), hours: calculateShiftSalary(shift).hours };
     });
 
   if (upcoming.length === 0) {

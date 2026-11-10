@@ -1,26 +1,28 @@
 :root {
-  /* Genuine Samsung One UI Flat & Clean System */
+  /* Samsung One UI inspired flat & clean system */
   --background: #f3f5f8;
   --surface: #ffffff;
   --surface-solid: #ffffff;
-  --surface-hover: #f8fafc;
+  --surface-hover: #f6f8fb;
   --surface-active: #eaedf2;
+  --surface-elevated: #ffffff;
   --primary: #0072de;
   --primary-hover: #0063c6;
   --primary-variant: #ebf3fd;
   --primary-glow: rgba(0, 114, 222, 0.16);
+  --on-primary: #ffffff;
   --secondary: #6c5ce7;
   --success: #00c48c;
   --warning: #ff8a00;
   --error: #ff4757;
   --text-main: #111418;
-  --text-muted: #616b7c;
+  --text-muted: #5f6979;
   --text-sub: #8c97a8;
   --border: rgba(17, 20, 24, 0.07);
   --border-light: rgba(17, 20, 24, 0.04);
   --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-card-hover: 0 3px 8px rgba(0, 0, 0, 0.05);
-  --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 6px 18px rgba(18, 38, 63, 0.08);
+  --shadow-floating: 0 10px 30px rgba(18, 38, 63, 0.12);
   --segmented-control-bg: #e8ebf0;
   --segmented-control-border: transparent;
   --segmented-control-active: #ffffff;
@@ -28,45 +30,106 @@
   --chart-axis: #8c97a8;
   --chart-cursor: rgba(0, 114, 222, 0.05);
 
-  /* Samsung One UI Curvature Scale */
+  /* Calendar & status colors */
+  --cell-bg: #f6f8fb;
+  --cell-hover: #eef2f7;
+  --shift-cell-bg: rgba(0, 114, 222, 0.06);
+  --shift-cell-border: rgba(0, 114, 222, 0.14);
+  --shift-pill-bg: rgba(0, 114, 222, 0.12);
+  --shift-pill-text: #0063c6;
+  --tentative-cell-bg: rgba(255, 138, 0, 0.07);
+  --tentative-cell-border: rgba(255, 138, 0, 0.22);
+  --tentative-pill-bg: rgba(255, 138, 0, 0.16);
+  --tentative-pill-text: #b35c00;
+  --tentative-badge-bg: #fff0d6;
+  --tentative-badge-text: #a45d00;
+  --payday-bg: #fff2cc;
+  --payday-text: #8c6100;
+  --subtle-fill: rgba(20, 23, 28, 0.025);
+  --subtle-fill-strong: rgba(20, 23, 28, 0.05);
+
+  /* Inputs, sheets & navigation */
+  --input-bg: #f6f8fb;
+  --toggle-off: #dbe0ea;
+  --toggle-thumb: #ffffff;
+  --handle: #d3d9e2;
+  --overlay: rgba(14, 18, 24, 0.42);
+  --nav-bg: rgba(255, 255, 255, 0.86);
+  --tooltip-bg: rgba(255, 255, 255, 0.94);
+
+  /* Curvature scale */
   --radius-xs: 8px;
   --radius-sm: 14px;
   --radius-md: 20px;
   --radius-lg: 26px;
   --radius-xl: 32px;
   --radius-pill: 9999px;
+
+  /* Motion */
+  --ease-spring: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #090a0d;
-    --surface: #14171d;
-    --surface-solid: #14171d;
-    --surface-hover: #1c2028;
-    --surface-active: #232833;
-    --primary: #298bf5;
-    --primary-hover: #50a3ff;
-    --primary-variant: #132235;
-    --primary-glow: rgba(41, 139, 245, 0.2);
-    --secondary: #8272fb;
-    --success: #05d599;
+    --background: #0b0d12;
+    --surface: #151922;
+    --surface-solid: #151922;
+    --surface-hover: #1b202a;
+    --surface-active: #232937;
+    --surface-elevated: #191d27;
+    --primary: #3b93f7;
+    --primary-hover: #5aa6ff;
+    --primary-variant: #15253a;
+    --primary-glow: rgba(59, 147, 247, 0.24);
+    --on-primary: #ffffff;
+    --secondary: #8f80ff;
+    --success: #12d39b;
     --warning: #ffa126;
-    --error: #ff5e6d;
-    --text-main: #f1f4f8;
-    --text-muted: #8e99ab;
-    --text-sub: #667285;
+    --error: #ff6370;
+    --text-main: #eef1f6;
+    --text-muted: #98a2b3;
+    --text-sub: #6f7a8c;
     --border: rgba(255, 255, 255, 0.07);
     --border-light: rgba(255, 255, 255, 0.04);
-    --shadow-card: 0 1px 4px rgba(0, 0, 0, 0.25);
-    --shadow-card-hover: 0 3px 10px rgba(0, 0, 0, 0.35);
-    --shadow-floating: 0 8px 28px rgba(0, 0, 0, 0.5);
-    --segmented-control-bg: #1e222b;
-    --segmented-control-border: transparent;
-    --segmented-control-active: #2a303d;
-    --segmented-control-active-text: #50a3ff;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-card-hover: 0 10px 28px rgba(0, 0, 0, 0.45);
+    --shadow-floating: 0 16px 44px rgba(0, 0, 0, 0.55);
+    --segmented-control-bg: #171b24;
+    --segmented-control-border: rgba(255, 255, 255, 0.05);
+    --segmented-control-active: #262c39;
+    --segmented-control-active-text: #7fbaff;
     --chart-axis: #7a8698;
-    --chart-cursor: rgba(41, 139, 245, 0.08);
+    --chart-cursor: rgba(59, 147, 247, 0.08);
+
+    --cell-bg: rgba(255, 255, 255, 0.028);
+    --cell-hover: rgba(255, 255, 255, 0.06);
+    --shift-cell-bg: rgba(59, 147, 247, 0.1);
+    --shift-cell-border: rgba(59, 147, 247, 0.24);
+    --shift-pill-bg: rgba(59, 147, 247, 0.2);
+    --shift-pill-text: #9ccbff;
+    --tentative-cell-bg: rgba(255, 161, 38, 0.08);
+    --tentative-cell-border: rgba(255, 161, 38, 0.26);
+    --tentative-pill-bg: rgba(255, 161, 38, 0.2);
+    --tentative-pill-text: #ffc46e;
+    --tentative-badge-bg: rgba(255, 161, 38, 0.18);
+    --tentative-badge-text: #ffbb5c;
+    --payday-bg: rgba(255, 214, 10, 0.16);
+    --payday-text: #ffd84d;
+    --subtle-fill: rgba(255, 255, 255, 0.03);
+    --subtle-fill-strong: rgba(255, 255, 255, 0.07);
+
+    --input-bg: #1f2430;
+    --toggle-off: #3a4150;
+    --toggle-thumb: #f0f4f9;
+    --handle: #454c5b;
+    --overlay: rgba(0, 0, 0, 0.62);
+    --nav-bg: rgba(23, 27, 36, 0.86);
+    --tooltip-bg: rgba(29, 34, 44, 0.96);
+
     color-scheme: dark;
   }
 }
@@ -86,7 +149,6 @@ body {
   min-height: 100vh;
   background: var(--background);
   color: var(--text-main);
-  /* Samsung One UI Modern Typography */
   font-family: "Samsung Sans", "SamsungOne", "One UI Sans", -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", "Noto Sans JP", "Hiragino Sans", sans-serif;
   line-height: 1.5;
   letter-spacing: -0.012em;
@@ -126,6 +188,10 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
+::selection {
+  background: var(--primary-glow);
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -153,5 +219,6 @@ textarea:focus-visible {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
   }
 }

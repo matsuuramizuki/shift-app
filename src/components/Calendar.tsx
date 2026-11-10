@@ -1,10 +1,9 @@
 import { memo, useMemo } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, addMonths, subMonths } from "date-fns";
-import { ja } from "date-fns/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek, subMonths } from "date-fns";
 import styles from "@/app/page.module.css";
 import type { Shift, Settings } from "@/lib/store";
-import { calculateSalary } from "@/lib/calc";
+import { calculateShiftSalary } from "@/lib/calc";
+import { MonthSwitcher } from "./MonthSwitcher";
 
 interface CalendarProps {
   currentDate: Date;
@@ -36,14 +35,7 @@ export const Calendar = memo(function Calendar({ currentDate, setCurrentDate, sh
       const prevMonthStr = format(subMonths(currentDate, 1), "yyyy-MM");
       for (const shift of shifts) {
         if (!shift.date.startsWith(prevMonthStr)) continue;
-        prevMonthSalary += calculateSalary(
-          shift.startTime,
-          shift.endTime,
-          shift.breakMinutes,
-          shift.deduction,
-          shift.hourlyWage,
-          shift.allowance || 0
-        ).salary;
+        prevMonthSalary += calculateShiftSalary(shift).salary;
       }
     }
 
@@ -54,15 +46,7 @@ export const Calendar = memo(function Calendar({ currentDate, setCurrentDate, sh
 
   return (
     <div className={styles.calendarContainer}>
-      <div className={styles.calendarHeader}>
-        <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className={styles.iconBtn}>
-          <ChevronLeft size={20} />
-        </button>
-        <span>{format(currentDate, "yyyy年 M月", { locale: ja })}</span>
-        <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className={styles.iconBtn}>
-          <ChevronRight size={20} />
-        </button>
-      </div>
+      <MonthSwitcher month={currentDate} onChange={setCurrentDate} />
 
       <div className={styles.grid}>
         {weekDays.map((d, idx) => (
@@ -73,7 +57,9 @@ export const Calendar = memo(function Calendar({ currentDate, setCurrentDate, sh
             {d}
           </div>
         ))}
+      </div>
 
+      <div key={format(monthStart, "yyyy-MM")} className={`${styles.grid} ${styles.gridDays}`}>
         {days.map(day => {
           const formattedDate = format(day, "yyyy-MM-dd");
           const shift = shiftsByDate.get(formattedDate);

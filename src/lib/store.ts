@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
-import { decodeShiftMetadata, encodeTentativeMemo } from "./shiftMetadata";
+import { encodeTentativeMemo, rowToShift } from "./shiftMetadata";
 
 export interface Settings {
   defaultHourlyWage: number;
@@ -67,21 +67,7 @@ export function useStore() {
       }
       
       if (shiftsRes.data) {
-        setShifts(shiftsRes.data.map(item => {
-          const metadata = decodeShiftMetadata(item.memo, item.is_tentative);
-          return {
-            id: item.id,
-            date: item.date,
-            startTime: item.start_time,
-            endTime: item.end_time,
-            breakMinutes: item.break_minutes,
-            deduction: item.deduction,
-            hourlyWage: item.hourly_wage,
-            allowance: item.allowance || 0,
-            memo: metadata.memo,
-            isTentative: metadata.isTentative
-          };
-        }));
+        setShifts(shiftsRes.data.map(rowToShift));
       }
     } catch (e) {
       console.error(e);
@@ -132,15 +118,10 @@ export function useStore() {
 
     // Keep the app usable before the optional database migration is applied.
     if (error && (error.code === 'PGRST204' || error.code === '42703' || error.message.includes('is_tentative'))) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { is_tentative, ...legacyPayload } = payload;
       ({ error } = await supabase.from('shifts').upsert({
-        user_id: payload.user_id,
-        date: payload.date,
-        start_time: payload.start_time,
-        end_time: payload.end_time,
-        break_minutes: payload.break_minutes,
-        deduction: payload.deduction,
-        hourly_wage: payload.hourly_wage,
-        allowance: payload.allowance,
+        ...legacyPayload,
         memo: encodeTentativeMemo(shift.memo, shift.isTentative ?? false)
       }, { onConflict: 'user_id, date' }));
     }

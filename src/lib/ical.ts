@@ -2,27 +2,19 @@ import type { Shift } from './store';
 
 const textEncoder = new TextEncoder();
 
-// Convert JST (Asia/Tokyo) date and time to UTC and format as iCal UTC string (ending with Z)
+const pad = (value: number, length = 2) => value.toString().padStart(length, '0');
+
+// Format a Date as an iCal UTC timestamp (e.g. 20260101T090000Z).
+function formatUTC(date: Date, includeSeconds = true): string {
+  return `${pad(date.getUTCFullYear(), 4)}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}`
+    + `T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${includeSeconds ? pad(date.getUTCSeconds()) : '00'}Z`;
+}
+
+// Convert a JST (Asia/Tokyo, UTC+9) date and time to an iCal UTC string.
 function formatToICalUTC(dateStr: string, timeStr: string, isNextDay: boolean = false): string {
   const [y, m, d] = dateStr.split('-').map(Number);
   const [H, M] = timeStr.split(':').map(Number);
-  
-  // Date.UTC expects 0-indexed month. 
-  // JST is UTC+9. So we subtract 9 hours to get UTC.
-  const dateObj = new Date(Date.UTC(y, m - 1, d + (isNextDay ? 1 : 0), H - 9, M));
-  
-  const ny = dateObj.getUTCFullYear();
-  const nm = dateObj.getUTCMonth() + 1;
-  const nd = dateObj.getUTCDate();
-  const nH = dateObj.getUTCHours();
-  const nM = dateObj.getUTCMinutes();
-  
-  return `${ny.toString().padStart(4, '0')}${nm.toString().padStart(2, '0')}${nd.toString().padStart(2, '0')}T${nH.toString().padStart(2, '0')}${nM.toString().padStart(2, '0')}00Z`;
-}
-
-function getDtstamp(): string {
-  const now = new Date();
-  return `${now.getUTCFullYear().toString().padStart(4, '0')}${(now.getUTCMonth()+1).toString().padStart(2, '0')}${now.getUTCDate().toString().padStart(2, '0')}T${now.getUTCHours().toString().padStart(2, '0')}${now.getUTCMinutes().toString().padStart(2, '0')}${now.getUTCSeconds().toString().padStart(2, '0')}Z`;
+  return formatUTC(new Date(Date.UTC(y, m - 1, d + (isNextDay ? 1 : 0), H - 9, M)), false);
 }
 
 // RFC 5545 limits content lines to 75 octets, including UTF-8 text.
@@ -71,7 +63,7 @@ export function generateICal(shifts: Shift[]): string {
     'X-WR-TIMEZONE:Asia/Tokyo'
   ];
 
-  const dtstamp = getDtstamp();
+  const dtstamp = formatUTC(new Date());
 
   for (const shift of shifts) {
     if (!shift.date || !shift.startTime || !shift.endTime) continue;
@@ -82,25 +74,11 @@ export function generateICal(shifts: Shift[]): string {
     const dtend = formatToICalUTC(shift.date, shift.endTime, isOvernight);
     const uid = `${shift.id || shift.date}@shiftapp`;
 
-    // Reorder description: Memo first, then details
-    let descriptionParts = [];
-    if (shift.memo) {
-      descriptionParts.push(shift.memo);
-    }
-    
-    const details = [];
-    details.push(`休憩: ${shift.breakMinutes || 0}分`);
-    if (shift.allowance && shift.allowance > 0) {
-      details.push(`手当: ${shift.allowance}円`);
-    }
-    if (shift.deduction && shift.deduction > 0) {
-      details.push(`控除: ${shift.deduction}円`);
-    }
-    
-    if (descriptionParts.length > 0 && details.length > 0) {
-      descriptionParts.push('------------------');
-    }
-    descriptionParts = [...descriptionParts, ...details];
+    // Memo first, then a separator, then the details
+    const details = [`休憩: ${shift.breakMinutes || 0}分`];
+    if (shift.allowance && shift.allowance > 0) details.push(`手当: ${shift.allowance}円`);
+    if (shift.deduction && shift.deduction > 0) details.push(`控除: ${shift.deduction}円`);
+    const descriptionParts = shift.memo ? [shift.memo, '------------------', ...details] : details;
 
     const description = escapeValue(descriptionParts.join('\n'));
     const summary = escapeValue(

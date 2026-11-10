@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { X, LogOut, Copy, Check, CalendarDays, RefreshCw } from "lucide-react";
+import { LogOut, Copy, Check, CalendarDays, RefreshCw } from "lucide-react";
 import styles from "@/app/page.module.css";
 import type { Settings } from "@/lib/store";
+import { BottomSheet } from "./BottomSheet";
 
 interface SettingsModalProps {
   userId: string;
@@ -69,97 +70,89 @@ export function SettingsModal({ userId, settings, onClose, onSave, onSignOut }: 
   };
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <div className={styles.modalHandle} />
-        <div className={styles.modalHeader}>
-          <div>設定</div>
-          <button type="button" aria-label="設定を閉じる" onClick={onClose}><X size={20} /></button>
-        </div>
+    <BottomSheet title="設定" closeLabel="設定を閉じる" onClose={onClose}>
 
-        {error && <div className={styles.errorText}>{error}</div>}
+      {error && <div className={styles.errorText}>{error}</div>}
 
-        <div className={styles.inputGroup}>
-          <label>基本時給 (円)</label>
-          <input 
-            type="number" 
-            inputMode="numeric" 
-            value={wage} 
-            onChange={e => setWage(e.target.value)} 
-          />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label>給与日 (1〜31日 / 空白で未設定)</label>
-          <input 
-            type="number" 
-            inputMode="numeric" 
-            min="1"
-            max="31"
-            value={paydayStr} 
-            onChange={e => setPaydayStr(e.target.value)} 
-            placeholder="例: 25"
-          />
-        </div>
-
-        <p className={styles.settingsNote}>
-          ※時給を変更しても、すでに保存されている過去のシフトの給与は変わりません。未来の新しいシフトに適用されます。<br/>
-          ※給与日を設定すると、カレンダーのその日に前月の給与合計が表示されます。
-        </p>
-
-        <button className={styles.btnPrimary} onClick={handleSave} disabled={isSaving}>
-          {isSaving ? "保存中..." : "保存する"}
-        </button>
-
-        <hr className={styles.divider} />
-
-        <div className={styles.calendarSection}>
-          <h3 className={styles.calendarTitle}>
-            <CalendarDays size={16} /> カレンダー連携 (iCal)
-          </h3>
-          <p className={styles.calendarDescription}>
-            GoogleカレンダーやiPhoneカレンダーの「URLで追加（照会）」に設定すると、シフトが自動同期されます。
-          </p>
-          <div className={styles.calendarCopyRow}>
-            <input 
-              readOnly 
-              value={calendarUrl} 
-              aria-label="カレンダー連携URL"
-              className={styles.calendarUrl}
-            />
-            <button 
-              type="button"
-              onClick={() => void handleCopyUrl()}
-              aria-label={copied ? "コピーしました" : "URLをコピー"}
-              className={styles.copyButton}
-            >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-            </button>
-          </div>
-          <button
-            type="button"
-            onClick={handleCreateFreshCalendarUrl}
-            className={styles.calendarRefreshButton}
-          >
-            <RefreshCw size={15} />
-            新しい連携URLを作成してコピー
-          </button>
-          <p className={styles.calendarRefreshNote}>
-            反映が止まった場合は、新しいURLでカレンダーを追加し直してください。
-          </p>
-        </div>
-
-        <hr className={styles.divider} />
-
-        <button 
-          className={styles.btnDanger} 
-          onClick={onSignOut} 
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-        >
-          <LogOut size={20} />
-          ログアウト
-        </button>
+      <div className={styles.inputGroup}>
+        <label>基本時給 (円)</label>
+        <input 
+          type="number" 
+          inputMode="numeric" 
+          value={wage} 
+          onChange={e => setWage(e.target.value)} 
+        />
       </div>
-    </div>
+
+      <div className={styles.inputGroup}>
+        <label>給与日 (1〜31日 / 空白で未設定)</label>
+        <input 
+          type="number" 
+          inputMode="numeric" 
+          min="1"
+          max="31"
+          value={paydayStr} 
+          onChange={e => setPaydayStr(e.target.value)} 
+          placeholder="例: 25"
+        />
+      </div>
+
+      <p className={styles.settingsNote}>
+        ※時給を変更しても、すでに保存されている過去のシフトの給与は変わりません。未来の新しいシフトに適用されます。<br/>
+        ※給与日を設定すると、カレンダーのその日に前月の給与合計が表示されます。
+      </p>
+
+      <button className={styles.btnPrimary} onClick={handleSave} disabled={isSaving}>
+        {isSaving ? "保存中..." : "保存する"}
+      </button>
+
+      <hr className={styles.divider} />
+
+      <div className={styles.calendarSection}>
+        <h3 className={styles.calendarTitle}>
+          <CalendarDays size={16} /> カレンダー連携 (iCal)
+        </h3>
+        <p className={styles.calendarDescription}>
+          GoogleカレンダーやiPhoneカレンダーの「URLで追加（照会）」に設定すると、シフトが自動同期されます。
+        </p>
+        <div className={styles.calendarCopyRow}>
+          <input 
+            readOnly 
+            value={calendarUrl} 
+            aria-label="カレンダー連携URL"
+            className={styles.calendarUrl}
+          />
+          <button 
+            type="button"
+            onClick={() => void handleCopyUrl()}
+            aria-label={copied ? "コピーしました" : "URLをコピー"}
+            className={styles.copyButton}
+          >
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={handleCreateFreshCalendarUrl}
+          className={styles.calendarRefreshButton}
+        >
+          <RefreshCw size={15} />
+          新しい連携URLを作成してコピー
+        </button>
+        <p className={styles.calendarRefreshNote}>
+          反映が止まった場合は、新しいURLでカレンダーを追加し直してください。
+        </p>
+      </div>
+
+      <hr className={styles.divider} />
+
+      <button 
+        className={`${styles.btnDanger} ${styles.btnWithIcon}`}
+        onClick={onSignOut}
+      >
+        <LogOut size={20} />
+        ログアウト
+      </button>
+    </BottomSheet>
   );
 }

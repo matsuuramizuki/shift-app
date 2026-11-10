@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { X } from "lucide-react";
 import styles from "@/app/page.module.css";
 import type { Shift, Settings } from "@/lib/store";
 import { calculateSalary } from "@/lib/calc";
+import { BottomSheet } from "./BottomSheet";
 
 interface ShiftModalProps {
   date: Date | null;
@@ -86,84 +86,81 @@ export function ShiftModal({ date, shift, settings, onClose, onSave, onDelete }:
   };
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <div className={styles.modalHandle} />
-        <div className={styles.modalHeader}>
-          <div>{format(date, "M月d日(E)", { locale: ja })} のシフト</div>
-          <button type="button" aria-label="シフト入力を閉じる" onClick={onClose}><X size={20} /></button>
-        </div>
+    <BottomSheet
+      title={`${format(date, "M月d日(E)", { locale: ja })} のシフト`}
+      closeLabel="シフト入力を閉じる"
+      onClose={onClose}
+    >
 
-        {error && <div className={styles.errorText}>{error}</div>}
+      {error && <div className={styles.errorText}>{error}</div>}
 
-        <div className={styles.timeGrid}>
-          <div className={styles.inputGroup}>
-            <label>開始</label>
-            <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
-          </div>
-          <div className={styles.inputGroup}>
-            <label>終了</label>
-            <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
-          </div>
-        </div>
-
-        <div className={styles.amountGrid}>
-          <div className={styles.inputGroup}>
-            <label>休憩（分）</label>
-            <input type="number" inputMode="numeric" value={breakMins} onChange={e => setBreakMins(e.target.value)} />
-          </div>
-          <div className={styles.inputGroup}>
-            <label>天引き（円）</label>
-            <input type="number" inputMode="numeric" value={deduction} onChange={e => setDeduction(e.target.value)} />
-          </div>
-          <div className={styles.inputGroup}>
-            <label>手当（円）</label>
-            <input type="number" inputMode="numeric" value={allowance} onChange={e => setAllowance(e.target.value)} />
-          </div>
-        </div>
-
-        <div className={styles.compactSettingsRow}>
-          <div className={styles.inputGroup}>
-            <label>時給（円）</label>
-            <input type="number" inputMode="numeric" min="1" value={hourlyWage} onChange={e => setHourlyWage(e.target.value)} />
-          </div>
-          <div className={styles.compactToggleRow}>
-            <span className={styles.toggleLabel}>仮のシフト</span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isTentative}
-              aria-label="仮のシフト"
-              className={`${styles.toggle} ${isTentative ? styles.toggleOn : ""}`}
-              onClick={() => setIsTentative(value => !value)}
-            >
-              <span className={styles.toggleThumb} />
-            </button>
-          </div>
-        </div>
-
+      <div className={styles.timeGrid}>
         <div className={styles.inputGroup}>
-          <label>メモ</label>
-          <textarea
-            rows={1}
-            className={styles.memoInput}
-            value={memo}
-            onChange={e => setMemo(e.target.value)}
-            placeholder="特記事項"
-          />
+          <label>開始</label>
+          <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
         </div>
+        <div className={styles.inputGroup}>
+          <label>終了</label>
+          <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+        </div>
+      </div>
 
-        <div className={styles.modalActions}>
-          {shift && (
-            <button className={styles.btnDanger} onClick={handleDelete} disabled={isSaving}>
-              {isSaving ? "処理中..." : "削除"}
-            </button>
-          )}
-          <button className={styles.btnPrimary} onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "保存中..." : "保存"}
+      <div className={styles.amountGrid}>
+        <div className={styles.inputGroup}>
+          <label>休憩（分）</label>
+          <input type="number" inputMode="numeric" value={breakMins} onChange={e => setBreakMins(e.target.value)} />
+        </div>
+        <div className={styles.inputGroup}>
+          <label>天引き（円）</label>
+          <input type="number" inputMode="numeric" value={deduction} onChange={e => setDeduction(e.target.value)} />
+        </div>
+        <div className={styles.inputGroup}>
+          <label>手当（円）</label>
+          <input type="number" inputMode="numeric" value={allowance} onChange={e => setAllowance(e.target.value)} />
+        </div>
+      </div>
+
+      <div className={styles.compactSettingsRow}>
+        <div className={styles.inputGroup}>
+          <label>時給（円）</label>
+          <input type="number" inputMode="numeric" min="1" value={hourlyWage} onChange={e => setHourlyWage(e.target.value)} />
+        </div>
+        <div className={styles.compactToggleRow}>
+          <span className={styles.toggleLabel}>仮のシフト</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isTentative}
+            aria-label="仮のシフト"
+            className={`${styles.toggle} ${isTentative ? styles.toggleOn : ""}`}
+            onClick={() => setIsTentative(value => !value)}
+          >
+            <span className={styles.toggleThumb} />
           </button>
         </div>
       </div>
-    </div>
+
+      <div className={styles.inputGroup}>
+        <label>メモ</label>
+        <textarea
+          rows={1}
+          className={styles.memoInput}
+          value={memo}
+          onChange={e => setMemo(e.target.value)}
+          placeholder="特記事項"
+        />
+      </div>
+
+      <div className={styles.modalActions}>
+        {shift && (
+          <button className={styles.btnDanger} onClick={handleDelete} disabled={isSaving}>
+            {isSaving ? "処理中..." : "削除"}
+          </button>
+        )}
+        <button className={styles.btnPrimary} onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "保存中..." : "保存"}
+        </button>
+      </div>
+    </BottomSheet>
   );
 }
